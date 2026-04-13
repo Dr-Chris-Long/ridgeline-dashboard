@@ -573,8 +573,183 @@ function rCb(){dc();const f=h("div",{className:"fl"});let tab="codes";
   document.getElementById("con").replaceChildren(f);rf();
 }
 
+// --- PROJECTS ---
+function rPj(projDetail,commentDetail){
+  dc();const f=h("div",{className:"fl"});
+  const covered=getCoveredComments();
+
+  // --- Comment Detail Panel ---
+  if(commentDetail){
+    const proj=DB.projects.find(p=>p.project_id===commentDetail.project_id);
+    f.appendChild(h("button",{className:"bk",onClick:()=>rPj(proj)},"← Back to "+pm[commentDetail.project_id]));
+
+    // Comment card
+    const cc=h("div",{className:"cd"});
+    cc.append(
+      h("div",{style:{fontSize:"18px",fontWeight:700}},commentDetail.author_name||"Anonymous"),
+      h("div",{style:{fontSize:"13px",color:"var(--tm)",marginTop:"4px"}},(commentDetail.submitter_org||"—")+" · "+pm[commentDetail.project_id]+" · "+(commentDetail.date_received||"—")));
+    const tags=h("div",{style:{display:"flex",gap:"8px",marginTop:"8px"}});
+    if(commentDetail.substantive_confirmed)tags.appendChild(bg("Substantive","#34D399"));
+    if(commentDetail.comment_type)tags.appendChild(bg(commentDetail.comment_type,"#A78BFA"));
+    const isCovered=covered.has(commentDetail.comment_id);
+    tags.appendChild(bg(isCovered?"Response Exists":"No Response",isCovered?"#34D399":"#F87171"));
+    cc.appendChild(tags);
+    if(commentDetail.summary)cc.append(h("div",{style:{fontSize:"11px",color:"var(--td)",textTransform:"uppercase",marginTop:"16px"}},"Summary"),h("div",{style:{fontSize:"13px",color:"var(--tx)",marginTop:"6px",lineHeight:"1.6"}},commentDetail.summary));
+    if(commentDetail.full_text)cc.append(h("div",{style:{fontSize:"11px",color:"var(--td)",textTransform:"uppercase",marginTop:"16px"}},"Full Text"),h("div",{style:{fontSize:"13px",color:"var(--tm)",marginTop:"6px",lineHeight:"1.6",maxHeight:"250px",overflowY:"auto",whiteSpace:"pre-wrap"}},commentDetail.full_text));
+    f.appendChild(cc);
+
+    // Three-panel layout: Themes | Codes | Responses
+    const panels=h("div",{className:"g3"});
+
+    // Linked Themes
+    const cThemes=DB.theme_comments.filter(tc=>tc.comment_id===commentDetail.comment_id).map(tc=>DB.themes.find(t=>t.theme_id===tc.theme_id)).filter(Boolean);
+    const tp=h("div",{className:"cd"});
+    tp.append(h("div",{className:"ct2",style:{color:"var(--pp)"}},"Themes ("+cThemes.length+")"));
+    if(cThemes.length){
+      cThemes.forEach(t=>{
+        const row=h("div",{style:{padding:"8px 0",borderBottom:"1px solid var(--bd)"}});
+        row.append(
+          h("div",{style:{fontWeight:600,fontSize:"13px",cursor:"pointer",color:"var(--ac)"},onClick:()=>{sv("themes");setTimeout(()=>rTh(t),50)}},t.theme_name),
+          h("div",{style:{fontSize:"11px",color:"var(--td)",marginTop:"4px"}},
+            (t.theme_layer||"—")+" · "+(t.code_count||0)+" codes · "+(t.occurrences||0)+" occ"));
+        tp.appendChild(row);
+      });
+    } else { tp.append(h("div",{style:{color:"var(--td)",fontSize:"12px"}},"No themes linked")); }
+    panels.appendChild(tp);
+
+    // Linked Codes
+    const cCodes=DB.codes.filter(c=>c.comment_id===commentDetail.comment_id);
+    const kp=h("div",{className:"cd"});
+    kp.append(h("div",{className:"ct2",style:{color:"var(--yw)"}},"Codes ("+cCodes.length+")"));
+    if(cCodes.length){
+      cCodes.forEach(c=>{
+        const row=h("div",{style:{padding:"6px 0",borderBottom:"1px solid var(--bd)",fontSize:"12px"}});
+        row.append(
+          h("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center"}},
+            h("span",{style:{color:"var(--tx)"}},c.code_text||"—"),
+            bg(stanceLabel(c.stance),stanceColor(c.stance))),
+          h("div",{style:{fontSize:"11px",color:"var(--td)",marginTop:"2px"}},(c.category||"—")+" · "+(c.code_type||"—")));
+        kp.appendChild(row);
+      });
+    } else { kp.append(h("div",{style:{color:"var(--td)",fontSize:"12px"}},"No codes")); }
+    panels.appendChild(kp);
+
+    // Linked Responses
+    const directResp=DB.responses.filter(r=>r.comment_id===commentDetail.comment_id);
+    const themeIds=new Set(cThemes.map(t=>t.theme_id));
+    const themeResp=DB.responses.filter(r=>r.theme_id&&themeIds.has(r.theme_id)&&r.comment_id!==commentDetail.comment_id);
+    const rp=h("div",{className:"cd"});
+    rp.append(h("div",{className:"ct2",style:{color:"var(--gn)"}},"Responses ("+(directResp.length+themeResp.length)+")"));
+    if(directResp.length){
+      rp.append(h("div",{style:{fontSize:"11px",color:"var(--td)",textTransform:"uppercase",marginBottom:"6px"}},"Direct Responses"));
+      directResp.forEach(r=>{
+        const row=h("div",{style:{padding:"6px 0",borderBottom:"1px solid var(--bd)",fontSize:"12px",color:"var(--tx)",lineHeight:"1.5"}});
+        row.textContent=r.response_text||(r.theme_id?"Response via theme "+r.theme_id:"Response recorded");
+        rp.appendChild(row);
+      });
+    }
+    if(themeResp.length){
+      rp.append(h("div",{style:{fontSize:"11px",color:"var(--td)",textTransform:"uppercase",marginTop:"8px",marginBottom:"6px"}},"Via Linked Themes"));
+      themeResp.forEach(r=>{
+        const th=DB.themes.find(t=>t.theme_id===r.theme_id);
+        const row=h("div",{style:{padding:"6px 0",borderBottom:"1px solid var(--bd)",fontSize:"12px"}});
+        row.append(h("span",{style:{color:"var(--pp)"}},th?th.theme_name:"Theme "+r.theme_id));
+        if(r.response_text)row.append(h("div",{style:{color:"var(--tm)",marginTop:"2px",fontSize:"11px"}},r.response_text.slice(0,150)+(r.response_text.length>150?"…":"")));
+        rp.appendChild(row);
+      });
+    }
+    if(!directResp.length&&!themeResp.length){
+      rp.append(h("div",{style:{color:"var(--rd)",fontSize:"12px"}},"No responses found for this comment or its linked themes"));
+    }
+    panels.appendChild(rp);
+    f.appendChild(panels);
+
+    document.getElementById("con").replaceChildren(f);
+    document.getElementById("ttl").textContent="Comment Detail";
+    return;
+  }
+
+  // --- Project Detail ---
+  if(projDetail){
+    const pid=projDetail.project_id;
+    f.appendChild(h("button",{className:"bk",onClick:()=>rPj()},"← All Projects"));
+
+    // Header
+    const hdr=h("div",{className:"cd"});
+    const pComments=DB.comments.filter(c=>c.project_id===pid);
+    const pThemes=DB.themes.filter(t=>t.project_id===pid).sort((a,b)=>(b.occurrences||0)-(a.occurrences||0));
+    const pCovered=pComments.filter(c=>covered.has(c.comment_id)).length;
+    const pPct=pComments.length?Math.round(pCovered/pComments.length*100):0;
+    hdr.append(
+      h("div",{style:{fontSize:"20px",fontWeight:700}},projDetail.project_name||pm[pid]),
+      h("div",{style:{display:"flex",gap:"20px",marginTop:"12px",flexWrap:"wrap"}},
+        h("div",null,h("span",{className:"sl"},"Comments "),h("span",{style:{fontFamily:"monospace",fontWeight:700,fontSize:"18px",color:"var(--ac)"}},pComments.length)),
+        h("div",null,h("span",{className:"sl"},"Themes "),h("span",{style:{fontFamily:"monospace",fontWeight:700,fontSize:"18px",color:"var(--pp)"}},pThemes.length)),
+        h("div",null,h("span",{className:"sl"},"Response Coverage "),h("span",{style:{fontFamily:"monospace",fontWeight:700,fontSize:"18px",color:pPct>=80?"var(--gn)":pPct>=50?"var(--yw)":"var(--rd)"}},pPct+"%"))));
+    f.appendChild(hdr);
+
+    // Themes for this project
+    if(pThemes.length){
+      const tc=h("div",{className:"cd"});tc.append(h("div",{className:"ct2"},"Themes ("+pThemes.length+")"));
+      tc.appendChild(bt([
+        {l:"Theme",k:"theme_name",r:r=>h("span",{style:{fontWeight:600}},r.theme_name)},
+        {l:"Layer",k:"theme_layer",r:r=>r.theme_layer?bg(r.theme_layer,"#A78BFA"):"—"},
+        {l:"Codes",k:"code_count"},{l:"Occurrences",k:"occurrences"},
+        {l:"Status",k:"status",r:r=>bg(r.status||"draft",r.status==="Confirmed"||r.status==="active"?"#34D399":"#FBBF24")}
+      ],pThemes,{mh:"300px",oc:r=>{sv("themes");setTimeout(()=>rTh(r),50)}}));
+      f.appendChild(tc);
+    }
+
+    // Comments with response status indicator
+    if(pComments.length){
+      const cc=h("div",{className:"cd"});cc.append(h("div",{className:"ct2"},"Comments ("+pComments.length+") — click any row to see themes, codes, and responses"));
+      cc.appendChild(bt([
+        {l:"ID",k:"comment_id"},
+        {l:"Author",k:"author_name",r:r=>r.author_name||"Anon"},
+        {l:"Org",k:"submitter_org",r:r=>r.submitter_org||"—"},
+        {l:"Type",k:"comment_type",r:r=>r.comment_type?bg(r.comment_type,"#4F8EF7"):"—"},
+        {l:"Sub",k:"substantive_confirmed",r:r=>r.substantive_confirmed?bg("Yes","#34D399"):"No"},
+        {l:"Response",k:"comment_id",r:r=>{
+          const hasResp=covered.has(r.comment_id);
+          return bg(hasResp?"✓":"✗",hasResp?"#34D399":"#F87171");
+        }},
+        {l:"Date",k:"date_received"}
+      ],pComments,{mh:"500px",oc:r=>rPj(projDetail,r)}));
+      f.appendChild(cc);
+    }
+
+    document.getElementById("con").replaceChildren(f);
+    document.getElementById("ttl").textContent=pm[pid]+" — Project Detail";
+    return;
+  }
+
+  // --- Project List ---
+  document.getElementById("ttl").textContent="Projects";
+  const pStatus=getProjectStatus();
+  const grid=h("div",{style:{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(320px,1fr))",gap:"16px"}});
+  DB.projects.forEach(proj=>{
+    const ps=pStatus.find(p=>p.pid===proj.project_id)||{};
+    const color=ps.status==='complete'?'var(--gn)':ps.status==='partial'?'var(--yw)':ps.status==='pending-responses'?'var(--or)':'var(--td)';
+    const label=ps.status==='complete'?'Complete':ps.status==='partial'?'Partial':ps.status==='pending-responses'?'Needs Responses':'No Data';
+    const card=h("div",{className:"cd",style:{cursor:"pointer",transition:"border-color .15s"},onClick:()=>rPj(proj),onMouseenter:e=>e.currentTarget.style.borderColor="var(--ac)",onMouseleave:e=>e.currentTarget.style.borderColor="var(--bd)"});
+    card.append(
+      h("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"8px"}},
+        h("div",{style:{fontSize:"16px",fontWeight:700}},proj.project_name||pm[proj.project_id]),
+        bg(label,color.replace("var(--","").replace(")","").replace("gn","#34D399").replace("yw","#FBBF24").replace("or","#FB923C").replace("td","#5A6A8A"))),
+      h("div",{style:{display:"flex",gap:"16px",fontSize:"12px",color:"var(--tm)",marginBottom:"8px"}},
+        h("span",null,"Comments: "+(ps.comments||0)),
+        h("span",null,"Themes: "+(ps.themes||0)),
+        h("span",null,"Codes: "+(ps.codes||0))),
+      h("div",{className:"meter"},h("div",{className:"meter-fill",style:{width:(ps.respPct||0)+"%",background:color}})),
+      h("div",{style:{fontSize:"11px",color:"var(--td)",marginTop:"4px"}},(ps.respPct||0)+"% response coverage"));
+    grid.appendChild(card);
+  });
+  f.appendChild(grid);
+  document.getElementById("con").replaceChildren(f);
+}
+
 // --- NAV ---
-const VW=[{id:"overview",l:"Overview",ic:"◉",fn:rOv},{id:"comments",l:"Comments",ic:"◈",fn:rCm},{id:"themes",l:"Themes",ic:"◆",fn:rTh},{id:"responses",l:"Responses",ic:"◇",fn:rRe},{id:"codebook",l:"Codebook",ic:"▣",fn:rCb}];
+const VW=[{id:"overview",l:"Overview",ic:"◉",fn:rOv},{id:"projects",l:"Projects",ic:"◫",fn:rPj},{id:"comments",l:"Comments",ic:"◈",fn:rCm},{id:"themes",l:"Themes",ic:"◆",fn:rTh},{id:"responses",l:"Responses",ic:"◇",fn:rRe},{id:"codebook",l:"Codebook",ic:"▣",fn:rCb}];
 let cv="overview";
 function sv(id){cv=id;document.querySelectorAll(".nb").forEach(b=>b.classList.toggle("a",b.dataset.v===id));document.getElementById("ttl").textContent=VW.find(v=>v.id===id).l;VW.find(v=>v.id===id).fn()}
 
