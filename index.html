@@ -83,17 +83,23 @@ async function loadData(){
   const T={projects:"project_id,project_code,project_name,status",comments:"comment_id,project_id,author_name,submitter_org,comment_type,summary,substantive_confirmed,date_received,full_text",codes:"code_id,comment_id,code_text,category,stance,code_type,substantive",themes:"theme_id,theme_name,description,code_count,occurrences,status,theme_layer,project_id",unique_concerns:"uc_id,code_text,category,stance,occurrences,substantive,uc_type",responses:"response_id,comment_id,theme_id,response_text",theme_comments:"theme_id,comment_id","references":"r_id,reference_type,citation,issue_date,author,summary,peer_reviewed,applicable_to",code_references:"code_id,r_id",theme_references:"theme_id,r_id"};
   const e=Object.entries(T);const r=await Promise.all(e.map(([t,s])=>fetchAll(t,s)));
   e.forEach(([t],i)=>{DB[t]=r[i]});
-  // Exclude QG and LC projects from dashboard
-  const EXCLUDE_CODES=new Set(['QG','LC']);
+  // Exclude non-actionable projects from dashboard entirely
+  const EXCLUDE_CODES=new Set(['QG','LC','DBOW']);
   const exPids=new Set(DB.projects.filter(p=>EXCLUDE_CODES.has(p.project_code)).map(p=>p.project_id));
+  const exCids=new Set(DB.comments.filter(c=>exPids.has(c.project_id)).map(c=>c.comment_id));
+  const exTids=new Set((DB.themes||[]).filter(t=>exPids.has(t.project_id)).map(t=>t.theme_id));
   DB.projects=DB.projects.filter(p=>!exPids.has(p.project_id));
   DB.comments=DB.comments.filter(c=>!exPids.has(c.project_id));
-  const exCids=new Set(DB.comments.filter(c=>exPids.has(c.project_id)).map(c=>c.comment_id));
-  DB.themes=DB.themes.filter(t=>!exPids.has(t.project_id));
-  const exTids=new Set(DB.themes.filter(t=>exPids.has(t.project_id)).map(t=>t.theme_id));
+  DB.themes=(DB.themes||[]).filter(t=>!exPids.has(t.project_id));
   DB.codes=(DB.codes||[]).filter(c=>!exCids.has(c.comment_id));
+  const keepCodeIds=new Set((DB.codes||[]).map(c=>c.code_id));
   DB.theme_comments=(DB.theme_comments||[]).filter(tc=>!exCids.has(tc.comment_id)&&!exTids.has(tc.theme_id));
   DB.responses=(DB.responses||[]).filter(r=>(!r.comment_id||!exCids.has(r.comment_id))&&(!r.theme_id||!exTids.has(r.theme_id)));
+  DB.code_references=(DB.code_references||[]).filter(cr=>keepCodeIds.has(cr.code_id));
+  DB.theme_references=(DB.theme_references||[]).filter(tr=>!exTids.has(tr.theme_id));
+  // Prune orphaned references (only linked to excluded projects)
+  const usedRids=new Set([...(DB.code_references||[]).map(cr=>cr.r_id),...(DB.theme_references||[]).map(tr=>tr.r_id)]);
+  DB.references=(DB.references||[]).filter(r=>usedRids.has(r.r_id));
   pm=Object.fromEntries(DB.projects.map(p=>[p.project_id,p.project_code||p.project_name]));
   document.getElementById("ft").textContent=`${DB.projects.length}P · ${DB.comments.length}C · ${DB.themes.length}T · ${DB.codes.length}K · ${(DB.references||[]).length}R`;
 }
@@ -161,7 +167,7 @@ function refPanel(refs,title,compact){
 // Project data completeness status
 function getProjectStatus(){
   const covered=getCoveredComments();
-  const NA_PROJECTS={'DBOW':{status:'blocked',label:'EA Not Loaded'}};
+  const NA_PROJECTS={};
   return DB.projects.map(p=>{
     const code=pm[p.project_id];
     const comments=DB.comments.filter(c=>c.project_id===p.project_id);
@@ -277,10 +283,8 @@ function showProjectDetail(p){
 function rOv(){dc();const f=h("div",{className:"fl"});
   const tot=DB.comments.length,sub=DB.comments.filter(c=>c.substantive_confirmed).length;
   const ri=getCoveredComments();
-  const naProjects=new Set(['DBOW']);const naPids=new Set(DB.projects.filter(p=>(p.project_code&&naProjects.has(p.project_code))).map(p=>p.project_id));
-  const actionableComments=DB.comments.filter(c=>!naPids.has(c.project_id));
-  const actionableTotal=actionableComments.length;
-  const actionableCovered=actionableComments.filter(c=>ri.has(c.comment_id)).length;
+  const actionableTotal=tot;
+  const actionableCovered=ri.size;
   const rt=actionableTotal?Math.round(actionableCovered/actionableTotal*100):0;
   const orgs=new Set(DB.comments.map(c=>c.submitter_org).filter(Boolean));
 
@@ -351,15 +355,13 @@ function rOv(){dc();const f=h("div",{className:"fl"});
   mc(c3,"bar",{data:{labels:topThemes.map(t=>t.theme_name),datasets:[{data:topThemes.map(t=>t.occurrences||0),backgroundColor:"#A78BFA",borderRadius:4}]},options:{indexAxis:"y",plugins:{legend:{display:false}},onClick:(e,el)=>{if(el.length){sv("themes");setTimeout(()=>rTh(topThemes[el[0].index]),50)}}}});
 
   // Response coverage stacked bar
-  const naSet=new Set(['DBOW']);
   const projResp=DB.projects.map(p=>{
     const code=pm[p.project_id];
     const pc=DB.comments.filter(c=>c.project_id===p.project_id);
     const covSet=getCoveredComments();const resp=pc.filter(c=>covSet.has(c.comment_id)).length;
-    const isNA=naSet.has(code);
-    return{n:code,responded:resp,unresponded:isNA?0:pc.length-resp,na:isNA?pc.length:0};
-  }).filter(p=>p.responded+p.unresponded+p.na>0).sort((a,b)=>(b.responded+b.unresponded+b.na)-(a.responded+a.unresponded+a.na));
-  mc(c5,"bar",{data:{labels:projResp.map(p=>p.n),datasets:[{label:"Responded",data:projResp.map(p=>p.responded),backgroundColor:"#34D399",borderRadius:4},{label:"Unresponded",data:projResp.map(p=>p.unresponded),backgroundColor:"#F8717140",borderRadius:4},{label:"N/A",data:projResp.map(p=>p.na),backgroundColor:"#5A6A8A40",borderRadius:4}]},options:{plugins:{legend:{position:"bottom"}},scales:{x:{stacked:true},y:{stacked:true}}}});
+    return{n:code,responded:resp,unresponded:pc.length-resp};
+  }).filter(p=>p.responded+p.unresponded>0).sort((a,b)=>(b.responded+b.unresponded)-(a.responded+a.unresponded));
+  mc(c5,"bar",{data:{labels:projResp.map(p=>p.n),datasets:[{label:"Responded",data:projResp.map(p=>p.responded),backgroundColor:"#34D399",borderRadius:4},{label:"Unresponded",data:projResp.map(p=>p.unresponded),backgroundColor:"#F8717140",borderRadius:4}]},options:{plugins:{legend:{position:"bottom"}},scales:{x:{stacked:true},y:{stacked:true}}}});
 }
 
 // --- COMMENTS EXPLORER ---
@@ -623,7 +625,6 @@ function rRe(){dc();const f=h("div",{className:"fl"});
 
   // Pending extraction notice
   const pending=getProjectStatus().filter(p=>p.status==='pending-responses');
-  const blocked=getProjectStatus().filter(p=>p.status==='blocked'||p.status==='not-applicable');
   if(pending.length){
     const nc=h("div",{className:"cd",style:{borderColor:"var(--or)"}});
     nc.append(h("div",{className:"ct2",style:{color:"var(--or)"}},"Pending Response Extraction ("+pending.length+" projects)"));
@@ -632,14 +633,6 @@ function rRe(){dc();const f=h("div",{className:"fl"});
     nc.appendChild(plist);
     nc.append(h("div",{style:{fontSize:"12px",color:"var(--td)",marginTop:"8px"}},"These EAs have comment response sections that have not yet been extracted into the database."));
     f.appendChild(nc);
-  }
-  if(blocked.length){
-    const bc=h("div",{className:"cd",style:{borderColor:"var(--td)"}});
-    bc.append(h("div",{className:"ct2",style:{color:"var(--td)"}},"Not Applicable ("+blocked.length+" projects)"));
-    const blist=h("div",{style:{display:"flex",gap:"8px",flexWrap:"wrap"}});
-    blocked.forEach(p=>blist.appendChild(bg(p.code+" — "+(p.statusLabel||p.status),"#5A6A8A")));
-    bc.appendChild(blist);
-    f.appendChild(bc);
   }
 
   if(ur.length){const d=h("div",{className:"cd"});d.append(h("div",{className:"ct2",style:{color:"var(--rd)"}},"Unresponded Substantive ("+ur.length+")"));d.appendChild(bt([{l:"ID",k:"comment_id"},{l:"Project",k:"project_id",r:r=>pm[r.project_id]||"—"},{l:"Author",k:"author_name",r:r=>r.author_name||"Anon"},{l:"Org",k:"submitter_org"},{l:"Summary",k:"summary",w:1}],ur,{mh:"400px",oc:r=>rCm(r)}));f.appendChild(d)}
