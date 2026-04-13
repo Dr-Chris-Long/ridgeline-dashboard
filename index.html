@@ -93,13 +93,22 @@ function sc(l,v,s,c="var(--ac)"){return h("div",{className:"cd"},h("div",{classN
 function dc(){charts.forEach(c=>c.destroy());charts=[]}
 function mc(cv,t,cfg){const c=new Chart(cv.getContext("2d"),{type:t,...cfg,options:{...cfg.options,responsive:true,maintainAspectRatio:false,plugins:{...cfg.options?.plugins,legend:{labels:{color:"#8896B3",font:{size:11}},...cfg.options?.plugins?.legend},tooltip:{backgroundColor:"#131825",borderColor:"#2A3A5C",borderWidth:1,titleColor:"#E2E8F0",bodyColor:"#8896B3",padding:10,cornerRadius:6,...cfg.options?.plugins?.tooltip}},scales:t==="pie"||t==="doughnut"||t==="polarArea"?undefined:{x:{ticks:{color:"#5A6A8A",font:{size:11}},grid:{color:"#1E2A42"},...cfg.options?.scales?.x},y:{ticks:{color:"#5A6A8A",font:{size:11}},grid:{color:"#1E2A42"},...cfg.options?.scales?.y}}}});charts.push(c);return c}
 function bt(cols,data,opts={}){const w=h("div",{className:"tw",style:{maxHeight:opts.mh||"600px"}});const tb=h("table");const th=h("thead",null,h("tr",null,...cols.map(c=>h("th",null,c.l))));const bd=h("tbody");(data||[]).forEach(r=>{const tr=h("tr",opts.oc?{className:"ck",onClick:()=>opts.oc(r)}:null);cols.forEach(c=>{const td=h("td",c.w?{className:"wp"}:c.t?{className:"tr"}:null);const v=c.r?c.r(r):(r[c.k]??"—");if(v instanceof HTMLElement)td.appendChild(v);else td.textContent=v;tr.appendChild(td)});bd.appendChild(tr)});tb.append(th,bd);w.appendChild(tb);return w}
+// Build covered comment set (direct + theme-level responses)
+function getCoveredComments(){
+  const direct=new Set(DB.responses.map(r=>r.comment_id).filter(Boolean));
+  const themedThemes=new Set(DB.responses.map(r=>r.theme_id).filter(Boolean));
+  const themeCovered=new Set();
+  DB.theme_comments.forEach(tc=>{if(themedThemes.has(tc.theme_id))themeCovered.add(tc.comment_id)});
+  return new Set([...direct,...themeCovered]);
+}
+
 function stanceColor(s){return s==="support"||s==="S"?"#34D399":s==="oppose"||s==="O"?"#F87171":"#FBBF24"}
 function stanceLabel(s){return s==="S"?"Support":s==="O"?"Oppose":s==="N"?"Neutral":s||"?"}
 
 // --- OVERVIEW ---
 function rOv(){dc();const f=h("div",{className:"fl"});
   const tot=DB.comments.length,sub=DB.comments.filter(c=>c.substantive_confirmed).length;
-  const ri=new Set(DB.responses.map(r=>r.comment_id));const rt=tot?Math.round(ri.size/tot*100):0;
+  const ri=getCoveredComments();const rt=tot?Math.round(ri.size/tot*100):0;
   const orgs=new Set(DB.comments.map(c=>c.submitter_org).filter(Boolean));
 
   // Stats
@@ -149,7 +158,7 @@ function rOv(){dc();const f=h("div",{className:"fl"});
   // Response coverage stacked bar
   const projResp=DB.projects.map(p=>{
     const pc=DB.comments.filter(c=>c.project_id===p.project_id);
-    const resp=pc.filter(c=>ri.has(c.comment_id)).length;
+    const covSet=getCoveredComments();const resp=pc.filter(c=>covSet.has(c.comment_id)).length;
     return{n:pm[p.project_id],responded:resp,unresponded:pc.length-resp};
   }).filter(p=>p.responded+p.unresponded>0).sort((a,b)=>(b.responded+b.unresponded)-(a.responded+a.unresponded));
   mc(c5,"bar",{data:{labels:projResp.map(p=>p.n),datasets:[{label:"Responded",data:projResp.map(p=>p.responded),backgroundColor:"#34D399",borderRadius:4},{label:"Unresponded",data:projResp.map(p=>p.unresponded),backgroundColor:"#F8717140",borderRadius:4}]},options:{plugins:{legend:{position:"bottom"}},scales:{x:{stacked:true},y:{stacked:true}}}});
@@ -285,7 +294,7 @@ function rTh(det){dc();const f=h("div",{className:"fl"});
     }
 
     // Response status for this theme
-    const themeResp=DB.responses.filter(r=>r.theme_id===det.theme_id);
+    const themeResp=DB.responses.filter(r=>r.theme_id===det.theme_id||r.comment_id&&lc.some(c=>c.comment_id===r.comment_id));
     const respCard=h("div",{className:"cd"});
     const respPct=lc.length?Math.round(themeResp.length/lc.length*100):0;
     respCard.append(h("div",{className:"ct2"},"Response Status"),h("div",{style:{display:"flex",gap:"20px",alignItems:"center"}},h("div",{className:"sv",style:{color:respPct>=80?"var(--gn)":respPct>=50?"var(--yw)":"var(--rd)"}},respPct+"%"),h("div",null,h("div",{style:{fontSize:"13px",color:"var(--tm)"}},themeResp.length+" responses for "+lc.length+" linked comments"),h("div",{className:"meter",style:{width:"200px",marginTop:"8px"}},h("div",{className:"meter-fill",style:{width:respPct+"%",background:respPct>=80?"var(--gn)":respPct>=50?"var(--yw)":"var(--rd)"}})))));
@@ -358,7 +367,7 @@ function rTh(det){dc();const f=h("div",{className:"fl"});
 
 // --- RESPONSES ---
 function rRe(){dc();const f=h("div",{className:"fl"});
-  const ri=new Set(DB.responses.map(r=>r.comment_id));const ur=DB.comments.filter(c=>c.substantive_confirmed&&!ri.has(c.comment_id));
+  const ri=getCoveredComments();const ur=DB.comments.filter(c=>c.substantive_confirmed&&!ri.has(c.comment_id));
   const tot=DB.comments.length;const st=DB.comments.filter(c=>c.substantive_confirmed).length;const sr=DB.comments.filter(c=>c.substantive_confirmed&&ri.has(c.comment_id)).length;
   const or=tot?Math.round(ri.size/tot*100):0;const srr=st?Math.round(sr/st*100):0;
 
