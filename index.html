@@ -80,11 +80,11 @@ const tip=document.getElementById("tip");
 async function fetchAll(t,s="*"){let a=[],o=0;while(true){const r=await fetch(`${SB_URL}/${t}?select=${s}&limit=1000&offset=${o}`,{headers:HDRS});if(!r.ok)return a;const d=await r.json();a=a.concat(d);if(d.length<1000)break;o+=1000}return a}
 
 async function loadData(){
-  const T={projects:"project_id,project_code,project_name,status",comments:"comment_id,project_id,author_name,submitter_org,comment_type,summary,substantive_confirmed,date_received,full_text",codes:"code_id,comment_id,code_text,category,stance,code_type,substantive",themes:"theme_id,theme_name,description,code_count,occurrences,status,theme_layer,project_id",unique_concerns:"uc_id,code_text,category,stance,occurrences,substantive,uc_type",responses:"response_id,comment_id,theme_id,response_text",theme_comments:"theme_id,comment_id"};
+  const T={projects:"project_id,project_code,project_name,status",comments:"comment_id,project_id,author_name,submitter_org,comment_type,summary,substantive_confirmed,date_received,full_text",codes:"code_id,comment_id,code_text,category,stance,code_type,substantive",themes:"theme_id,theme_name,description,code_count,occurrences,status,theme_layer,project_id",unique_concerns:"uc_id,code_text,category,stance,occurrences,substantive,uc_type",responses:"response_id,comment_id,theme_id,response_text",theme_comments:"theme_id,comment_id","references":"r_id,reference_type,citation,issue_date,author,summary,peer_reviewed,applicable_to",code_references:"code_id,r_id",theme_references:"theme_id,r_id"};
   const e=Object.entries(T);const r=await Promise.all(e.map(([t,s])=>fetchAll(t,s)));
   e.forEach(([t],i)=>{DB[t]=r[i]});
   pm=Object.fromEntries(DB.projects.map(p=>[p.project_id,p.project_code||p.project_name]));
-  document.getElementById("ft").textContent=`${DB.projects.length}P · ${DB.comments.length}C · ${DB.themes.length}T · ${DB.codes.length}K`;
+  document.getElementById("ft").textContent=`${DB.projects.length}P · ${DB.comments.length}C · ${DB.themes.length}T · ${DB.codes.length}K · ${(DB.references||[]).length}R`;
 }
 
 // --- HELPERS ---
@@ -751,6 +751,145 @@ function rPj(projDetail,commentDetail){
   document.getElementById("con").replaceChildren(f);
 }
 
+// --- REFERENCES ---
+function rRef(detail){
+  dc();const f=h("div",{className:"fl"});
+  const refs=DB.references||[];
+  const codeRefs=DB.code_references||[];
+  const themeRefs=DB.theme_references||[];
+
+  if(detail){
+    f.appendChild(h("button",{className:"bk",onClick:()=>rRef()},"← Back to References"));
+
+    // Reference detail card
+    const rc=h("div",{className:"cd"});
+    rc.append(
+      h("div",{style:{fontSize:"16px",fontWeight:700,lineHeight:"1.5"}},detail.citation||"Unknown Citation"),
+      h("div",{style:{display:"flex",gap:"8px",marginTop:"8px",flexWrap:"wrap"}},
+        detail.reference_type?bg(detail.reference_type,"#4F8EF7"):null,
+        detail.peer_reviewed?bg("Peer Reviewed","#34D399"):bg("Not Peer Reviewed","#5A6A8A"),
+        detail.issue_date?bg(detail.issue_date,"#FB923C"):null));
+    if(detail.author)rc.append(h("div",{style:{fontSize:"13px",color:"var(--tm)",marginTop:"12px"}},"Author(s): "+detail.author));
+    if(detail.summary)rc.append(h("div",{style:{fontSize:"13px",color:"var(--tm)",marginTop:"8px",lineHeight:"1.6"}},detail.summary));
+    if(detail.applicable_to)rc.append(h("div",{style:{fontSize:"12px",color:"var(--td)",marginTop:"8px"}},"Applicable to: "+detail.applicable_to));
+    f.appendChild(rc);
+
+    // Linked codes
+    const linkedCodeIds=codeRefs.filter(cr=>cr.r_id===detail.r_id).map(cr=>cr.code_id);
+    const linkedCodes=DB.codes.filter(c=>linkedCodeIds.includes(c.code_id));
+    if(linkedCodes.length){
+      const cc=h("div",{className:"cd"});
+      cc.append(h("div",{className:"ct2",style:{color:"var(--yw)"}},"Cited by Codes ("+linkedCodes.length+")"));
+      // Stance summary
+      const stMap={};linkedCodes.forEach(c=>{const s=stanceLabel(c.stance);stMap[s]=(stMap[s]||0)+1});
+      const stTags=h("div",{style:{display:"flex",gap:"8px",marginBottom:"12px"}});
+      Object.entries(stMap).forEach(([s,n])=>stTags.appendChild(bg(s+": "+n,stanceColor(s==="Support"?"S":s==="Oppose"?"O":"N"))));
+      cc.appendChild(stTags);
+      cc.appendChild(bt([
+        {l:"Code ID",k:"code_id"},{l:"Code",k:"code_text",w:1},
+        {l:"Category",k:"category"},{l:"Stance",k:"stance",r:r=>bg(stanceLabel(r.stance),stanceColor(r.stance))},
+        {l:"Comment",k:"comment_id",r:r=>{const cm=DB.comments.find(c=>c.comment_id===r.comment_id);return cm?h("span",{style:{cursor:"pointer",color:"var(--ac)"},onClick:e=>{e.stopPropagation();rCm(cm)}},r.comment_id+(cm.author_name?" ("+cm.author_name+")":"")):r.comment_id||"—"}}
+      ],linkedCodes,{mh:"350px"}));
+      f.appendChild(cc);
+    }
+
+    // Linked themes
+    const linkedThemeIds=themeRefs.filter(tr=>tr.r_id===detail.r_id).map(tr=>tr.theme_id);
+    const linkedThemes=DB.themes.filter(t=>linkedThemeIds.includes(t.theme_id));
+    if(linkedThemes.length){
+      const tc=h("div",{className:"cd"});
+      tc.append(h("div",{className:"ct2",style:{color:"var(--pp)"}},"Linked Themes ("+linkedThemes.length+")"));
+      tc.appendChild(bt([
+        {l:"Theme",k:"theme_name",r:r=>h("span",{style:{fontWeight:600,cursor:"pointer",color:"var(--ac)"},onClick:e=>{e.stopPropagation();sv("themes");setTimeout(()=>rTh(r),50)}},r.theme_name)},
+        {l:"Project",k:"project_id",r:r=>pm[r.project_id]||"—"},
+        {l:"Occurrences",k:"occurrences"},{l:"Status",k:"status",r:r=>bg(r.status||"draft",r.status==="Confirmed"||r.status==="active"?"#34D399":"#FBBF24")}
+      ],linkedThemes,{mh:"300px"}));
+      f.appendChild(tc);
+    }
+
+    // Which comments cite this reference (via codes)
+    const commentIds=new Set(linkedCodes.map(c=>c.comment_id));
+    const linkedComments=DB.comments.filter(c=>commentIds.has(c.comment_id));
+    if(linkedComments.length){
+      const lcc=h("div",{className:"cd"});
+      lcc.append(h("div",{className:"ct2"},"Source Comments ("+linkedComments.length+")"));
+      lcc.appendChild(bt([
+        {l:"ID",k:"comment_id"},{l:"Author",k:"author_name",r:r=>r.author_name||"Anon"},
+        {l:"Org",k:"submitter_org",r:r=>r.submitter_org||"—"},
+        {l:"Project",k:"project_id",r:r=>pm[r.project_id]||"—"}
+      ],linkedComments,{mh:"250px",oc:r=>rCm(r)}));
+      f.appendChild(lcc);
+    }
+
+    document.getElementById("con").replaceChildren(f);
+    document.getElementById("ttl").textContent="Reference Detail";
+    return;
+  }
+
+  // --- Reference List ---
+  const tb=h("div",{className:"tb"});
+  const si=h("input",{type:"text",placeholder:"Search citation, author...",style:{width:"260px"}});
+  const typeSel=h("select");typeSel.append(h("option",{value:"all"},"All Types"));
+  [...new Set(refs.map(r=>r.reference_type).filter(Boolean))].sort().forEach(t=>typeSel.append(h("option",{value:t},t)));
+  const prSel=h("select");prSel.append(h("option",{value:"all"},"All"),h("option",{value:"yes"},"Peer Reviewed"),h("option",{value:"no"},"Not Peer Reviewed"));
+  const cnt=h("div",{className:"tc"});
+  tb.append(si,typeSel,prSel,cnt);f.appendChild(tb);
+
+  // Summary charts
+  const cr=h("div",{className:"g3"});
+  const ch1=h("div",{className:"cd"});ch1.append(h("div",{className:"ct2"},"By Type"));const cv1=h("canvas");ch1.append(h("div",{className:"ch-sm"},cv1));cr.appendChild(ch1);
+  const ch2=h("div",{className:"cd"});ch2.append(h("div",{className:"ct2"},"Peer Review Status"));const cv2=h("canvas");ch2.append(h("div",{className:"ch-sm"},cv2));cr.appendChild(ch2);
+  const ch3=h("div",{className:"cd"});ch3.append(h("div",{className:"ct2"},"Most Cited (by codes)"));const cv3=h("canvas");ch3.append(h("div",{className:"ch-sm"},cv3));cr.appendChild(ch3);
+  f.appendChild(cr);
+
+  const tc=h("div");f.appendChild(tc);
+
+  function rf(){
+    dc();
+    const s=si.value.toLowerCase(),tf=typeSel.value,prf=prSel.value;
+    const fl=refs.filter(r=>{
+      if(tf!=="all"&&r.reference_type!==tf)return false;
+      if(prf==="yes"&&!r.peer_reviewed)return false;
+      if(prf==="no"&&r.peer_reviewed)return false;
+      if(s)return(r.citation||"").toLowerCase().includes(s)||(r.author||"").toLowerCase().includes(s)||(r.summary||"").toLowerCase().includes(s);
+      return true;
+    });
+    cnt.textContent=fl.length+" of "+refs.length+" references";
+
+    // Type donut
+    const types={};fl.forEach(r=>{const t=r.reference_type||"Unknown";types[t]=(types[t]||0)+1});
+    const td=Object.entries(types).sort((a,b)=>b[1]-a[1]);
+    mc(cv1,"doughnut",{data:{labels:td.map(t=>t[0]),datasets:[{data:td.map(t=>t[1]),backgroundColor:CL}]},options:{cutout:"50%",plugins:{legend:{position:"right",labels:{boxWidth:10,font:{size:10}}}}}});
+
+    // Peer review
+    const prY=fl.filter(r=>r.peer_reviewed).length;
+    mc(cv2,"doughnut",{data:{labels:["Peer Reviewed","Other"],datasets:[{data:[prY,fl.length-prY],backgroundColor:["#34D399","#5A6A8A"]}]},options:{cutout:"50%",plugins:{legend:{position:"right",labels:{boxWidth:10,font:{size:10}}}}}});
+
+    // Most cited
+    const citeCounts={};codeRefs.forEach(cr=>{citeCounts[cr.r_id]=(citeCounts[cr.r_id]||0)+1});
+    const topCited=Object.entries(citeCounts).sort((a,b)=>b[1]-a[1]).slice(0,8).map(([rid,cnt])=>{
+      const ref=refs.find(r=>r.r_id===rid);
+      const label=ref?(ref.author||ref.citation||rid).slice(0,30):rid;
+      return{label,count:cnt};
+    });
+    mc(cv3,"bar",{data:{labels:topCited.map(t=>t.label),datasets:[{data:topCited.map(t=>t.count),backgroundColor:"#FB923C",borderRadius:4}]},options:{indexAxis:"y",plugins:{legend:{display:false}}}});
+
+    // Add citation count to each reference for display
+    const flWithCounts=fl.map(r=>({...r,_cites:citeCounts[r.r_id]||0})).sort((a,b)=>b._cites-a._cites);
+
+    tc.replaceChildren(bt([
+      {l:"R_ID",k:"r_id"},{l:"Citation",k:"citation",w:1},
+      {l:"Type",k:"reference_type",r:r=>r.reference_type?bg(r.reference_type,"#4F8EF7"):"—"},
+      {l:"Author",k:"author",t:1},{l:"Date",k:"issue_date"},
+      {l:"PR",k:"peer_reviewed",r:r=>r.peer_reviewed?bg("Yes","#34D399"):"No"},
+      {l:"Cited",k:"_cites",r:r=>r._cites?h("span",{style:{fontFamily:"monospace",fontWeight:700,color:"var(--or)"}},r._cites):"0"}
+    ],flWithCounts,{oc:r=>rRef(r)}));
+  }
+
+  si.addEventListener("input",rf);typeSel.addEventListener("change",rf);prSel.addEventListener("change",rf);
+  document.getElementById("con").replaceChildren(f);rf();
+}
+
 // --- METHODOLOGY ---
 function rMeth(){
   dc();const f=h("div",{className:"fl"});
@@ -844,7 +983,7 @@ function rExport(){
   full.append(
     h("div",{style:{fontSize:"40px",textAlign:"center",marginBottom:"12px"}},"📊"),
     h("div",{style:{fontSize:"15px",fontWeight:700,textAlign:"center",marginBottom:"8px"}},"Full CTA Workbook"),
-    h("div",{style:{fontSize:"12px",color:"var(--tm)",textAlign:"center",lineHeight:"1.6"}},"6 sheets: Comments, Codes, Themes, Unique Concerns, Responses, Projects. All "+DB.comments.length+" comments, "+DB.codes.length+" codes, "+DB.themes.length+" themes."));
+    h("div",{style:{fontSize:"12px",color:"var(--tm)",textAlign:"center",lineHeight:"1.6"}},"8 sheets: Comments, Codes, Themes, Unique Concerns, Responses, References, Code_References, Projects. All "+DB.comments.length+" comments, "+DB.codes.length+" codes, "+DB.themes.length+" themes."));
   opts.appendChild(full);
 
   // Per-project
@@ -925,6 +1064,20 @@ function exportXLSX(mode,pid){
       });
       XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(rData),"Responses");
 
+      // References sheet
+      const refData=(DB.references||[]).map(r=>{
+        const citeCount=(DB.code_references||[]).filter(cr=>cr.r_id===r.r_id).length;
+        const themeCount=(DB.theme_references||[]).filter(tr=>tr.r_id===r.r_id).length;
+        return{R_ID:r.r_id,Citation:r.citation||"",Type:r.reference_type||"",Author:r.author||"",
+          Date:r.issue_date||"",Peer_Reviewed:r.peer_reviewed?"Yes":"No",Summary:r.summary||"",
+          Applicable_To:r.applicable_to||"",Code_Citations:citeCount,Theme_Links:themeCount};
+      });
+      XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(refData),"References");
+
+      // Code-Reference Links
+      const crData=(DB.code_references||[]).map(cr=>({Code_ID:cr.code_id,R_ID:cr.r_id}));
+      XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(crData),"Code_References");
+
       // Projects sheet
       const pData=(mode==="project"?DB.projects.filter(p=>p.project_id===pid):DB.projects).map(p=>({
         Project_Code:pm[p.project_id],Project_Name:p.project_name||"",Status:p.status||""
@@ -940,7 +1093,7 @@ function exportXLSX(mode,pid){
 }
 
 // --- NAV ---
-const VW=[{id:"overview",l:"Overview",ic:"◉",fn:rOv},{id:"projects",l:"Projects",ic:"◫",fn:rPj},{id:"comments",l:"Comments",ic:"◈",fn:rCm},{id:"themes",l:"Themes",ic:"◆",fn:rTh},{id:"responses",l:"Responses",ic:"◇",fn:rRe},{id:"codebook",l:"Codebook",ic:"▣",fn:rCb},{id:"methodology",l:"Methodology",ic:"◎",fn:rMeth},{id:"export",l:"Export",ic:"⬡",fn:rExport}];
+const VW=[{id:"overview",l:"Overview",ic:"◉",fn:rOv},{id:"projects",l:"Projects",ic:"◫",fn:rPj},{id:"comments",l:"Comments",ic:"◈",fn:rCm},{id:"themes",l:"Themes",ic:"◆",fn:rTh},{id:"responses",l:"Responses",ic:"◇",fn:rRe},{id:"codebook",l:"Codebook",ic:"▣",fn:rCb},{id:"references",l:"References",ic:"◆",fn:rRef},{id:"methodology",l:"Methodology",ic:"◎",fn:rMeth},{id:"export",l:"Export",ic:"⬡",fn:rExport}];
 let cv="overview";
 function sv(id){cv=id;document.querySelectorAll(".nb").forEach(b=>b.classList.toggle("a",b.dataset.v===id));document.getElementById("ttl").textContent=VW.find(v=>v.id===id).l;VW.find(v=>v.id===id).fn()}
 
