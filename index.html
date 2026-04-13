@@ -150,7 +150,9 @@ function refPanel(refs,title,compact){
 // Project data completeness status
 function getProjectStatus(){
   const covered=getCoveredComments();
+  const NA_PROJECTS={'QG':{status:'not-applicable',label:'Pre-Decision'},'LC':{status:'not-applicable',label:'Litigation'},'DBOW':{status:'blocked',label:'EA Not Loaded'}};
   return DB.projects.map(p=>{
+    const code=pm[p.project_id];
     const comments=DB.comments.filter(c=>c.project_id===p.project_id);
     const themes=DB.themes.filter(t=>t.project_id===p.project_id);
     const codes=DB.codes.filter(c=>comments.some(cm=>cm.comment_id===c.comment_id));
@@ -161,10 +163,12 @@ function getProjectStatus(){
     const hasResponses=resp.length>0;
     const respPct=comments.length?Math.round(resp.length/comments.length*100):0;
     let status='complete';
-    if(!hasComments)status='no-data';
+    if(NA_PROJECTS[code]&&!hasResponses)status=NA_PROJECTS[code].status;
+    else if(!hasComments)status='no-data';
     else if(!hasResponses)status='pending-responses';
     else if(respPct<50)status='partial';
-    return{code:pm[p.project_id],pid:p.project_id,comments:comments.length,themes:themes.length,codes:codes.length,responses:resp.length,respPct,status,hasComments,hasThemes,hasCodes,hasResponses};
+    const statusLabel=NA_PROJECTS[code]&&!hasResponses?NA_PROJECTS[code].label:null;
+    return{code,pid:p.project_id,comments:comments.length,themes:themes.length,codes:codes.length,responses:resp.length,respPct,status,statusLabel,hasComments,hasThemes,hasCodes,hasResponses};
   });
 }
 
@@ -178,8 +182,8 @@ function showProjectDetail(p){
 
   // Header
   const hdr=h("div",{className:"cd"});
-  const color=p.status==='complete'?'var(--gn)':p.status==='partial'?'var(--yw)':p.status==='pending-responses'?'var(--or)':'var(--td)';
-  const label=p.status==='complete'?'Complete':p.status==='partial'?'Partial':p.status==='pending-responses'?'Needs Responses':'No Data';
+  const color=p.status==='complete'?'var(--gn)':p.status==='partial'?'var(--yw)':p.status==='pending-responses'?'var(--or)':p.status==='blocked'?'var(--or)':'var(--td)';
+  const label=p.statusLabel||(p.status==='complete'?'Complete':p.status==='partial'?'Partial':p.status==='pending-responses'?'Needs Responses':'No Data');
   const proj=DB.projects.find(pr=>pr.project_id===p.pid);
   hdr.append(
     h("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center"}},
@@ -261,12 +265,17 @@ function showProjectDetail(p){
 // --- OVERVIEW ---
 function rOv(){dc();const f=h("div",{className:"fl"});
   const tot=DB.comments.length,sub=DB.comments.filter(c=>c.substantive_confirmed).length;
-  const ri=getCoveredComments();const rt=tot?Math.round(ri.size/tot*100):0;
+  const ri=getCoveredComments();
+  const naProjects=new Set(['QG','LC','DBOW']);const naPids=new Set(DB.projects.filter(p=>(p.project_code&&naProjects.has(p.project_code))).map(p=>p.project_id));
+  const actionableComments=DB.comments.filter(c=>!naPids.has(c.project_id));
+  const actionableTotal=actionableComments.length;
+  const actionableCovered=actionableComments.filter(c=>ri.has(c.comment_id)).length;
+  const rt=actionableTotal?Math.round(actionableCovered/actionableTotal*100):0;
   const orgs=new Set(DB.comments.map(c=>c.submitter_org).filter(Boolean));
 
   // Stats
   const s=h("div",{className:"g5"});
-  s.append(sc("Projects",DB.projects.length,"In pipeline"),sc("Comments",tot,sub+" substantive","var(--gn)"),sc("Themes",DB.themes.length,"Across all projects","var(--pp)"),sc("Codes",DB.codes.length,DB.unique_concerns.length+" unique concerns","var(--yw)"),sc("Response Rate",rt+"%",ri.size+" of "+tot+" addressed",rt>=80?"var(--gn)":rt>=50?"var(--yw)":"var(--rd)"),sc("References",(DB.references||[]).length,(DB.references||[]).filter(r=>r.peer_reviewed).length+" peer-reviewed","var(--or)"));
+  s.append(sc("Projects",DB.projects.length,"In pipeline"),sc("Comments",tot,sub+" substantive","var(--gn)"),sc("Themes",DB.themes.length,"Across all projects","var(--pp)"),sc("Codes",DB.codes.length,DB.unique_concerns.length+" unique concerns","var(--yw)"),sc("Response Rate",rt+"%",actionableCovered+" of "+actionableTotal+" addressed",rt>=80?"var(--gn)":rt>=50?"var(--yw)":"var(--rd)"),sc("References",(DB.references||[]).length,(DB.references||[]).filter(r=>r.peer_reviewed).length+" peer-reviewed","var(--or)"));
   f.appendChild(s);
 
   // Pipeline Status
@@ -274,8 +283,8 @@ function rOv(){dc();const f=h("div",{className:"fl"});
   const psGrid=h("div",{style:{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(140px,1fr))",gap:"10px"}});
   const pStatus=getProjectStatus();
   pStatus.forEach(p=>{
-    const color=p.status==='complete'?'var(--gn)':p.status==='partial'?'var(--yw)':p.status==='pending-responses'?'var(--or)':'var(--td)';
-    const label=p.status==='complete'?'Complete':p.status==='partial'?'Partial':p.status==='pending-responses'?'Needs Responses':'No Data';
+    const color=p.status==='complete'?'var(--gn)':p.status==='partial'?'var(--yw)':p.status==='pending-responses'?'var(--or)':p.status==='blocked'?'var(--or)':'var(--td)';
+    const label=p.statusLabel||( p.status==='complete'?'Complete':p.status==='partial'?'Partial':p.status==='pending-responses'?'Needs Responses':'No Data');
     const card=h("div",{style:{background:"var(--bg)",borderRadius:"6px",padding:"12px",border:"1px solid var(--bd)",cursor:"pointer",transition:"border-color .15s"},onClick:()=>showProjectDetail(p),onMouseenter:e=>e.currentTarget.style.borderColor="var(--ac)",onMouseleave:e=>e.currentTarget.style.borderColor="var(--bd)"});
     card.append(
       h("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"6px"}},
@@ -284,7 +293,7 @@ function rOv(){dc();const f=h("div",{className:"fl"});
       h("div",{style:{display:"flex",gap:"12px",fontSize:"11px",color:"var(--tm)"}},
         h("span",null,"C:"+p.comments),h("span",null,"T:"+p.themes),h("span",null,"K:"+p.codes)),
       h("div",{className:"meter",style:{marginTop:"6px"}},h("div",{className:"meter-fill",style:{width:p.respPct+"%",background:color}})),
-      h("div",{style:{fontSize:"10px",color:"var(--td)",marginTop:"4px"}},p.hasResponses?p.respPct+"% response coverage":"No responses extracted")
+      h("div",{style:{fontSize:"10px",color:"var(--td)",marginTop:"4px"}},p.statusLabel?p.statusLabel:p.hasResponses?p.respPct+"% response coverage":"No responses extracted")
     );
     psGrid.appendChild(card);
   });
@@ -331,12 +340,15 @@ function rOv(){dc();const f=h("div",{className:"fl"});
   mc(c3,"bar",{data:{labels:topThemes.map(t=>t.theme_name),datasets:[{data:topThemes.map(t=>t.occurrences||0),backgroundColor:"#A78BFA",borderRadius:4}]},options:{indexAxis:"y",plugins:{legend:{display:false}},onClick:(e,el)=>{if(el.length){sv("themes");setTimeout(()=>rTh(topThemes[el[0].index]),50)}}}});
 
   // Response coverage stacked bar
+  const naSet=new Set(['QG','LC','DBOW']);
   const projResp=DB.projects.map(p=>{
+    const code=pm[p.project_id];
     const pc=DB.comments.filter(c=>c.project_id===p.project_id);
     const covSet=getCoveredComments();const resp=pc.filter(c=>covSet.has(c.comment_id)).length;
-    return{n:pm[p.project_id],responded:resp,unresponded:pc.length-resp};
-  }).filter(p=>p.responded+p.unresponded>0).sort((a,b)=>(b.responded+b.unresponded)-(a.responded+a.unresponded));
-  mc(c5,"bar",{data:{labels:projResp.map(p=>p.n),datasets:[{label:"Responded",data:projResp.map(p=>p.responded),backgroundColor:"#34D399",borderRadius:4},{label:"Unresponded",data:projResp.map(p=>p.unresponded),backgroundColor:"#F8717140",borderRadius:4}]},options:{plugins:{legend:{position:"bottom"}},scales:{x:{stacked:true},y:{stacked:true}}}});
+    const isNA=naSet.has(code);
+    return{n:code,responded:resp,unresponded:isNA?0:pc.length-resp,na:isNA?pc.length:0};
+  }).filter(p=>p.responded+p.unresponded+p.na>0).sort((a,b)=>(b.responded+b.unresponded+b.na)-(a.responded+a.unresponded+a.na));
+  mc(c5,"bar",{data:{labels:projResp.map(p=>p.n),datasets:[{label:"Responded",data:projResp.map(p=>p.responded),backgroundColor:"#34D399",borderRadius:4},{label:"Unresponded",data:projResp.map(p=>p.unresponded),backgroundColor:"#F8717140",borderRadius:4},{label:"N/A",data:projResp.map(p=>p.na),backgroundColor:"#5A6A8A40",borderRadius:4}]},options:{plugins:{legend:{position:"bottom"}},scales:{x:{stacked:true},y:{stacked:true}}}});
 }
 
 // --- COMMENTS EXPLORER ---
@@ -600,6 +612,7 @@ function rRe(){dc();const f=h("div",{className:"fl"});
 
   // Pending extraction notice
   const pending=getProjectStatus().filter(p=>p.status==='pending-responses');
+  const blocked=getProjectStatus().filter(p=>p.status==='blocked'||p.status==='not-applicable');
   if(pending.length){
     const nc=h("div",{className:"cd",style:{borderColor:"var(--or)"}});
     nc.append(h("div",{className:"ct2",style:{color:"var(--or)"}},"Pending Response Extraction ("+pending.length+" projects)"));
@@ -608,6 +621,14 @@ function rRe(){dc();const f=h("div",{className:"fl"});
     nc.appendChild(plist);
     nc.append(h("div",{style:{fontSize:"12px",color:"var(--td)",marginTop:"8px"}},"These EAs have comment response sections that have not yet been extracted into the database."));
     f.appendChild(nc);
+  }
+  if(blocked.length){
+    const bc=h("div",{className:"cd",style:{borderColor:"var(--td)"}});
+    bc.append(h("div",{className:"ct2",style:{color:"var(--td)"}},"Not Applicable ("+blocked.length+" projects)"));
+    const blist=h("div",{style:{display:"flex",gap:"8px",flexWrap:"wrap"}});
+    blocked.forEach(p=>blist.appendChild(bg(p.code+" — "+(p.statusLabel||p.status),"#5A6A8A")));
+    bc.appendChild(blist);
+    f.appendChild(bc);
   }
 
   if(ur.length){const d=h("div",{className:"cd"});d.append(h("div",{className:"ct2",style:{color:"var(--rd)"}},"Unresponded Substantive ("+ur.length+")"));d.appendChild(bt([{l:"ID",k:"comment_id"},{l:"Project",k:"project_id",r:r=>pm[r.project_id]||"—"},{l:"Author",k:"author_name",r:r=>r.author_name||"Anon"},{l:"Org",k:"submitter_org"},{l:"Summary",k:"summary",w:1}],ur,{mh:"400px",oc:r=>rCm(r)}));f.appendChild(d)}
@@ -833,8 +854,8 @@ function rPj(projDetail,commentDetail){
   const grid=h("div",{style:{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(320px,1fr))",gap:"16px"}});
   DB.projects.forEach(proj=>{
     const ps=pStatus.find(p=>p.pid===proj.project_id)||{};
-    const color=ps.status==='complete'?'var(--gn)':ps.status==='partial'?'var(--yw)':ps.status==='pending-responses'?'var(--or)':'var(--td)';
-    const label=ps.status==='complete'?'Complete':ps.status==='partial'?'Partial':ps.status==='pending-responses'?'Needs Responses':'No Data';
+    const color=ps.status==='complete'?'var(--gn)':ps.status==='partial'?'var(--yw)':ps.status==='pending-responses'?'var(--or)':ps.status==='blocked'?'var(--or)':'var(--td)';
+    const label=ps.statusLabel||(ps.status==='complete'?'Complete':ps.status==='partial'?'Partial':ps.status==='pending-responses'?'Needs Responses':'No Data');
     const card=h("div",{className:"cd",style:{cursor:"pointer",transition:"border-color .15s"},onClick:()=>rPj(proj),onMouseenter:e=>e.currentTarget.style.borderColor="var(--ac)",onMouseleave:e=>e.currentTarget.style.borderColor="var(--bd)"});
     card.append(
       h("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"8px"}},
