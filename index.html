@@ -102,6 +102,27 @@ function getCoveredComments(){
   return new Set([...direct,...themeCovered]);
 }
 
+// Project data completeness status
+function getProjectStatus(){
+  const covered=getCoveredComments();
+  return DB.projects.map(p=>{
+    const comments=DB.comments.filter(c=>c.project_id===p.project_id);
+    const themes=DB.themes.filter(t=>t.project_id===p.project_id);
+    const codes=DB.codes.filter(c=>comments.some(cm=>cm.comment_id===c.comment_id));
+    const resp=comments.filter(c=>covered.has(c.comment_id));
+    const hasComments=comments.length>0;
+    const hasThemes=themes.length>0;
+    const hasCodes=codes.length>0;
+    const hasResponses=resp.length>0;
+    const respPct=comments.length?Math.round(resp.length/comments.length*100):0;
+    let status='complete';
+    if(!hasComments)status='no-data';
+    else if(!hasResponses)status='pending-responses';
+    else if(respPct<50)status='partial';
+    return{code:pm[p.project_id],pid:p.project_id,comments:comments.length,themes:themes.length,codes:codes.length,responses:resp.length,respPct,status,hasComments,hasThemes,hasCodes,hasResponses};
+  });
+}
+
 function stanceColor(s){return s==="support"||s==="S"?"#34D399":s==="oppose"||s==="O"?"#F87171":"#FBBF24"}
 function stanceLabel(s){return s==="S"?"Support":s==="O"?"Oppose":s==="N"?"Neutral":s||"?"}
 
@@ -115,6 +136,28 @@ function rOv(){dc();const f=h("div",{className:"fl"});
   const s=h("div",{className:"g5"});
   s.append(sc("Projects",DB.projects.length,"In pipeline"),sc("Comments",tot,sub+" substantive","var(--gn)"),sc("Themes",DB.themes.length,"Across all projects","var(--pp)"),sc("Codes",DB.codes.length,DB.unique_concerns.length+" unique concerns","var(--yw)"),sc("Response Rate",rt+"%",ri.size+" of "+tot+" addressed",rt>=80?"var(--gn)":rt>=50?"var(--yw)":"var(--rd)"));
   f.appendChild(s);
+
+  // Pipeline Status
+  const psCard=h("div",{className:"cd"});psCard.append(h("div",{className:"ct2"},"Pipeline Data Status"));
+  const psGrid=h("div",{style:{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(140px,1fr))",gap:"10px"}});
+  const pStatus=getProjectStatus();
+  pStatus.forEach(p=>{
+    const color=p.status==='complete'?'var(--gn)':p.status==='partial'?'var(--yw)':p.status==='pending-responses'?'var(--or)':'var(--td)';
+    const label=p.status==='complete'?'Complete':p.status==='partial'?'Partial':p.status==='pending-responses'?'Needs Responses':'No Data';
+    const card=h("div",{style:{background:"var(--bg)",borderRadius:"6px",padding:"12px",border:"1px solid var(--bd)"}});
+    card.append(
+      h("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"6px"}},
+        h("span",{style:{fontSize:"14px",fontWeight:700,color:"var(--tx)"}},p.code),
+        h("span",{className:"bg",style:{color,background:color+"18",fontSize:"9px"}},label)),
+      h("div",{style:{display:"flex",gap:"12px",fontSize:"11px",color:"var(--tm)"}},
+        h("span",null,"C:"+p.comments),h("span",null,"T:"+p.themes),h("span",null,"K:"+p.codes)),
+      h("div",{className:"meter",style:{marginTop:"6px"}},h("div",{className:"meter-fill",style:{width:p.respPct+"%",background:color}})),
+      h("div",{style:{fontSize:"10px",color:"var(--td)",marginTop:"4px"}},p.hasResponses?p.respPct+"% response coverage":"No responses extracted"))
+    );
+    psGrid.appendChild(card);
+  });
+  psCard.appendChild(psGrid);
+  f.appendChild(psCard);
 
   // Row 1: Comments by Project + Stance Donut
   const r1=h("div",{className:"g2"});
@@ -382,6 +425,18 @@ function rRe(){dc();const f=h("div",{className:"fl"});
   document.getElementById("con").replaceChildren(f);
   mc(cv,"bar",{data:{labels:trD.map(d=>d.n.length>30?d.n.slice(0,28)+"…":d.n),datasets:[{data:trD.map(d=>d.c),backgroundColor:"#34D399",borderRadius:4}]},options:{indexAxis:"y",plugins:{legend:{display:false}}}});
   }else{document.getElementById("con").replaceChildren(f)}
+
+  // Pending extraction notice
+  const pending=getProjectStatus().filter(p=>p.status==='pending-responses');
+  if(pending.length){
+    const nc=h("div",{className:"cd",style:{borderColor:"var(--or)"}});
+    nc.append(h("div",{className:"ct2",style:{color:"var(--or)"}},"Pending Response Extraction ("+pending.length+" projects)"));
+    const plist=h("div",{style:{display:"flex",gap:"8px",flexWrap:"wrap"}});
+    pending.forEach(p=>plist.appendChild(bg(p.code+" ("+p.comments+" comments)","#FB923C")));
+    nc.appendChild(plist);
+    nc.append(h("div",{style:{fontSize:"12px",color:"var(--td)",marginTop:"8px"}},"These EAs have comment response sections that have not yet been extracted into the database."));
+    f.appendChild(nc);
+  }
 
   if(ur.length){const d=h("div",{className:"cd"});d.append(h("div",{className:"ct2",style:{color:"var(--rd)"}},"Unresponded Substantive ("+ur.length+")"));d.appendChild(bt([{l:"ID",k:"comment_id"},{l:"Project",k:"project_id",r:r=>pm[r.project_id]||"—"},{l:"Author",k:"author_name",r:r=>r.author_name||"Anon"},{l:"Org",k:"submitter_org"},{l:"Summary",k:"summary",w:1}],ur,{mh:"400px",oc:r=>rCm(r)}));f.appendChild(d)}
 }
