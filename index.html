@@ -6,6 +6,7 @@
 <title>RIDGELINE — NEPA Comment Analysis Dashboard</title>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
 :root{--bg:#0B0F19;--sf:#131825;--sh:#1A2035;--bd:#1E2A42;--bl:#2A3A5C;--tx:#E2E8F0;--tm:#8896B3;--td:#5A6A8A;--ac:#4F8EF7;--gn:#34D399;--yw:#FBBF24;--rd:#F87171;--or:#FB923C;--pp:#A78BFA}
 *{margin:0;padding:0;box-sizing:border-box}body{font-family:'IBM Plex Sans',system-ui,sans-serif;background:var(--bg);color:var(--tx);display:flex;min-height:100vh}
@@ -750,8 +751,196 @@ function rPj(projDetail,commentDetail){
   document.getElementById("con").replaceChildren(f);
 }
 
+// --- METHODOLOGY ---
+function rMeth(){
+  dc();const f=h("div",{className:"fl"});
+
+  const intro=h("div",{className:"cd"});
+  intro.append(
+    h("div",{style:{fontSize:"18px",fontWeight:700,marginBottom:"12px"}},"Comment Thematic Analysis (CTA) Pipeline"),
+    h("div",{style:{fontSize:"13px",color:"var(--tm)",lineHeight:"1.8"}},
+      "The CTA pipeline is RIDGELINE\u2019s systematic process for analyzing public comments received during NEPA environmental review. "+
+      "It transforms unstructured comment letters into structured, auditable data that supports BLM\u2019s obligation to respond to substantive public comments under 40 CFR 1503.4."));
+  f.appendChild(intro);
+
+  // Pipeline stages
+  const stages=[
+    {n:"1. Comment Intake",color:"#4F8EF7",desc:"Raw comment letters are ingested, assigned unique IDs (e.g., C-ELK-001), and classified by submitter type (Individual, Organization, Coalition, Local Government, Tribal Government). Each comment is assessed for substantive content \u2014 whether it raises specific issues requiring a reasoned agency response versus general statements of support or opposition."},
+    {n:"2. Code Extraction",color:"#FBBF24",desc:"Each substantive comment is decomposed into individual codes \u2014 discrete, self-contained analytical units representing a single argument, concern, request, or piece of evidence. Codes are tagged with: category (e.g., WILD, FIRE, WATER, ALT, PROC, ECON), stance (Support, Oppose, Neutral), code type (ARGUMENT, REQUEST, CONCERN, QUESTION, SUPPORT), and substantive status. A single comment letter may yield 5\u201350+ codes."},
+    {n:"3. Unique Concern Consolidation",color:"#FB923C",desc:"Codes from across all comments are compared and consolidated into unique concerns (UCs). Multiple commenters may raise the same issue \u2014 e.g., three organizations all arguing that cumulative effects analysis is inadequate. These become one UC with an occurrence count of 3. This deduplication reveals the actual scope of public concern independent of how many letters were received."},
+    {n:"4. Theme Construction",color:"#A78BFA",desc:"Related unique concerns are grouped into themes \u2014 higher-level analytical categories that represent a coherent area of public concern. For example, individual UCs about road density, sediment delivery, and culvert failures may roll up into a single theme: \"Road Infrastructure, Access, and Transportation Management.\" Themes are classified by layer (analytical vs. response) and confirmed through intercoder review."},
+    {n:"5. Reference Reconciliation",color:"#34D399",desc:"Scientific citations, legal authorities, and regulatory references cited by commenters are extracted, deduplicated against a master reference database (500+ entries), and linked to the codes and themes where they appear. This creates an auditable chain from public assertion \u2192 cited evidence \u2192 agency awareness."},
+    {n:"6. Response Tracking",color:"#E879F9",desc:"BLM\u2019s responses to public comments (typically found in the EA\u2019s Consultation & Coordination chapter, NAID appendix, or distributed throughout resource sections) are extracted and linked to the themes and comments they address. Coverage tracking identifies which substantive comments have been addressed and which remain unresponded \u2014 a critical litigation vulnerability under NEPA."}
+  ];
+
+  const stageCard=h("div",{className:"cd"});
+  stageCard.append(h("div",{className:"ct2"},"Pipeline Stages"));
+  stages.forEach((s,i)=>{
+    const row=h("div",{style:{padding:"16px 0",borderBottom:i<stages.length-1?"1px solid var(--bd)":"none"}});
+    row.append(
+      h("div",{style:{display:"flex",alignItems:"center",gap:"10px",marginBottom:"8px"}},
+        h("div",{style:{width:"28px",height:"28px",borderRadius:"50%",background:s.color+"22",color:s.color,display:"flex",alignItems:"center",justifyContent:"center",fontWeight:700,fontSize:"13px",flexShrink:0}},String(i+1)),
+        h("div",{style:{fontSize:"14px",fontWeight:700,color:s.color}},s.n)),
+      h("div",{style:{fontSize:"13px",color:"var(--tm)",lineHeight:"1.7",marginLeft:"38px"}},s.desc));
+    stageCard.appendChild(row);
+  });
+  f.appendChild(stageCard);
+
+  // Key concepts
+  const concepts=h("div",{className:"cd"});
+  concepts.append(h("div",{className:"ct2"},"Key Concepts"));
+  const defs=[
+    {t:"Substantive Comment",d:"A comment that raises a specific issue, provides new information, identifies an analytical deficiency, or requests a specific change. Under NEPA, agencies must provide a reasoned response to substantive comments. General statements like \u201cI support this project\u201d are non-substantive."},
+    {t:"Stance",d:"Each code is classified as Support (S), Oppose (O), or Neutral (N) relative to the proposed action. This reveals the directional pressure on each issue \u2014 e.g., a theme where 80% of codes are Oppose signals high contention."},
+    {t:"Response Coverage",d:"A comment is considered \u201ccovered\u201d if it has either a direct response (linked by comment ID) or belongs to a theme that has at least one response. Coverage below 100% for substantive comments represents a potential procedural vulnerability."},
+    {t:"Theme Layer",d:"Themes are classified as \u2018analytical\u2019 (resource-specific technical issues) or \u2018response\u2019 (aligned to BLM\u2019s comment response structure). This dual-layer approach supports both technical analysis and administrative compliance."},
+    {t:"NAID",d:"Not Analyzed in Detail. Issues that BLM considered during scoping but determined did not warrant full analysis in the EA. NAID justifications in the appendix function as de facto comment responses for the issues they address."}
+  ];
+  defs.forEach((d,i)=>{
+    const row=h("div",{style:{padding:"12px 0",borderBottom:i<defs.length-1?"1px solid var(--bd)":"none"}});
+    row.append(
+      h("div",{style:{fontSize:"13px",fontWeight:700,color:"var(--tx)",marginBottom:"4px"}},d.t),
+      h("div",{style:{fontSize:"13px",color:"var(--tm)",lineHeight:"1.6"}},d.d));
+    concepts.appendChild(row);
+  });
+  f.appendChild(concepts);
+
+  // Data model
+  const dm=h("div",{className:"cd"});
+  dm.append(h("div",{className:"ct2"},"Data Relationships"));
+  dm.append(h("div",{style:{fontSize:"13px",color:"var(--tm)",lineHeight:"1.8"}},
+    "Comment \u2192 Codes (one-to-many): A single comment letter yields multiple codes.\n"+
+    "Code \u2192 Unique Concern (many-to-one): Multiple identical codes consolidate into one UC.\n"+
+    "Unique Concern \u2192 Theme (many-to-one): Related UCs roll up into themes.\n"+
+    "Comment \u2192 Theme (many-to-many via theme_comments): A comment can appear in multiple themes.\n"+
+    "Response \u2192 Comment and/or Theme: Responses link directly to comments, to themes, or both.\n"+
+    "Code \u2192 Reference (many-to-many): Codes cite scientific/legal references from the master database."));
+  const counts=h("div",{style:{display:"flex",gap:"16px",marginTop:"12px",flexWrap:"wrap"}});
+  counts.append(
+    bg(DB.projects.length+" Projects","#4F8EF7"),bg(DB.comments.length+" Comments","#4F8EF7"),
+    bg(DB.codes.length+" Codes","#FBBF24"),bg(DB.unique_concerns.length+" Unique Concerns","#FB923C"),
+    bg(DB.themes.length+" Themes","#A78BFA"),bg(DB.responses.length+" Responses","#34D399"));
+  dm.appendChild(counts);
+  f.appendChild(dm);
+
+  document.getElementById("con").replaceChildren(f);
+}
+
+// --- EXPORT ---
+function rExport(){
+  dc();const f=h("div",{className:"fl"});
+
+  const intro=h("div",{className:"cd"});
+  intro.append(
+    h("div",{style:{fontSize:"18px",fontWeight:700,marginBottom:"8px"}},"Export Data"),
+    h("div",{style:{fontSize:"13px",color:"var(--tm)",lineHeight:"1.6"}},"Download the complete CTA dataset as an Excel workbook. The export includes all comments, codes, themes, unique concerns, and responses across all projects currently loaded in the dashboard."));
+  f.appendChild(intro);
+
+  // Export options
+  const opts=h("div",{className:"g2"});
+
+  // Full workbook
+  const full=h("div",{className:"cd",style:{cursor:"pointer",transition:"border-color .15s"},onClick:()=>exportXLSX("full"),onMouseenter:e=>e.currentTarget.style.borderColor="var(--ac)",onMouseleave:e=>e.currentTarget.style.borderColor="var(--bd)"});
+  full.append(
+    h("div",{style:{fontSize:"40px",textAlign:"center",marginBottom:"12px"}},"📊"),
+    h("div",{style:{fontSize:"15px",fontWeight:700,textAlign:"center",marginBottom:"8px"}},"Full CTA Workbook"),
+    h("div",{style:{fontSize:"12px",color:"var(--tm)",textAlign:"center",lineHeight:"1.6"}},"6 sheets: Comments, Codes, Themes, Unique Concerns, Responses, Projects. All "+DB.comments.length+" comments, "+DB.codes.length+" codes, "+DB.themes.length+" themes."));
+  opts.appendChild(full);
+
+  // Per-project
+  const perProj=h("div",{className:"cd"});
+  perProj.append(
+    h("div",{style:{fontSize:"40px",textAlign:"center",marginBottom:"12px"}},"📁"),
+    h("div",{style:{fontSize:"15px",fontWeight:700,textAlign:"center",marginBottom:"12px"}},"Single Project Export"));
+  const projSel=h("select",{style:{width:"100%",padding:"10px",borderRadius:"6px",border:"1px solid var(--bd)",background:"var(--sf)",color:"var(--tx)",fontSize:"13px",marginBottom:"12px"}});
+  DB.projects.forEach(p=>projSel.append(h("option",{value:String(p.project_id)},pm[p.project_id]+" — "+(p.project_name||""))));
+  const dlBtn=h("button",{style:{width:"100%",padding:"10px",borderRadius:"6px",border:"none",background:"var(--ac)",color:"#fff",fontSize:"13px",fontWeight:600,cursor:"pointer"},onClick:()=>exportXLSX("project",parseInt(projSel.value))});
+  dlBtn.textContent="Download Project Export";
+  perProj.append(projSel,dlBtn);
+  opts.appendChild(perProj);
+  f.appendChild(opts);
+
+  // Status
+  const statusEl=h("div",{id:"export-status",style:{fontSize:"13px",color:"var(--tm)",marginTop:"8px"}});
+  f.appendChild(statusEl);
+
+  document.getElementById("con").replaceChildren(f);
+}
+
+function exportXLSX(mode,pid){
+  const status=document.getElementById("export-status");
+  if(status)status.textContent="Generating workbook...";
+
+  setTimeout(()=>{
+    try{
+      const wb=XLSX.utils.book_new();
+      let comments=DB.comments,codes=DB.codes,themes=DB.themes,ucs=DB.unique_concerns,responses=DB.responses,label="CTA_All_Projects";
+
+      if(mode==="project"&&pid){
+        comments=DB.comments.filter(c=>c.project_id===pid);
+        const cids=new Set(comments.map(c=>c.comment_id));
+        codes=DB.codes.filter(c=>cids.has(c.comment_id));
+        themes=DB.themes.filter(t=>t.project_id===pid);
+        const tids=new Set(themes.map(t=>t.theme_id));
+        responses=DB.responses.filter(r=>cids.has(r.comment_id)||(r.theme_id&&tids.has(r.theme_id)));
+        const ucids=new Set();codes.forEach(c=>{DB.unique_concerns.forEach(u=>{if(u.category===c.category&&u.stance===c.stance)ucids.add(u.uc_id)})});
+        label="CTA_"+pm[pid];
+      }
+
+      // Comments sheet
+      const cData=comments.map(c=>({
+        Comment_ID:c.comment_id,Project:pm[c.project_id]||"",Author:c.author_name||"",
+        Organization:c.submitter_org||"",Type:c.comment_type||"",
+        Substantive:c.substantive_confirmed?"Yes":"No",Date:c.date_received||"",Summary:c.summary||""
+      }));
+      XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(cData),"Comments");
+
+      // Codes sheet
+      const kData=codes.map(c=>({
+        Code_ID:c.code_id,Comment_ID:c.comment_id,Code_Text:c.code_text||"",
+        Category:c.category||"",Stance:c.stance||"",Type:c.code_type||"",Substantive:c.substantive?"Yes":"No"
+      }));
+      XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(kData),"Codes");
+
+      // Themes sheet
+      const tData=themes.map(t=>({
+        Theme_ID:t.theme_id,Theme_Name:t.theme_name,Description:t.description||"",
+        Project:pm[t.project_id]||"",Layer:t.theme_layer||"",Code_Count:t.code_count||0,
+        Occurrences:t.occurrences||0,Status:t.status||""
+      }));
+      XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(tData),"Themes");
+
+      // Unique Concerns sheet
+      const uData=ucs.map(u=>({
+        UC_ID:u.uc_id,Concern_Text:u.code_text||"",Category:u.category||"",
+        Stance:u.stance||"",Occurrences:u.occurrences||0,Substantive:u.substantive?"Yes":"No"
+      }));
+      XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(uData),"Unique Concerns");
+
+      // Responses sheet
+      const rData=responses.map(r=>{
+        const theme=r.theme_id?DB.themes.find(t=>t.theme_id===r.theme_id):null;
+        return{Response_ID:r.response_id,Comment_ID:r.comment_id||"",
+          Theme_ID:r.theme_id||"",Theme_Name:theme?theme.theme_name:"",Response_Text:r.response_text||""};
+      });
+      XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(rData),"Responses");
+
+      // Projects sheet
+      const pData=(mode==="project"?DB.projects.filter(p=>p.project_id===pid):DB.projects).map(p=>({
+        Project_Code:pm[p.project_id],Project_Name:p.project_name||"",Status:p.status||""
+      }));
+      XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(pData),"Projects");
+
+      XLSX.writeFile(wb,label+"_Export.xlsx");
+      if(status)status.textContent="✓ Downloaded: "+label+"_Export.xlsx";
+    }catch(e){
+      if(status)status.textContent="Error: "+e.message;
+    }
+  },100);
+}
+
 // --- NAV ---
-const VW=[{id:"overview",l:"Overview",ic:"◉",fn:rOv},{id:"projects",l:"Projects",ic:"◫",fn:rPj},{id:"comments",l:"Comments",ic:"◈",fn:rCm},{id:"themes",l:"Themes",ic:"◆",fn:rTh},{id:"responses",l:"Responses",ic:"◇",fn:rRe},{id:"codebook",l:"Codebook",ic:"▣",fn:rCb}];
+const VW=[{id:"overview",l:"Overview",ic:"◉",fn:rOv},{id:"projects",l:"Projects",ic:"◫",fn:rPj},{id:"comments",l:"Comments",ic:"◈",fn:rCm},{id:"themes",l:"Themes",ic:"◆",fn:rTh},{id:"responses",l:"Responses",ic:"◇",fn:rRe},{id:"codebook",l:"Codebook",ic:"▣",fn:rCb},{id:"methodology",l:"Methodology",ic:"◎",fn:rMeth},{id:"export",l:"Export",ic:"⬡",fn:rExport}];
 let cv="overview";
 function sv(id){cv=id;document.querySelectorAll(".nb").forEach(b=>b.classList.toggle("a",b.dataset.v===id));document.getElementById("ttl").textContent=VW.find(v=>v.id===id).l;VW.find(v=>v.id===id).fn()}
 
