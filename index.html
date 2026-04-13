@@ -425,9 +425,11 @@ function rTh(det){dc();const f=h("div",{className:"fl"});
 
     // Response status for this theme
     const themeResp=DB.responses.filter(r=>r.theme_id===det.theme_id||r.comment_id&&lc.some(c=>c.comment_id===r.comment_id));
+    const coveredHere=getCoveredComments();
+    const commentsWithResp=lc.filter(c=>coveredHere.has(c.comment_id)).length;
     const respCard=h("div",{className:"cd"});
-    const respPct=lc.length?Math.round(themeResp.length/lc.length*100):0;
-    respCard.append(h("div",{className:"ct2"},"Response Status"),h("div",{style:{display:"flex",gap:"20px",alignItems:"center"}},h("div",{className:"sv",style:{color:respPct>=80?"var(--gn)":respPct>=50?"var(--yw)":"var(--rd)"}},respPct+"%"),h("div",null,h("div",{style:{fontSize:"13px",color:"var(--tm)"}},themeResp.length+" responses for "+lc.length+" linked comments"),h("div",{className:"meter",style:{width:"200px",marginTop:"8px"}},h("div",{className:"meter-fill",style:{width:respPct+"%",background:respPct>=80?"var(--gn)":respPct>=50?"var(--yw)":"var(--rd)"}})))));
+    const respPct=lc.length?Math.round(commentsWithResp/lc.length*100):0;
+    respCard.append(h("div",{className:"ct2"},"Response Status"),h("div",{style:{display:"flex",gap:"20px",alignItems:"center"}},h("div",{className:"sv",style:{color:respPct>=80?"var(--gn)":respPct>=50?"var(--yw)":"var(--rd)"}},respPct+"%"),h("div",null,h("div",{style:{fontSize:"13px",color:"var(--tm)"}},commentsWithResp+" of "+lc.length+" linked comments have responses ("+themeResp.length+" total responses)"),h("div",{className:"meter",style:{width:"200px",marginTop:"8px"}},h("div",{className:"meter-fill",style:{width:Math.min(respPct,100)+"%",background:respPct>=80?"var(--gn)":respPct>=50?"var(--yw)":"var(--rd)"}})))));
     f.appendChild(respCard);
     document.getElementById("con").replaceChildren(f);return;
   }
