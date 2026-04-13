@@ -97,9 +97,6 @@ async function loadData(){
   DB.responses=(DB.responses||[]).filter(r=>(!r.comment_id||!exCids.has(r.comment_id))&&(!r.theme_id||!exTids.has(r.theme_id)));
   DB.code_references=(DB.code_references||[]).filter(cr=>keepCodeIds.has(cr.code_id));
   DB.theme_references=(DB.theme_references||[]).filter(tr=>!exTids.has(tr.theme_id));
-  // Prune orphaned references (only linked to excluded projects)
-  const usedRids=new Set([...(DB.code_references||[]).map(cr=>cr.r_id),...(DB.theme_references||[]).map(tr=>tr.r_id)]);
-  DB.references=(DB.references||[]).filter(r=>usedRids.has(r.r_id));
   pm=Object.fromEntries(DB.projects.map(p=>[p.project_id,p.project_code||p.project_name]));
   document.getElementById("ft").textContent=`${DB.projects.length}P · ${DB.comments.length}C · ${DB.themes.length}T · ${DB.codes.length}K · ${(DB.references||[]).length}R`;
 }
