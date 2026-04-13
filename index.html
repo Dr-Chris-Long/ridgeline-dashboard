@@ -7,657 +7,429 @@
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
-:root {
-  --bg: #0B0F19; --surface: #131825; --surface-h: #1A2035; --border: #1E2A42; --border-l: #2A3A5C;
-  --text: #E2E8F0; --text-m: #8896B3; --text-d: #5A6A8A;
-  --accent: #4F8EF7; --accent-d: #2D5BA0;
-  --green: #34D399; --yellow: #FBBF24; --red: #F87171; --orange: #FB923C; --purple: #A78BFA;
-}
-* { margin:0; padding:0; box-sizing:border-box; }
-body { font-family:'IBM Plex Sans',system-ui,sans-serif; background:var(--bg); color:var(--text); display:flex; min-height:100vh; }
-button { font-family:inherit; }
-::-webkit-scrollbar { width:6px; height:6px; }
-::-webkit-scrollbar-track { background:var(--bg); }
-::-webkit-scrollbar-thumb { background:var(--border-l); border-radius:3px; }
-
-.sidebar { width:220px; background:var(--surface); border-right:1px solid var(--border); display:flex; flex-direction:column; position:sticky; top:0; height:100vh; flex-shrink:0; }
-.sidebar-brand { padding:20px 16px; border-bottom:1px solid var(--border); }
-.sidebar-brand h1 { font-size:14px; color:var(--accent); letter-spacing:0.04em; margin:0; }
-.sidebar-brand p { font-size:11px; color:var(--text-d); margin-top:4px; }
-.sidebar-nav { padding:12px 8px; display:flex; flex-direction:column; gap:2px; }
-.nav-btn { display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:6px; border:none; cursor:pointer; font-size:13px; background:transparent; color:var(--text-m); width:100%; text-align:left; transition:all 0.15s; }
-.nav-btn:hover { background:var(--surface-h); }
-.nav-btn.active { background:rgba(79,142,247,0.1); color:var(--accent); font-weight:600; }
-.sidebar-footer { margin-top:auto; padding:12px 16px; border-top:1px solid var(--border); font-size:10px; color:var(--text-d); }
-
-.main { flex:1; padding:28px; overflow-y:auto; min-width:0; }
-.container { max-width:1200px; margin:0 auto; }
-.page-title { font-size:22px; font-weight:700; margin-bottom:4px; }
-.page-sub { font-size:12px; color:var(--text-d); margin-bottom:24px; }
-
-.grid { display:grid; gap:16px; }
-.grid-5 { grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); }
-.grid-2 { grid-template-columns:1fr 1fr; }
-@media(max-width:900px){ .grid-2{grid-template-columns:1fr;} }
-
-.card { background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:20px; }
-.card-click { cursor:pointer; transition:border-color 0.15s,background 0.15s; }
-.card-click:hover { border-color:var(--border-l); background:var(--surface-h); }
-
-.stat-label { font-size:11px; color:var(--text-m); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:8px; }
-.stat-value { font-size:32px; font-weight:700; line-height:1; font-family:'JetBrains Mono',monospace; }
-.stat-sub { font-size:12px; color:var(--text-d); margin-top:6px; }
-
-.badge { display:inline-block; padding:2px 8px; border-radius:4px; font-size:11px; font-weight:600; letter-spacing:0.03em; text-transform:uppercase; }
-
-.toolbar { display:flex; gap:12px; align-items:center; flex-wrap:wrap; margin-bottom:16px; }
-.toolbar input, .toolbar select { padding:8px 12px; border-radius:6px; border:1px solid var(--border); background:var(--surface); color:var(--text); font-size:13px; outline:none; font-family:inherit; }
-.toolbar input:focus, .toolbar select:focus { border-color:var(--accent); }
-.toolbar .count { font-size:12px; color:var(--text-d); margin-left:auto; }
-
-.tab-bar { display:flex; gap:2px; background:var(--surface); border-radius:6px; padding:3px; border:1px solid var(--border); }
-.tab-btn { padding:6px 14px; border-radius:4px; border:none; cursor:pointer; font-size:12px; font-weight:600; background:transparent; color:var(--text-m); transition:all 0.15s; }
-.tab-btn.active { background:var(--accent); color:#fff; }
-
-table { width:100%; border-collapse:collapse; font-size:13px; }
-th { text-align:left; padding:10px 14px; background:var(--surface-h); color:var(--text-m); font-size:11px; text-transform:uppercase; letter-spacing:0.06em; border-bottom:1px solid var(--border); position:sticky; top:0; z-index:1; white-space:nowrap; }
-td { padding:10px 14px; border-bottom:1px solid var(--border); color:var(--text); }
-tr.clickable { cursor:pointer; }
-tr.clickable:hover { background:var(--surface-h); }
-.table-wrap { overflow:auto; max-height:600px; border-radius:6px; border:1px solid var(--border); }
-.td-wrap { max-width:400px; white-space:normal; line-height:1.5; }
-.td-trunc { max-width:300px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-
-.back-btn { background:none; border:none; color:var(--accent); cursor:pointer; font-size:13px; padding:0; margin-bottom:16px; }
-.back-btn:hover { text-decoration:underline; }
-
-.chart-box { height:300px; position:relative; }
-.loading { text-align:center; padding:60px; }
-.loading p { font-size:14px; color:var(--text-m); }
-.detail-header { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:16px; }
-.detail-title { font-size:18px; font-weight:700; }
-.detail-meta { font-size:13px; color:var(--text-m); margin-top:4px; }
-.section-label { font-size:11px; color:var(--text-d); text-transform:uppercase; margin-bottom:6px; }
-.section-body { font-size:13px; color:var(--text-m); line-height:1.6; }
-.card-title { font-size:13px; font-weight:600; margin-bottom:16px; }
-.gap-20 { display:flex; flex-direction:column; gap:20px; }
-.gap-16 { display:flex; flex-direction:column; gap:16px; }
-.hidden { display:none; }
+:root{--bg:#0B0F19;--sf:#131825;--sh:#1A2035;--bd:#1E2A42;--bl:#2A3A5C;--tx:#E2E8F0;--tm:#8896B3;--td:#5A6A8A;--ac:#4F8EF7;--gn:#34D399;--yw:#FBBF24;--rd:#F87171;--or:#FB923C;--pp:#A78BFA}
+*{margin:0;padding:0;box-sizing:border-box}body{font-family:'IBM Plex Sans',system-ui,sans-serif;background:var(--bg);color:var(--tx);display:flex;min-height:100vh}
+button{font-family:inherit}::-webkit-scrollbar{width:6px;height:6px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--bl);border-radius:3px}
+.sb{width:220px;background:var(--sf);border-right:1px solid var(--bd);display:flex;flex-direction:column;position:sticky;top:0;height:100vh;flex-shrink:0}
+.sb-b{padding:20px 16px;border-bottom:1px solid var(--bd)}.sb-b h1{font-size:14px;color:var(--ac);letter-spacing:.04em;margin:0}.sb-b p{font-size:11px;color:var(--td);margin-top:4px}
+.sb-n{padding:12px 8px;display:flex;flex-direction:column;gap:2px}
+.nb{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:6px;border:none;cursor:pointer;font-size:13px;background:transparent;color:var(--tm);width:100%;text-align:left;transition:all .15s}
+.nb:hover{background:var(--sh)}.nb.a{background:rgba(79,142,247,.1);color:var(--ac);font-weight:600}
+.sf{margin-top:auto;padding:12px 16px;border-top:1px solid var(--bd);font-size:10px;color:var(--td)}
+.mn{flex:1;padding:28px;overflow-y:auto;min-width:0}.ct{max-width:1200px;margin:0 auto}
+.pt{font-size:22px;font-weight:700;margin-bottom:4px}.ps{font-size:12px;color:var(--td);margin-bottom:24px}
+.g5{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px}
+.g4{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:16px}@media(max-width:900px){.g2,.g3{grid-template-columns:1fr}}
+.cd{background:var(--sf);border:1px solid var(--bd);border-radius:8px;padding:20px}
+.sl{font-size:11px;color:var(--tm);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px}
+.sv{font-size:32px;font-weight:700;line-height:1;font-family:'JetBrains Mono',monospace}
+.ss{font-size:12px;color:var(--td);margin-top:6px}
+.bg{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;letter-spacing:.03em;text-transform:uppercase}
+.tb{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:16px}
+.tb input,.tb select{padding:8px 12px;border-radius:6px;border:1px solid var(--bd);background:var(--sf);color:var(--tx);font-size:13px;outline:none;font-family:inherit}
+.tb input:focus,.tb select:focus{border-color:var(--ac)}.tc{font-size:12px;color:var(--td);margin-left:auto}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;padding:10px 14px;background:var(--sh);color:var(--tm);font-size:11px;text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid var(--bd);position:sticky;top:0;z-index:1;white-space:nowrap}
+td{padding:10px 14px;border-bottom:1px solid var(--bd);color:var(--tx)}
+tr.ck{cursor:pointer}tr.ck:hover{background:var(--sh)}
+.tw{overflow:auto;max-height:600px;border-radius:6px;border:1px solid var(--bd)}
+.wp{max-width:400px;white-space:normal;line-height:1.5}.tr{max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bk{background:none;border:none;color:var(--ac);cursor:pointer;font-size:13px;padding:0;margin-bottom:16px}.bk:hover{text-decoration:underline}
+.ch{height:300px;position:relative}.ch-sm{height:220px;position:relative}.ch-lg{height:400px;position:relative}
+.ct2{font-size:13px;font-weight:600;margin-bottom:16px}
+.fl{display:flex;flex-direction:column;gap:20px}.fl2{display:flex;flex-direction:column;gap:16px}
+.chip{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:12px;font-size:11px;font-weight:600;cursor:pointer;border:1px solid var(--bd);background:var(--sf);color:var(--tm);transition:all .15s}
+.chip:hover,.chip.on{background:var(--ac);color:#fff;border-color:var(--ac)}
+.chip-bar{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.meter{height:8px;border-radius:4px;background:var(--bd);overflow:hidden;margin-top:6px}.meter-fill{height:100%;border-radius:4px;transition:width .3s}
+.org-row{display:flex;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid var(--bd);cursor:pointer;transition:background .1s}
+.org-row:hover{background:var(--sh);margin:0 -8px;padding:8px}
+.org-name{flex:1;font-size:13px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.org-count{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:600;color:var(--ac);min-width:30px;text-align:right}
+.org-bar{width:120px;flex-shrink:0}
+.hm-cell{width:28px;height:28px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;cursor:default;transition:transform .1s}
+.hm-cell:hover{transform:scale(1.3);z-index:2}
+.hm-row{display:flex;gap:3px;align-items:center;margin-bottom:3px}
+.hm-label{font-size:11px;color:var(--tm);width:60px;text-align:right;margin-right:8px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hm-hlabel{font-size:10px;color:var(--td);text-align:center;width:28px;overflow:hidden;text-overflow:ellipsis;writing-mode:vertical-rl;transform:rotate(180deg);height:60px}
+.hm-hrow{display:flex;gap:3px;margin-left:68px;margin-bottom:6px}
+.timeline-bar{display:flex;gap:2px;align-items:flex-end;height:120px;padding-top:20px}
+.timeline-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px}
+.timeline-fill{width:100%;min-width:16px;border-radius:3px 3px 0 0;transition:height .3s;cursor:pointer;position:relative}
+.timeline-fill:hover{opacity:.8}
+.timeline-label{font-size:9px;color:var(--td);writing-mode:vertical-rl;transform:rotate(180deg);height:50px;overflow:hidden}
+.tooltip{position:fixed;background:var(--sf);border:1px solid var(--bl);border-radius:6px;padding:8px 12px;font-size:12px;color:var(--tx);pointer-events:none;z-index:100;max-width:250px;box-shadow:0 4px 12px rgba(0,0,0,.4);display:none}
 </style>
 </head>
 <body>
-<div class="sidebar">
-  <div class="sidebar-brand"><h1>RIDGELINE</h1><p>NEPA Comment Analysis</p></div>
-  <div class="sidebar-nav" id="nav"></div>
-  <div class="sidebar-footer" id="footer-stats">Loading...</div>
-</div>
-<div class="main">
-  <div class="container">
-    <h2 class="page-title" id="page-title">Overview</h2>
-    <div class="page-sub">BLM Medford District · CTA Pipeline Dashboard</div>
-    <div id="content"><div class="loading"><p>Connecting to Supabase...</p></div></div>
-  </div>
-</div>
+<div class="sb"><div class="sb-b"><h1>RIDGELINE</h1><p>NEPA Comment Analysis</p></div><div class="sb-n" id="nav"></div><div class="sf" id="ft">Loading...</div></div>
+<div class="mn"><div class="ct"><h2 class="pt" id="ttl">Overview</h2><div class="ps">BLM Medford District · CTA Pipeline Dashboard</div><div id="con"><p style="text-align:center;padding:60px;color:var(--tm)">Connecting to Supabase...</p></div></div></div>
+<div class="tooltip" id="tip"></div>
 
 <script>
-const SB_URL = "https://uojjoraxzmzwuilmndlu.supabase.co/rest/v1";
-const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVvampvcmF4em16d3VpbG1uZGx1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI1ODc4MTksImV4cCI6MjA4ODE2MzgxOX0.4WmtuoXjXj441KpbLxJkQTebulejiEafKu0bSvdefpM";
-const HDRS = { apikey: SB_KEY, Authorization: `Bearer ${SB_KEY}`, Prefer: "count=exact" };
-const COLORS = ["#4F8EF7","#34D399","#FBBF24","#F87171","#A78BFA","#FB923C","#38BDF8","#E879F9","#2DD4BF","#F472B6"];
+const SB_URL="https://uojjoraxzmzwuilmndlu.supabase.co/rest/v1";
+const SB_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVvampvcmF4em16d3VpbG1uZGx1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI1ODc4MTksImV4cCI6MjA4ODE2MzgxOX0.4WmtuoXjXj441KpbLxJkQTebulejiEafKu0bSvdefpM";
+const HDRS={apikey:SB_KEY,Authorization:`Bearer ${SB_KEY}`,Prefer:"count=exact"};
+const CL=["#4F8EF7","#34D399","#FBBF24","#F87171","#A78BFA","#FB923C","#38BDF8","#E879F9","#2DD4BF","#F472B6","#818CF8","#FB7185","#A3E635","#22D3EE"];
+let DB={},charts=[],pm={};
+const tip=document.getElementById("tip");
 
-const VIEWS = [
-  { id:"overview", label:"Overview", icon:"◉" },
-  { id:"comments", label:"Comments", icon:"◈" },
-  { id:"themes", label:"Themes", icon:"◆" },
-  { id:"responses", label:"Responses", icon:"◇" },
-  { id:"codebook", label:"Codebook", icon:"▣" },
-  { id:"litigation", label:"Litigation", icon:"⚖" },
-];
+async function fetchAll(t,s="*"){let a=[],o=0;while(true){const r=await fetch(`${SB_URL}/${t}?select=${s}&limit=1000&offset=${o}`,{headers:HDRS});if(!r.ok)return a;const d=await r.json();a=a.concat(d);if(d.length<1000)break;o+=1000}return a}
 
-let DB = {};
-let currentView = "overview";
-let charts = [];
-
-// --- DATA LAYER ---
-async function fetchAll(table, select="*") {
-  let all = [], offset = 0, limit = 1000;
-  while(true) {
-    const r = await fetch(`${SB_URL}/${table}?select=${select}&limit=${limit}&offset=${offset}`, { headers: HDRS });
-    if (!r.ok) { console.error(`Error ${table}:`, r.status); return all; }
-    const d = await r.json();
-    all = all.concat(d);
-    if (d.length < limit) break;
-    offset += limit;
-  }
-  return all;
-}
-
-async function loadData() {
-  const tables = {
-    projects: "project_id,project_code,project_name,status",
-    comments: "comment_id,project_id,author_name,submitter_org,comment_type,summary,substantive_confirmed,date_received,full_text",
-    codes: "code_id,comment_id,code_text,category,stance,code_type,substantive",
-    themes: "theme_id,theme_name,description,scope,code_count,occurrences,status,theme_layer,project_id",
-    unique_concerns: "uc_id,code_text,category,stance,occurrences,substantive,uc_type",
-    responses: "response_id,comment_id,theme_id,response_text",
-    theme_comments: "theme_id,comment_id",
-    lit_cases: "*",
-    lit_holdings: "*",
-    lit_patterns: "*",
-    lit_gaps: "*",
-    lit_vuln_scores: "*",
-  };
-  const entries = Object.entries(tables);
-  const results = await Promise.all(entries.map(([t, s]) => fetchAll(t, s)));
-  entries.forEach(([t], i) => { DB[t] = results[i]; });
-
-  document.getElementById("footer-stats").textContent =
-    `${DB.projects.length}P · ${DB.comments.length}C · ${DB.themes.length}T · ${DB.codes.length}K`;
+async function loadData(){
+  const T={projects:"project_id,project_code,project_name,status",comments:"comment_id,project_id,author_name,submitter_org,comment_type,summary,substantive_confirmed,date_received,full_text",codes:"code_id,comment_id,code_text,category,stance,code_type,substantive",themes:"theme_id,theme_name,description,code_count,occurrences,status,theme_layer,project_id",unique_concerns:"uc_id,code_text,category,stance,occurrences,substantive,uc_type",responses:"response_id,comment_id,theme_id,response_text",theme_comments:"theme_id,comment_id"};
+  const e=Object.entries(T);const r=await Promise.all(e.map(([t,s])=>fetchAll(t,s)));
+  e.forEach(([t],i)=>{DB[t]=r[i]});
+  pm=Object.fromEntries(DB.projects.map(p=>[p.project_id,p.project_code||p.project_name]));
+  document.getElementById("ft").textContent=`${DB.projects.length}P · ${DB.comments.length}C · ${DB.themes.length}T · ${DB.codes.length}K`;
 }
 
 // --- HELPERS ---
-function h(tag, attrs, ...children) {
-  const el = document.createElement(tag);
-  if (attrs) Object.entries(attrs).forEach(([k,v]) => {
-    if (k === "style" && typeof v === "object") Object.assign(el.style, v);
-    else if (k.startsWith("on")) el.addEventListener(k.slice(2).toLowerCase(), v);
-    else if (k === "className") el.className = v;
-    else if (k === "innerHTML") el.innerHTML = v;
-    else el.setAttribute(k, v);
+function h(t,a,...c){const e=document.createElement(t);if(a)Object.entries(a).forEach(([k,v])=>{if(k==="style"&&typeof v==="object")Object.assign(e.style,v);else if(k.startsWith("on"))e.addEventListener(k.slice(2).toLowerCase(),v);else if(k==="className")e.className=v;else if(k==="innerHTML")e.innerHTML=v;else e.setAttribute(k,v)});c.flat().forEach(x=>{if(x!=null)e.append(typeof x==="string"||typeof x==="number"?document.createTextNode(x):x)});return e}
+function bg(t,c){return h("span",{className:"bg",style:{color:c,background:c+"18"}},t)}
+function sc(l,v,s,c="var(--ac)"){return h("div",{className:"cd"},h("div",{className:"sl"},l),h("div",{className:"sv",style:{color:c}},String(v)),s?h("div",{className:"ss"},s):null)}
+function dc(){charts.forEach(c=>c.destroy());charts=[]}
+function mc(cv,t,cfg){const c=new Chart(cv.getContext("2d"),{type:t,...cfg,options:{...cfg.options,responsive:true,maintainAspectRatio:false,plugins:{...cfg.options?.plugins,legend:{labels:{color:"#8896B3",font:{size:11}},...cfg.options?.plugins?.legend},tooltip:{backgroundColor:"#131825",borderColor:"#2A3A5C",borderWidth:1,titleColor:"#E2E8F0",bodyColor:"#8896B3",padding:10,cornerRadius:6,...cfg.options?.plugins?.tooltip}},scales:t==="pie"||t==="doughnut"||t==="polarArea"?undefined:{x:{ticks:{color:"#5A6A8A",font:{size:11}},grid:{color:"#1E2A42"},...cfg.options?.scales?.x},y:{ticks:{color:"#5A6A8A",font:{size:11}},grid:{color:"#1E2A42"},...cfg.options?.scales?.y}}}});charts.push(c);return c}
+function bt(cols,data,opts={}){const w=h("div",{className:"tw",style:{maxHeight:opts.mh||"600px"}});const tb=h("table");const th=h("thead",null,h("tr",null,...cols.map(c=>h("th",null,c.l))));const bd=h("tbody");(data||[]).forEach(r=>{const tr=h("tr",opts.oc?{className:"ck",onClick:()=>opts.oc(r)}:null);cols.forEach(c=>{const td=h("td",c.w?{className:"wp"}:c.t?{className:"tr"}:null);const v=c.r?c.r(r):(r[c.k]??"—");if(v instanceof HTMLElement)td.appendChild(v);else td.textContent=v;tr.appendChild(td)});bd.appendChild(tr)});tb.append(th,bd);w.appendChild(tb);return w}
+function stanceColor(s){return s==="support"||s==="S"?"#34D399":s==="oppose"||s==="O"?"#F87171":"#FBBF24"}
+function stanceLabel(s){return s==="S"?"Support":s==="O"?"Oppose":s==="N"?"Neutral":s||"?"}
+
+// --- OVERVIEW ---
+function rOv(){dc();const f=h("div",{className:"fl"});
+  const tot=DB.comments.length,sub=DB.comments.filter(c=>c.substantive_confirmed).length;
+  const ri=new Set(DB.responses.map(r=>r.comment_id));const rt=tot?Math.round(ri.size/tot*100):0;
+  const orgs=new Set(DB.comments.map(c=>c.submitter_org).filter(Boolean));
+
+  // Stats
+  const s=h("div",{className:"g5"});
+  s.append(sc("Projects",DB.projects.length,"In pipeline"),sc("Comments",tot,sub+" substantive","var(--gn)"),sc("Themes",DB.themes.length,"Across all projects","var(--pp)"),sc("Codes",DB.codes.length,DB.unique_concerns.length+" unique concerns","var(--yw)"),sc("Response Rate",rt+"%",ri.size+" of "+tot+" addressed",rt>=80?"var(--gn)":rt>=50?"var(--yw)":"var(--rd)"));
+  f.appendChild(s);
+
+  // Row 1: Comments by Project + Stance Donut
+  const r1=h("div",{className:"g2"});
+  const ps=DB.projects.map(p=>({n:pm[p.project_id],c:DB.comments.filter(c=>c.project_id===p.project_id).length})).filter(p=>p.c>0).sort((a,b)=>b.c-a.c);
+  const c1c=h("div",{className:"cd"});c1c.append(h("div",{className:"ct2"},"Comments by Project"));const c1=h("canvas");c1c.append(h("div",{className:"ch"},c1));r1.appendChild(c1c);
+
+  const st={};DB.codes.forEach(c=>{const s=stanceLabel(c.stance);st[s]=(st[s]||0)+1});const sd=Object.entries(st).sort((a,b)=>b[1]-a[1]);
+  const c2c=h("div",{className:"cd"});c2c.append(h("div",{className:"ct2"},"Code Stance Distribution"));const c2=h("canvas");c2c.append(h("div",{className:"ch"},c2));r1.appendChild(c2c);
+  f.appendChild(r1);
+
+  // Row 2: Category bars + Org breakdown
+  const r2=h("div",{className:"g2"});
+  const ct={};DB.codes.forEach(c=>{const ca=c.category||"?";ct[ca]=(ct[ca]||0)+1});const cd=Object.entries(ct).sort((a,b)=>b[1]-a[1]).slice(0,12);
+  const c3c=h("div",{className:"cd"});c3c.append(h("div",{className:"ct2"},"Top Code Categories"));const c3=h("canvas");c3c.append(h("div",{className:"ch"},c3));r2.appendChild(c3c);
+
+  // Top orgs
+  const orgCounts={};DB.comments.forEach(c=>{const o=c.submitter_org||"Individual";orgCounts[o]=(orgCounts[o]||0)+1});
+  const topOrgs=Object.entries(orgCounts).sort((a,b)=>b[1]-a[1]).slice(0,10);
+  const maxOrgCount=topOrgs[0]?topOrgs[0][1]:1;
+  const c4c=h("div",{className:"cd"});c4c.append(h("div",{className:"ct2"},"Top Submitting Organizations"));
+  topOrgs.forEach(([name,count],i)=>{
+    const pct=Math.round(count/maxOrgCount*100);
+    const row=h("div",{className:"org-row",onClick:()=>{sv("comments");setTimeout(()=>{const si=document.querySelector(".tb input");if(si){si.value=name==="Individual"?"":name;si.dispatchEvent(new Event("input"))}},100)}});
+    row.append(h("div",{className:"org-name"},name),h("div",{className:"org-count"},count),h("div",{className:"org-bar"},h("div",{className:"meter"},h("div",{className:"meter-fill",style:{width:pct+"%",background:CL[i%CL.length]}}))));
+    c4c.appendChild(row);
   });
-  children.flat().forEach(c => { if(c!=null) el.append(typeof c==="string"||typeof c==="number" ? document.createTextNode(c) : c); });
-  return el;
+  r2.appendChild(c4c);
+  f.appendChild(r2);
+
+  // Row 3: Response coverage by project
+  const r3c=h("div",{className:"cd"});r3c.append(h("div",{className:"ct2"},"Response Coverage by Project"));const c5=h("canvas");r3c.append(h("div",{className:"ch"},c5));
+  f.appendChild(r3c);
+
+  document.getElementById("con").replaceChildren(f);
+
+  // Render charts
+  mc(c1,"bar",{data:{labels:ps.map(p=>p.n),datasets:[{data:ps.map(p=>p.c),backgroundColor:"#4F8EF7",borderRadius:4}]},options:{indexAxis:"y",plugins:{legend:{display:false}}}});
+  mc(c2,"doughnut",{data:{labels:sd.map(s=>s[0]),datasets:[{data:sd.map(s=>s[1]),backgroundColor:sd.map((_,i)=>[stanceColor("S"),stanceColor("O"),"#FBBF24","#8896B3"][i]||CL[i])}]},options:{cutout:"55%"}});
+  mc(c3,"bar",{data:{labels:cd.map(c=>c[0].length>18?c[0].slice(0,16)+"…":c[0]),datasets:[{data:cd.map(c=>c[1]),backgroundColor:"#A78BFA",borderRadius:4}]},options:{plugins:{legend:{display:false}},scales:{x:{ticks:{maxRotation:45,minRotation:25}}}}});
+
+  // Response coverage stacked bar
+  const projResp=DB.projects.map(p=>{
+    const pc=DB.comments.filter(c=>c.project_id===p.project_id);
+    const resp=pc.filter(c=>ri.has(c.comment_id)).length;
+    return{n:pm[p.project_id],responded:resp,unresponded:pc.length-resp};
+  }).filter(p=>p.responded+p.unresponded>0).sort((a,b)=>(b.responded+b.unresponded)-(a.responded+a.unresponded));
+  mc(c5,"bar",{data:{labels:projResp.map(p=>p.n),datasets:[{label:"Responded",data:projResp.map(p=>p.responded),backgroundColor:"#34D399",borderRadius:4},{label:"Unresponded",data:projResp.map(p=>p.unresponded),backgroundColor:"#F8717140",borderRadius:4}]},options:{plugins:{legend:{position:"bottom"}},scales:{x:{stacked:true},y:{stacked:true}}}});
 }
 
-function badge(text, color) {
-  return h("span", { className:"badge", style:{color, background:color+"18"} }, text);
-}
-
-function buildTable(cols, data, opts={}) {
-  const wrap = h("div", { className:"table-wrap", style:{ maxHeight: opts.maxHeight||"600px" } });
-  const tbl = h("table");
-  const thead = h("thead", null, h("tr", null, ...cols.map(c => h("th", null, c.label))));
-  const tbody = h("tbody");
-  (data||[]).forEach(row => {
-    const tr = h("tr", opts.onClick ? { className:"clickable", onClick:()=>opts.onClick(row) } : null);
-    cols.forEach(c => {
-      const td = h("td", c.wrap ? {className:"td-wrap"} : c.trunc ? {className:"td-trunc"} : null);
-      const val = c.render ? c.render(row) : row[c.key];
-      if (val instanceof HTMLElement) td.appendChild(val);
-      else td.textContent = val ?? "—";
-      tr.appendChild(td);
-    });
-    tbody.appendChild(tr);
-  });
-  tbl.append(thead, tbody);
-  wrap.appendChild(tbl);
-  return wrap;
-}
-
-function statCard(label, value, sub, color="var(--accent)") {
-  return h("div", {className:"card"}, 
-    h("div", {className:"stat-label"}, label),
-    h("div", {className:"stat-value", style:{color}}, String(value)),
-    sub ? h("div", {className:"stat-sub"}, sub) : null
-  );
-}
-
-function destroyCharts() { charts.forEach(c=>c.destroy()); charts=[]; }
-
-function makeChart(canvas, type, config) {
-  const ctx = canvas.getContext("2d");
-  const chart = new Chart(ctx, {
-    type, ...config,
-    options: {
-      ...config.options,
-      responsive: true, maintainAspectRatio: false,
-      plugins: { ...config.options?.plugins, legend: { labels: { color:"#8896B3", font:{size:11} }, ...config.options?.plugins?.legend } },
-      scales: type==="pie"||type==="doughnut" ? undefined : {
-        x: { ticks:{color:"#5A6A8A",font:{size:11}}, grid:{color:"#1E2A42"}, ...config.options?.scales?.x },
-        y: { ticks:{color:"#5A6A8A",font:{size:11}}, grid:{color:"#1E2A42"}, ...config.options?.scales?.y },
-      }
+// --- COMMENTS EXPLORER ---
+function rCm(det){dc();const f=h("div",{className:"fl"});
+  if(det){
+    f.appendChild(h("button",{className:"bk",onClick:()=>rCm()},"← Back to explorer"));
+    const c=h("div",{className:"cd"});
+    c.append(h("div",{style:{fontSize:"18px",fontWeight:700}},det.author_name||"Anonymous"),h("div",{style:{fontSize:"13px",color:"var(--tm)",marginTop:"4px"}},(det.submitter_org||"—")+" · "+(pm[det.project_id]||"")+" · "+(det.date_received||"—")));
+    const tags=h("div",{style:{display:"flex",gap:"8px",marginTop:"8px"}});
+    if(det.substantive_confirmed)tags.appendChild(bg("Substantive","#34D399"));
+    if(det.comment_type)tags.appendChild(bg(det.comment_type,"#A78BFA"));
+    c.appendChild(tags);
+    if(det.summary)c.append(h("div",{style:{fontSize:"11px",color:"var(--td)",textTransform:"uppercase",marginTop:"16px"}},"Summary"),h("div",{style:{fontSize:"13px",color:"var(--tx)",marginTop:"6px",lineHeight:"1.6"}},det.summary));
+    if(det.full_text)c.append(h("div",{style:{fontSize:"11px",color:"var(--td)",textTransform:"uppercase",marginTop:"16px"}},"Full Text"),h("div",{style:{fontSize:"13px",color:"var(--tm)",marginTop:"6px",lineHeight:"1.6",maxHeight:"300px",overflowY:"auto",whiteSpace:"pre-wrap"}},det.full_text));
+    f.appendChild(c);
+    // Codes for this comment
+    const cc=DB.codes.filter(c=>c.comment_id===det.comment_id);
+    if(cc.length){
+      const stMap={};cc.forEach(c=>{const s=stanceLabel(c.stance);stMap[s]=(stMap[s]||0)+1});
+      const d=h("div",{className:"cd"});
+      const hdr=h("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"16px"}});
+      hdr.append(h("div",{className:"ct2",style:{margin:0}},"Codes ("+cc.length+")"));
+      const stTags=h("div",{style:{display:"flex",gap:"8px"}});
+      Object.entries(stMap).forEach(([s,n])=>stTags.appendChild(bg(s+": "+n,stanceColor(s==="Support"?"S":s==="Oppose"?"O":"N"))));
+      hdr.appendChild(stTags);d.appendChild(hdr);
+      d.appendChild(bt([{l:"Code",k:"code_text",w:1},{l:"Category",k:"category"},{l:"Stance",k:"stance",r:r=>bg(stanceLabel(r.stance),stanceColor(r.stance))},{l:"Type",k:"code_type"},{l:"Sub",k:"substantive",r:r=>r.substantive?bg("Yes","#34D399"):""}],cc,{mh:"400px"}));
+      f.appendChild(d);
     }
-  });
-  charts.push(chart);
-  return chart;
-}
+    // Themes this comment appears in
+    const cthemes=DB.theme_comments.filter(tc=>tc.comment_id===det.comment_id).map(tc=>DB.themes.find(t=>t.theme_id===tc.theme_id)).filter(Boolean);
+    if(cthemes.length){
+      const d=h("div",{className:"cd"});d.append(h("div",{className:"ct2"},"Themes Containing This Comment ("+cthemes.length+")"));
+      d.appendChild(bt([{l:"Theme",k:"theme_name",r:r=>h("span",{style:{fontWeight:"600",cursor:"pointer",color:"var(--ac)"},onClick:e=>{e.stopPropagation();sv("themes");setTimeout(()=>rTh(r),50)}},r.theme_name)},{l:"Project",k:"project_id",r:r=>pm[r.project_id]||"—"},{l:"Codes",k:"code_count"},{l:"Occurrences",k:"occurrences"}],cthemes,{mh:"250px"}));
+      f.appendChild(d);
+    }
+    document.getElementById("con").replaceChildren(f);return;
+  }
 
-function projMap() { return Object.fromEntries(DB.projects.map(p => [p.project_id, p.project_code||p.project_name])); }
-
-// --- VIEWS ---
-function renderOverview() {
-  destroyCharts();
-  const pm = projMap();
-  const total = DB.comments.length;
-  const substantive = DB.comments.filter(c=>c.substantive_confirmed).length;
-  const respRate = total ? Math.round(new Set(DB.responses.map(r=>r.comment_id)).size / total * 100) : 0;
-
-  const frag = h("div", {className:"gap-20"});
-
-  // Stat cards
-  const stats = h("div", {className:"grid grid-5"});
-  stats.append(
-    statCard("Projects", DB.projects.length, "Active in pipeline"),
-    statCard("Comments", total, `${substantive} substantive`, "var(--green)"),
-    statCard("Themes", DB.themes.length, "Across all projects", "var(--purple)"),
-    statCard("Codes", DB.codes.length, `${DB.unique_concerns.length} unique concerns`, "var(--yellow)"),
-    statCard("Responses", DB.responses.length, `${respRate}% coverage`, respRate>=80?"var(--green)":respRate>=50?"var(--yellow)":"var(--red)")
-  );
-  frag.appendChild(stats);
+  // --- Explorer view ---
+  // Filters
+  const tb=h("div",{className:"tb"});
+  const si=h("input",{type:"text",placeholder:"Search author, org, summary...",style:{width:"260px"}});
+  const ps=h("select");ps.append(h("option",{value:"all"},"All Projects"));DB.projects.forEach(p=>ps.append(h("option",{value:String(p.project_id)},pm[p.project_id])));
+  const ts=h("select");ts.append(h("option",{value:"all"},"All Types"));[...new Set(DB.comments.map(c=>c.comment_type).filter(Boolean))].sort().forEach(t=>ts.append(h("option",{value:t},t)));
+  const ss=h("select");ss.append(h("option",{value:"all"},"All"),h("option",{value:"yes"},"Substantive Only"),h("option",{value:"no"},"Non-Substantive Only"));
+  const cnt=h("div",{className:"tc"});
+  tb.append(si,ps,ts,ss,cnt);f.appendChild(tb);
 
   // Charts row
-  const chartRow = h("div", {className:"grid grid-2"});
+  const cr=h("div",{className:"g3"});
+  const chType=h("div",{className:"cd"});chType.append(h("div",{className:"ct2"},"By Type"));const cvType=h("canvas");chType.append(h("div",{className:"ch-sm"},cvType));cr.appendChild(chType);
+  const chOrg=h("div",{className:"cd"});chOrg.append(h("div",{className:"ct2"},"By Organization Type"));const cvOrg=h("canvas");chOrg.append(h("div",{className:"ch-sm"},cvOrg));cr.appendChild(chOrg);
+  const chSub=h("div",{className:"cd"});chSub.append(h("div",{className:"ct2"},"Substantive Ratio"));const cvSub=h("canvas");chSub.append(h("div",{className:"ch-sm"},cvSub));cr.appendChild(chSub);
+  f.appendChild(cr);
 
-  // Comments by project
-  const projStats = DB.projects.map(p => ({
-    name: pm[p.project_id]||p.project_id,
-    count: DB.comments.filter(c=>c.project_id===p.project_id).length
-  })).filter(p=>p.count>0).sort((a,b)=>b.count-a.count);
+  const tc=h("div");f.appendChild(tc);
 
-  const c1card = h("div", {className:"card"});
-  c1card.append(h("div", {className:"card-title"}, "Comments by Project"));
-  const c1box = h("div", {className:"chart-box"});
-  const c1 = h("canvas");
-  c1box.appendChild(c1); c1card.appendChild(c1box); chartRow.appendChild(c1card);
-
-  // Stance distribution
-  const stances = {};
-  DB.codes.forEach(c => { const s=c.stance||"unclassified"; stances[s]=(stances[s]||0)+1; });
-  const stanceData = Object.entries(stances).sort((a,b)=>b[1]-a[1]);
-
-  const c2card = h("div", {className:"card"});
-  c2card.append(h("div", {className:"card-title"}, "Code Stance Distribution"));
-  const c2box = h("div", {className:"chart-box"});
-  const c2 = h("canvas");
-  c2box.appendChild(c2); c2card.appendChild(c2box); chartRow.appendChild(c2card);
-  frag.appendChild(chartRow);
-
-  // Category chart
-  const cats = {};
-  DB.codes.forEach(c => { const cat=c.category||"uncategorized"; cats[cat]=(cats[cat]||0)+1; });
-  const catData = Object.entries(cats).sort((a,b)=>b[1]-a[1]).slice(0,12);
-
-  const c3card = h("div", {className:"card"});
-  c3card.append(h("div", {className:"card-title"}, "Top Code Categories"));
-  const c3box = h("div", {className:"chart-box"});
-  const c3 = h("canvas");
-  c3box.appendChild(c3); c3card.appendChild(c3box); frag.appendChild(c3card);
-
-  document.getElementById("content").replaceChildren(frag);
-
-  makeChart(c1, "bar", {
-    data: { labels:projStats.map(p=>p.name), datasets:[{data:projStats.map(p=>p.count),backgroundColor:"#4F8EF7",borderRadius:4}] },
-    options: { indexAxis:"y", plugins:{legend:{display:false}}, scales:{x:{grid:{display:false}}} }
-  });
-  makeChart(c2, "doughnut", {
-    data: { labels:stanceData.map(s=>s[0]), datasets:[{data:stanceData.map(s=>s[1]),backgroundColor:COLORS.slice(0,stanceData.length)}] },
-    options: { cutout:"55%" }
-  });
-  makeChart(c3, "bar", {
-    data: { labels:catData.map(c=>c[0].length>22?c[0].slice(0,20)+"…":c[0]), datasets:[{data:catData.map(c=>c[1]),backgroundColor:"#A78BFA",borderRadius:4}] },
-    options: { plugins:{legend:{display:false}}, scales:{x:{ticks:{maxRotation:45,minRotation:25}}} }
-  });
-}
-
-function renderComments(detail) {
-  destroyCharts();
-  const pm = projMap();
-  const frag = h("div", {className:"gap-16"});
-
-  if (detail) {
-    frag.appendChild(h("button", {className:"back-btn", onClick:()=>renderComments()}, "← Back to comments"));
-    const card = h("div", {className:"card"});
-    const hdr = h("div", {className:"detail-header"});
-    const left = h("div");
-    left.append(h("div", {className:"detail-title"}, detail.author_name||"Anonymous"));
-    left.append(h("div", {className:"detail-meta"}, `${detail.submitter_org||""} · ${pm[detail.project_id]||""} · ${detail.date_received||"No date"}`));
-    const right = h("div", {style:{display:"flex",gap:"8px"}});
-    if(detail.substantive_confirmed) right.appendChild(badge("Substantive","#34D399"));
-    if(detail.comment_type) right.appendChild(badge(detail.comment_type,"#A78BFA"));
-    hdr.append(left, right); card.appendChild(hdr);
-    if(detail.summary) { card.append(h("div",{className:"section-label"},"Summary"), h("div",{className:"section-body"},detail.summary)); }
-    if(detail.full_text) {
-      card.append(h("div",{className:"section-label",style:{marginTop:"16px"}},"Full Text"),
-        h("div",{className:"section-body",style:{maxHeight:"300px",overflowY:"auto",whiteSpace:"pre-wrap"}},detail.full_text));
-    }
-    frag.appendChild(card);
-
-    const cc = DB.codes.filter(c=>c.comment_id===detail.comment_id);
-    if(cc.length) {
-      const ccard = h("div",{className:"card"});
-      ccard.append(h("div",{className:"card-title"},`Codes (${cc.length})`));
-      ccard.appendChild(buildTable([
-        {label:"Code",key:"code_text",wrap:true},
-        {label:"Category",key:"category"},
-        {label:"Stance",key:"stance",render:r=>badge(r.stance||"—",r.stance==="support"?"#34D399":r.stance==="oppose"?"#F87171":"#FBBF24")},
-        {label:"Substantive",key:"substantive",render:r=>r.substantive?"Yes":"No"},
-      ],cc,{maxHeight:"350px"}));
-      frag.appendChild(ccard);
-    }
-    document.getElementById("content").replaceChildren(frag);
-    return;
-  }
-
-  // Toolbar
-  const toolbar = h("div", {className:"toolbar"});
-  const search = h("input", {type:"text",placeholder:"Search author, org, summary...",style:{width:"260px"}});
-  const projSel = h("select");
-  projSel.append(h("option",{value:"all"},"All Projects"));
-  DB.projects.forEach(p=>projSel.append(h("option",{value:String(p.project_id)},pm[p.project_id])));
-  const typeSel = h("select");
-  typeSel.append(h("option",{value:"all"},"All Types"));
-  [...new Set(DB.comments.map(c=>c.comment_type).filter(Boolean))].forEach(t=>typeSel.append(h("option",{value:t},t)));
-  const countEl = h("div",{className:"count"});
-  toolbar.append(search, projSel, typeSel, countEl);
-  frag.appendChild(toolbar);
-
-  const tableContainer = h("div");
-  frag.appendChild(tableContainer);
-
-  function refresh() {
-    const s = search.value.toLowerCase();
-    const pf = projSel.value;
-    const tf = typeSel.value;
-    const filtered = DB.comments.filter(c => {
-      if(pf!=="all" && String(c.project_id)!==pf) return false;
-      if(tf!=="all" && c.comment_type!==tf) return false;
-      if(s) return (c.author_name||"").toLowerCase().includes(s)||(c.submitter_org||"").toLowerCase().includes(s)||(c.summary||"").toLowerCase().includes(s);
+  function rf(){
+    dc();
+    const s=si.value.toLowerCase(),pf=ps.value,tf=ts.value,sf=ss.value;
+    const fl=DB.comments.filter(c=>{
+      if(pf!=="all"&&String(c.project_id)!==pf)return false;
+      if(tf!=="all"&&c.comment_type!==tf)return false;
+      if(sf==="yes"&&!c.substantive_confirmed)return false;
+      if(sf==="no"&&c.substantive_confirmed)return false;
+      if(s)return(c.author_name||"").toLowerCase().includes(s)||(c.submitter_org||"").toLowerCase().includes(s)||(c.summary||"").toLowerCase().includes(s);
       return true;
     });
-    countEl.textContent = `${filtered.length} of ${DB.comments.length} comments`;
-    tableContainer.replaceChildren(buildTable([
-      {label:"ID",key:"comment_id"},
-      {label:"Project",key:"project_id",render:r=>pm[r.project_id]||r.project_id},
-      {label:"Author",key:"author_name",render:r=>r.author_name||"Anonymous"},
-      {label:"Org",key:"submitter_org"},
-      {label:"Type",key:"comment_type",render:r=>r.comment_type?badge(r.comment_type,"#4F8EF7"):"—"},
-      {label:"Subst.",key:"substantive_confirmed",render:r=>r.substantive_confirmed?badge("Yes","#34D399"):"No"},
-      {label:"Date",key:"date_received"},
-    ], filtered, {onClick: row=>renderComments(row)}));
-  }
+    cnt.textContent=fl.length+" of "+DB.comments.length;
 
-  search.addEventListener("input", refresh);
-  projSel.addEventListener("change", refresh);
-  typeSel.addEventListener("change", refresh);
-  document.getElementById("content").replaceChildren(frag);
-  refresh();
+    // Mini charts
+    const types={};fl.forEach(c=>{const t=c.comment_type||"Unknown";types[t]=(types[t]||0)+1});
+    const td1=Object.entries(types).sort((a,b)=>b[1]-a[1]);
+    mc(cvType,"doughnut",{data:{labels:td1.map(t=>t[0]),datasets:[{data:td1.map(t=>t[1]),backgroundColor:CL}]},options:{cutout:"50%",plugins:{legend:{position:"right",labels:{boxWidth:10,font:{size:10}}}}}});
+
+    const orgTypes={};fl.forEach(c=>{const o=c.submitter_org?"Organization":"Individual";orgTypes[o]=(orgTypes[o]||0)+1});
+    const td2=Object.entries(orgTypes);
+    mc(cvOrg,"doughnut",{data:{labels:td2.map(t=>t[0]),datasets:[{data:td2.map(t=>t[1]),backgroundColor:["#4F8EF7","#A78BFA"]}]},options:{cutout:"50%",plugins:{legend:{position:"right",labels:{boxWidth:10,font:{size:10}}}}}});
+
+    const subY=fl.filter(c=>c.substantive_confirmed).length;
+    mc(cvSub,"doughnut",{data:{labels:["Substantive","Non-Substantive"],datasets:[{data:[subY,fl.length-subY],backgroundColor:["#34D399","#5A6A8A"]}]},options:{cutout:"50%",plugins:{legend:{position:"right",labels:{boxWidth:10,font:{size:10}}}}}});
+
+    tc.replaceChildren(bt([{l:"ID",k:"comment_id"},{l:"Project",k:"project_id",r:r=>pm[r.project_id]||"—"},{l:"Author",k:"author_name",r:r=>r.author_name||"Anon"},{l:"Org",k:"submitter_org",r:r=>r.submitter_org||"—"},{l:"Type",k:"comment_type",r:r=>r.comment_type?bg(r.comment_type,"#4F8EF7"):"—"},{l:"Sub",k:"substantive_confirmed",r:r=>r.substantive_confirmed?bg("Yes","#34D399"):"No"},{l:"Date",k:"date_received"}],fl,{oc:r=>rCm(r)}));
+  }
+  si.addEventListener("input",rf);ps.addEventListener("change",rf);ts.addEventListener("change",rf);ss.addEventListener("change",rf);
+  document.getElementById("con").replaceChildren(f);rf();
 }
 
-function renderThemes(detail) {
-  destroyCharts();
-  const pm = projMap();
-  const frag = h("div",{className:"gap-16"});
+// --- THEMES EXPLORER ---
+function rTh(det){dc();const f=h("div",{className:"fl"});
+  if(det){
+    f.appendChild(h("button",{className:"bk",onClick:()=>rTh()},"← Back to explorer"));
+    const c=h("div",{className:"cd"});
+    c.append(h("div",{style:{fontSize:"18px",fontWeight:700}},det.theme_name));
+    const meta=h("div",{style:{display:"flex",gap:"12px",alignItems:"center",marginTop:"8px",flexWrap:"wrap"}});
+    meta.append(bg(pm[det.project_id]||"—","#4F8EF7"),bg(det.theme_layer||"—","#A78BFA"),bg(det.status||"draft",det.status==="Confirmed"||det.status==="active"?"#34D399":"#FBBF24"));
+    meta.append(h("span",{style:{fontSize:"12px",color:"var(--td)"}},`${det.code_count||0} codes · ${det.occurrences||0} occurrences`));
+    c.appendChild(meta);
+    if(det.description)c.append(h("div",{style:{fontSize:"13px",color:"var(--tm)",marginTop:"16px",lineHeight:"1.6"}},det.description));
+    f.appendChild(c);
 
-  if(detail) {
-    frag.appendChild(h("button",{className:"back-btn",onClick:()=>renderThemes()},"← Back to themes"));
-    const card = h("div",{className:"card"});
-    const hdr = h("div",{className:"detail-header"});
-    const left = h("div");
-    left.append(h("div",{className:"detail-title"},detail.theme_name));
-    left.append(h("div",{className:"detail-meta"},`${pm[detail.project_id]||"—"} · ${detail.theme_layer||"no layer"} · ${detail.code_count||0} codes · ${detail.occurrences||0} occurrences`));
-    hdr.append(left, badge(detail.status||"draft",detail.status==="active"?"#34D399":"#FBBF24"));
-    card.appendChild(hdr);
-    if(detail.description) card.append(h("div",{className:"section-body",style:{marginTop:"12px"}},detail.description));
-    frag.appendChild(card);
+    // Linked comments with stance breakdown
+    const lk=DB.theme_comments.filter(t=>t.theme_id===det.theme_id);
+    const lc=DB.comments.filter(c=>lk.some(l=>l.comment_id===c.comment_id));
+    // Get codes linked to these comments for stance analysis
+    const linkedCodes=DB.codes.filter(cd=>lc.some(c=>c.comment_id===cd.comment_id));
+    const stMap={};linkedCodes.forEach(c=>{const s=stanceLabel(c.stance);stMap[s]=(stMap[s]||0)+1});
 
-    const tc = DB.theme_comments.filter(t=>t.theme_id===detail.theme_id);
-    const linked = DB.comments.filter(c=>tc.some(t=>t.comment_id===c.comment_id));
-    if(linked.length) {
-      const lcard = h("div",{className:"card"});
-      lcard.append(h("div",{className:"card-title"},`Linked Comments (${linked.length})`));
-      lcard.appendChild(buildTable([
-        {label:"ID",key:"comment_id"},{label:"Author",key:"author_name",render:r=>r.author_name||"Anon"},
-        {label:"Org",key:"submitter_org"},{label:"Summary",key:"summary",wrap:true},
-      ],linked,{maxHeight:"400px"}));
-      frag.appendChild(lcard);
+    if(linkedCodes.length){
+      const r=h("div",{className:"g2"});
+      // Stance chart
+      const sc1=h("div",{className:"cd"});sc1.append(h("div",{className:"ct2"},"Stance Breakdown (from linked codes)"));const cv1=h("canvas");sc1.append(h("div",{className:"ch-sm"},cv1));r.appendChild(sc1);
+      // Category chart
+      const cats={};linkedCodes.forEach(c=>{const ca=c.category||"?";cats[ca]=(cats[ca]||0)+1});const catD=Object.entries(cats).sort((a,b)=>b[1]-a[1]).slice(0,8);
+      const sc2=h("div",{className:"cd"});sc2.append(h("div",{className:"ct2"},"Code Categories"));const cv2=h("canvas");sc2.append(h("div",{className:"ch-sm"},cv2));r.appendChild(sc2);
+      f.appendChild(r);
+
+      // Render after DOM mount
+      setTimeout(()=>{
+        const stD=Object.entries(stMap).sort((a,b)=>b[1]-a[1]);
+        mc(cv1,"doughnut",{data:{labels:stD.map(s=>s[0]),datasets:[{data:stD.map(s=>s[1]),backgroundColor:stD.map(s=>stanceColor(s[0]==="Support"?"S":s[0]==="Oppose"?"O":"N"))}]},options:{cutout:"55%",plugins:{legend:{position:"right"}}}});
+        mc(cv2,"bar",{data:{labels:catD.map(c=>c[0].length>15?c[0].slice(0,13)+"…":c[0]),datasets:[{data:catD.map(c=>c[1]),backgroundColor:"#A78BFA",borderRadius:4}]},options:{plugins:{legend:{display:false}},scales:{x:{ticks:{maxRotation:35}}}}});
+      },50);
     }
-    document.getElementById("content").replaceChildren(frag);
-    return;
+
+    if(lc.length){
+      const d=h("div",{className:"cd"});d.append(h("div",{className:"ct2"},"Linked Comments ("+lc.length+")"));
+      d.appendChild(bt([{l:"ID",k:"comment_id"},{l:"Author",k:"author_name",r:r=>r.author_name||"Anon"},{l:"Org",k:"submitter_org",r:r=>r.submitter_org||"—"},{l:"Sub",k:"substantive_confirmed",r:r=>r.substantive_confirmed?bg("Yes","#34D399"):"No"},{l:"Summary",k:"summary",w:1}],lc,{mh:"400px",oc:r=>rCm(r)}));
+      f.appendChild(d);
+    }
+
+    // Response status for this theme
+    const themeResp=DB.responses.filter(r=>r.theme_id===det.theme_id);
+    const respCard=h("div",{className:"cd"});
+    const respPct=lc.length?Math.round(themeResp.length/lc.length*100):0;
+    respCard.append(h("div",{className:"ct2"},"Response Status"),h("div",{style:{display:"flex",gap:"20px",alignItems:"center"}},h("div",{className:"sv",style:{color:respPct>=80?"var(--gn)":respPct>=50?"var(--yw)":"var(--rd)"}},respPct+"%"),h("div",null,h("div",{style:{fontSize:"13px",color:"var(--tm)"}},themeResp.length+" responses for "+lc.length+" linked comments"),h("div",{className:"meter",style:{width:"200px",marginTop:"8px"}},h("div",{className:"meter-fill",style:{width:respPct+"%",background:respPct>=80?"var(--gn)":respPct>=50?"var(--yw)":"var(--rd)"}})))));
+    f.appendChild(respCard);
+    document.getElementById("con").replaceChildren(f);return;
   }
 
-  const toolbar = h("div",{className:"toolbar"});
-  const projSel = h("select");
-  projSel.append(h("option",{value:"all"},"All Projects"));
-  DB.projects.forEach(p=>projSel.append(h("option",{value:String(p.project_id)},pm[p.project_id])));
-  const layerSel = h("select");
-  layerSel.append(h("option",{value:"all"},"All Layers"));
-  [...new Set(DB.themes.map(t=>t.theme_layer).filter(Boolean))].forEach(l=>layerSel.append(h("option",{value:l},l)));
-  const countEl = h("div",{className:"count"});
-  toolbar.append(projSel, layerSel, countEl);
-  frag.appendChild(toolbar);
+  // --- Explorer ---
+  const tb=h("div",{className:"tb"});
+  const ps=h("select");ps.append(h("option",{value:"all"},"All Projects"));DB.projects.forEach(p=>ps.append(h("option",{value:String(p.project_id)},pm[p.project_id])));
+  const ls=h("select");ls.append(h("option",{value:"all"},"All Layers"));[...new Set(DB.themes.map(t=>t.theme_layer).filter(Boolean))].sort().forEach(l=>ls.append(h("option",{value:l},l)));
+  const cnt=h("div",{className:"tc"});
+  tb.append(ps,ls,cnt);f.appendChild(tb);
 
-  const tableContainer = h("div");
-  frag.appendChild(tableContainer);
+  // Visualization: Stance by theme (horizontal stacked bars)
+  const chartCard=h("div",{className:"cd"});chartCard.append(h("div",{className:"ct2"},"Theme Stance Profile — click any bar to drill in"));const cvBar=h("canvas");chartCard.append(h("div",{className:"ch-lg"},cvBar));
+  f.appendChild(chartCard);
 
-  function refresh() {
-    const pf=projSel.value, lf=layerSel.value;
-    const filtered = DB.themes.filter(t=>{
-      if(pf!=="all"&&String(t.project_id)!==pf) return false;
-      if(lf!=="all"&&t.theme_layer!==lf) return false;
-      return true;
-    }).sort((a,b)=>(b.occurrences||0)-(a.occurrences||0));
-    countEl.textContent = `${filtered.length} themes`;
-    tableContainer.replaceChildren(buildTable([
-      {label:"Theme",key:"theme_name",render:r=>h("span",{style:{fontWeight:"600"}},r.theme_name)},
-      {label:"Project",key:"project_id",render:r=>pm[r.project_id]||"—"},
-      {label:"Layer",key:"theme_layer",render:r=>r.theme_layer?badge(r.theme_layer,"#A78BFA"):"—"},
-      {label:"Codes",key:"code_count",render:r=>r.code_count||0},
-      {label:"Occur.",key:"occurrences",render:r=>r.occurrences||0},
-      {label:"Status",key:"status",render:r=>badge(r.status||"draft",r.status==="active"?"#34D399":"#FBBF24")},
-    ],filtered,{onClick:row=>renderThemes(row)}));
+  // Heatmap: themes × projects
+  const hmCard=h("div",{className:"cd"});hmCard.append(h("div",{className:"ct2"},"Theme × Project Heatmap (comment count)"));
+  const hmDiv=h("div",{style:{overflowX:"auto"}});hmCard.appendChild(hmDiv);
+  f.appendChild(hmCard);
+
+  const tc=h("div");f.appendChild(tc);
+
+  function rf(){
+    dc();const pf=ps.value,lf=ls.value;
+    const fl=DB.themes.filter(t=>{if(pf!=="all"&&String(t.project_id)!==pf)return false;if(lf!=="all"&&t.theme_layer!==lf)return false;return true}).sort((a,b)=>(b.occurrences||0)-(a.occurrences||0));
+    cnt.textContent=fl.length+" themes";
+
+    // Stance stacked bar chart - top 15 themes
+    const top15=fl.slice(0,15);
+    const themeStances=top15.map(t=>{
+      const lk=DB.theme_comments.filter(tc=>tc.theme_id===t.theme_id);
+      const codes=DB.codes.filter(cd=>lk.some(l=>l.comment_id===cd.comment_id));
+      const sup=codes.filter(c=>c.stance==="S"||c.stance==="support").length;
+      const opp=codes.filter(c=>c.stance==="O"||c.stance==="oppose").length;
+      const neu=codes.filter(c=>c.stance!=="S"&&c.stance!=="O"&&c.stance!=="support"&&c.stance!=="oppose").length;
+      return{name:t.theme_name.length>35?t.theme_name.slice(0,33)+"…":t.theme_name,sup,opp,neu,theme:t};
+    });
+
+    const barChart=mc(cvBar,"bar",{data:{labels:themeStances.map(t=>t.name),datasets:[{label:"Support",data:themeStances.map(t=>t.sup),backgroundColor:"#34D399",borderRadius:2},{label:"Oppose",data:themeStances.map(t=>t.opp),backgroundColor:"#F87171",borderRadius:2},{label:"Neutral/Other",data:themeStances.map(t=>t.neu),backgroundColor:"#FBBF24",borderRadius:2}]},options:{indexAxis:"y",plugins:{legend:{position:"bottom"}},scales:{x:{stacked:true},y:{stacked:true,ticks:{font:{size:10}}}},onClick:(e,el)=>{if(el.length){const idx=el[0].index;rTh(themeStances[idx].theme)}}}});
+
+    // Heatmap
+    const projIds=[...new Set(fl.map(t=>t.project_id))].filter(Boolean);
+    const themeSlice=fl.slice(0,20);
+    hmDiv.innerHTML="";
+    if(projIds.length>1){
+      const hrow=h("div",{className:"hm-hrow"});projIds.forEach(pid=>hrow.append(h("div",{className:"hm-hlabel"},pm[pid]||"?")));hmDiv.appendChild(hrow);
+      themeSlice.forEach(t=>{
+        const row=h("div",{className:"hm-row"});
+        row.appendChild(h("div",{className:"hm-label",title:t.theme_name},t.theme_name.length>8?t.theme_name.slice(0,7)+"…":t.theme_name));
+        projIds.forEach(pid=>{
+          const cnt=DB.theme_comments.filter(tc=>tc.theme_id===t.theme_id&&DB.comments.find(c=>c.comment_id===tc.comment_id&&c.project_id===pid)).length;
+          const intensity=cnt===0?0:Math.min(1,cnt/10);
+          const bg=cnt===0?"var(--bd)":`rgba(79,142,247,${0.2+intensity*0.8})`;
+          row.appendChild(h("div",{className:"hm-cell",style:{background:bg,color:cnt?"#fff":"var(--td)"},title:`${t.theme_name} × ${pm[pid]}: ${cnt} comments`},cnt||""));
+        });
+        hmDiv.appendChild(row);
+      });
+    } else {
+      hmDiv.append(h("div",{style:{color:"var(--td)",fontSize:"12px"}},"Select 'All Projects' to see cross-project heatmap"));
+    }
+
+    tc.replaceChildren(bt([{l:"Theme",k:"theme_name",r:r=>h("span",{style:{fontWeight:"600"}},r.theme_name)},{l:"Project",k:"project_id",r:r=>pm[r.project_id]||"—"},{l:"Layer",k:"theme_layer",r:r=>r.theme_layer?bg(r.theme_layer,"#A78BFA"):"—"},{l:"Codes",k:"code_count"},{l:"Occ",k:"occurrences"},{l:"Status",k:"status",r:r=>bg(r.status||"draft",r.status==="Confirmed"||r.status==="active"?"#34D399":"#FBBF24")}],fl,{oc:r=>rTh(r)}));
   }
-
-  projSel.addEventListener("change",refresh);
-  layerSel.addEventListener("change",refresh);
-  document.getElementById("content").replaceChildren(frag);
-  refresh();
+  ps.addEventListener("change",rf);ls.addEventListener("change",rf);
+  document.getElementById("con").replaceChildren(f);rf();
 }
 
-function renderResponses() {
-  destroyCharts();
-  const pm = projMap();
-  const frag = h("div",{className:"gap-20"});
-  const responded = new Set(DB.responses.map(r=>r.comment_id));
-  const total = DB.comments.length;
-  const substTotal = DB.comments.filter(c=>c.substantive_confirmed).length;
-  const substResp = DB.comments.filter(c=>c.substantive_confirmed&&responded.has(c.comment_id)).length;
-  const unresponded = DB.comments.filter(c=>c.substantive_confirmed&&!responded.has(c.comment_id));
-  const overallRate = total?Math.round(responded.size/total*100):0;
-  const substRate = substTotal?Math.round(substResp/substTotal*100):0;
+// --- RESPONSES ---
+function rRe(){dc();const f=h("div",{className:"fl"});
+  const ri=new Set(DB.responses.map(r=>r.comment_id));const ur=DB.comments.filter(c=>c.substantive_confirmed&&!ri.has(c.comment_id));
+  const tot=DB.comments.length;const st=DB.comments.filter(c=>c.substantive_confirmed).length;const sr=DB.comments.filter(c=>c.substantive_confirmed&&ri.has(c.comment_id)).length;
+  const or=tot?Math.round(ri.size/tot*100):0;const srr=st?Math.round(sr/st*100):0;
 
-  const stats = h("div",{className:"grid grid-5"});
-  stats.append(
-    statCard("Total Responses", DB.responses.length, null, "var(--green)"),
-    statCard("Overall Coverage", overallRate+"%", `${responded.size} of ${total}`, overallRate>=80?"var(--green)":overallRate>=50?"var(--yellow)":"var(--red)"),
-    statCard("Substantive Coverage", substRate+"%", `${substResp} of ${substTotal}`, substRate>=80?"var(--green)":substRate>=50?"var(--yellow)":"var(--red)"),
-    statCard("Unresponded Subst.", unresponded.length, null, unresponded.length?"var(--red)":"var(--green)")
-  );
-  frag.appendChild(stats);
+  const s=h("div",{className:"g5"});s.append(sc("Responses",DB.responses.length,null,"var(--gn)"),sc("Overall",or+"%",ri.size+" of "+tot,or>=80?"var(--gn)":or>=50?"var(--yw)":"var(--rd)"),sc("Substantive",srr+"%",sr+" of "+st,srr>=80?"var(--gn)":srr>=50?"var(--yw)":"var(--rd)"),sc("Unresponded",ur.length,"substantive comments",ur.length?"var(--rd)":"var(--gn)"));
+  f.appendChild(s);
 
   // Theme response chart
-  const themeMap = Object.fromEntries(DB.themes.map(t=>[t.theme_id,t]));
-  const themeResp = {};
-  DB.responses.forEach(r=>{ if(r.theme_id){ if(!themeResp[r.theme_id]) themeResp[r.theme_id]={name:(themeMap[r.theme_id]||{}).theme_name||"?",count:0}; themeResp[r.theme_id].count++; }});
-  const trData = Object.values(themeResp).sort((a,b)=>b.count-a.count).slice(0,15);
-  if(trData.length) {
-    const ccard = h("div",{className:"card"});
-    ccard.append(h("div",{className:"card-title"},"Response Count by Theme"));
-    const cbox = h("div",{className:"chart-box"});
-    const cv = h("canvas"); cbox.appendChild(cv); ccard.appendChild(cbox); frag.appendChild(ccard);
-    document.getElementById("content").replaceChildren(frag);
-    makeChart(cv,"bar",{
-      data:{labels:trData.map(d=>d.name.length>30?d.name.slice(0,28)+"…":d.name),datasets:[{data:trData.map(d=>d.count),backgroundColor:"#34D399",borderRadius:4}]},
-      options:{indexAxis:"y",plugins:{legend:{display:false}}}
-    });
-  } else {
-    document.getElementById("content").replaceChildren(frag);
-  }
+  const tm=Object.fromEntries(DB.themes.map(t=>[t.theme_id,t]));
+  const thResp={};DB.responses.forEach(r=>{if(r.theme_id){if(!thResp[r.theme_id])thResp[r.theme_id]={n:(tm[r.theme_id]||{}).theme_name||"?",c:0};thResp[r.theme_id].c++}});
+  const trD=Object.values(thResp).sort((a,b)=>b.c-a.c).slice(0,15);
+  if(trD.length){const cc=h("div",{className:"cd"});cc.append(h("div",{className:"ct2"},"Responses by Theme"));const cv=h("canvas");cc.append(h("div",{className:"ch-lg"},cv));f.appendChild(cc);
+  document.getElementById("con").replaceChildren(f);
+  mc(cv,"bar",{data:{labels:trD.map(d=>d.n.length>30?d.n.slice(0,28)+"…":d.n),datasets:[{data:trD.map(d=>d.c),backgroundColor:"#34D399",borderRadius:4}]},options:{indexAxis:"y",plugins:{legend:{display:false}}}});
+  }else{document.getElementById("con").replaceChildren(f)}
 
-  if(unresponded.length) {
-    const ucard = h("div",{className:"card"});
-    ucard.append(h("div",{className:"card-title",style:{color:"var(--red)"}},`Unresponded Substantive Comments (${unresponded.length})`));
-    ucard.appendChild(buildTable([
-      {label:"ID",key:"comment_id"},{label:"Project",key:"project_id",render:r=>pm[r.project_id]||"—"},
-      {label:"Author",key:"author_name",render:r=>r.author_name||"Anon"},{label:"Org",key:"submitter_org"},
-      {label:"Summary",key:"summary",wrap:true},
-    ],unresponded,{maxHeight:"400px"}));
-    frag.appendChild(ucard);
-  }
+  if(ur.length){const d=h("div",{className:"cd"});d.append(h("div",{className:"ct2",style:{color:"var(--rd)"}},"Unresponded Substantive ("+ur.length+")"));d.appendChild(bt([{l:"ID",k:"comment_id"},{l:"Project",k:"project_id",r:r=>pm[r.project_id]||"—"},{l:"Author",k:"author_name",r:r=>r.author_name||"Anon"},{l:"Org",k:"submitter_org"},{l:"Summary",k:"summary",w:1}],ur,{mh:"400px",oc:r=>rCm(r)}));f.appendChild(d)}
 }
 
-function renderCodebook() {
-  destroyCharts();
-  const frag = h("div",{className:"gap-16"});
-  let tab = "codes";
+// --- CODEBOOK ---
+function rCb(){dc();const f=h("div",{className:"fl"});let tab="codes";
+  const tb=h("div",{className:"tb"});
+  const t1=h("button",{className:"nb a",onClick:()=>{tab="codes";t1.className="nb a";t2.className="nb";rf()}},"Codes ("+DB.codes.length+")");
+  const t2=h("button",{className:"nb",onClick:()=>{tab="uc";t2.className="nb a";t1.className="nb";rf()}},"UC ("+DB.unique_concerns.length+")");
+  const si=h("input",{type:"text",placeholder:"Search...",style:{width:"200px"}});
+  const cs=h("select");cs.append(h("option",{value:"all"},"All Categories"));[...new Set(DB.codes.map(c=>c.category).filter(Boolean))].sort().forEach(c=>cs.append(h("option",{value:c},c)));
+  const stf=h("select");stf.append(h("option",{value:"all"},"All Stances"),h("option",{value:"S"},"Support"),h("option",{value:"O"},"Oppose"),h("option",{value:"N"},"Neutral"));
+  tb.append(t1,t2,si,cs,stf);f.appendChild(tb);
 
-  const toolbar = h("div",{className:"toolbar"});
-  const tabBar = h("div",{className:"tab-bar"});
-  const btnCodes = h("button",{className:"tab-btn active",onClick:()=>{tab="codes";btnCodes.className="tab-btn active";btnUC.className="tab-btn";refresh();}},`Codes (${DB.codes.length})`);
-  const btnUC = h("button",{className:"tab-btn",onClick:()=>{tab="uc";btnUC.className="tab-btn active";btnCodes.className="tab-btn";refresh();}},`Unique Concerns (${DB.unique_concerns.length})`);
-  tabBar.append(btnCodes, btnUC);
+  // Chart row
+  const cr=h("div",{className:"g2"});
+  const cc1=h("div",{className:"cd"});cc1.append(h("div",{className:"ct2"},"Category Distribution"));const cv1=h("canvas");cc1.append(h("div",{className:"ch"},cv1));cr.appendChild(cc1);
+  const cc2=h("div",{className:"cd"});cc2.append(h("div",{className:"ct2"},"Stance × Category"));const cv2=h("canvas");cc2.append(h("div",{className:"ch"},cv2));cr.appendChild(cc2);
+  f.appendChild(cr);
 
-  const search = h("input",{type:"text",placeholder:"Search code text...",style:{width:"240px"}});
-  const catSel = h("select");
-  catSel.append(h("option",{value:"all"},"All Categories"));
-  [...new Set(DB.codes.map(c=>c.category).filter(Boolean))].sort().forEach(c=>catSel.append(h("option",{value:c},c)));
-  toolbar.append(tabBar, search, catSel);
-  frag.appendChild(toolbar);
+  const tc=h("div");f.appendChild(tc);
 
-  const tableContainer = h("div");
-  frag.appendChild(tableContainer);
-
-  function refresh() {
-    const s=search.value.toLowerCase(), cf=catSel.value;
-    const src = tab==="codes"?DB.codes:DB.unique_concerns;
-    const filtered = src.filter(c=>{
-      if(cf!=="all"&&c.category!==cf) return false;
-      if(s) return (c.code_text||"").toLowerCase().includes(s);
-      return true;
+  function rf(){
+    dc();const s=si.value.toLowerCase(),cf=cs.value,sf=stf.value;
+    const src=tab==="codes"?DB.codes:DB.unique_concerns;
+    const fl=src.filter(c=>{
+      if(cf!=="all"&&c.category!==cf)return false;
+      if(sf!=="all"&&c.stance!==sf)return false;
+      if(s)return(c.code_text||"").toLowerCase().includes(s);return true;
     });
 
-    const cols = tab==="codes" ? [
-      {label:"ID",key:"code_id"},{label:"Code Text",key:"code_text",wrap:true},
-      {label:"Category",key:"category"},{label:"Stance",key:"stance",render:r=>r.stance?badge(r.stance,r.stance==="support"?"#34D399":r.stance==="oppose"?"#F87171":"#FBBF24"):"—"},
-      {label:"Type",key:"code_type"},{label:"Subst.",key:"substantive",render:r=>r.substantive?badge("Yes","#34D399"):"—"},
-    ] : [
-      {label:"UC ID",key:"uc_id"},{label:"Concern",key:"code_text",wrap:true},
-      {label:"Category",key:"category"},{label:"Stance",key:"stance",render:r=>r.stance?badge(r.stance,r.stance==="support"?"#34D399":r.stance==="oppose"?"#F87171":"#FBBF24"):"—"},
-      {label:"Occur.",key:"occurrences",render:r=>r.occurrences||0},{label:"Subst.",key:"substantive",render:r=>r.substantive?badge("Yes","#34D399"):"—"},
-    ];
-    tableContainer.replaceChildren(buildTable(cols, filtered));
+    // Category donut
+    const cats={};fl.forEach(c=>{const ca=c.category||"?";cats[ca]=(cats[ca]||0)+1});
+    const catD=Object.entries(cats).sort((a,b)=>b[1]-a[1]).slice(0,10);
+    mc(cv1,"doughnut",{data:{labels:catD.map(c=>c[0]),datasets:[{data:catD.map(c=>c[1]),backgroundColor:CL}]},options:{cutout:"50%",plugins:{legend:{position:"right",labels:{boxWidth:10,font:{size:10}}}}}});
+
+    // Stance × Category stacked
+    const topCats=catD.slice(0,8).map(c=>c[0]);
+    const stances=["S","O","N"];const sLabels=["Support","Oppose","Neutral"];const sCols=["#34D399","#F87171","#FBBF24"];
+    const stData=stances.map((st,i)=>({label:sLabels[i],data:topCats.map(cat=>fl.filter(c=>c.category===cat&&c.stance===st).length),backgroundColor:sCols[i],borderRadius:2}));
+    mc(cv2,"bar",{data:{labels:topCats.map(c=>c.length>12?c.slice(0,10)+"…":c),datasets:stData},options:{plugins:{legend:{position:"bottom"}},scales:{x:{stacked:true,ticks:{maxRotation:35}},y:{stacked:true}}}});
+
+    const cols=tab==="codes"?[{l:"ID",k:"code_id"},{l:"Code",k:"code_text",w:1},{l:"Cat",k:"category"},{l:"Stance",k:"stance",r:r=>r.stance?bg(stanceLabel(r.stance),stanceColor(r.stance)):"—"},{l:"Type",k:"code_type"},{l:"Sub",k:"substantive",r:r=>r.substantive?bg("Yes","#34D399"):""}]:[{l:"UC",k:"uc_id"},{l:"Concern",k:"code_text",w:1},{l:"Cat",k:"category"},{l:"Stance",k:"stance",r:r=>r.stance?bg(stanceLabel(r.stance),stanceColor(r.stance)):"—"},{l:"Occ",k:"occurrences"},{l:"Sub",k:"substantive",r:r=>r.substantive?bg("Yes","#34D399"):""}];
+    tc.replaceChildren(bt(cols,fl));
   }
-
-  search.addEventListener("input",refresh);
-  catSel.addEventListener("change",refresh);
-  document.getElementById("content").replaceChildren(frag);
-  refresh();
-}
-
-function renderLitigation(detail) {
-  destroyCharts();
-  const frag = h("div",{className:"gap-20"});
-
-  if(detail) {
-    frag.appendChild(h("button",{className:"back-btn",onClick:()=>renderLitigation()},"← Back"));
-    const card = h("div",{className:"card"});
-    card.append(h("div",{className:"detail-title"},detail.case_name||detail.short_name));
-    card.append(h("div",{className:"detail-meta"},`${detail.court||""} · ${detail.status||""} · Filed: ${detail.filed_date||"—"}`));
-    if(detail.claims_raised) card.append(h("div",{className:"section-body",style:{marginTop:"12px"}},detail.claims_raised));
-    frag.appendChild(card);
-
-    const holdings = DB.lit_holdings.filter(h=>h.case_id===detail.case_id);
-    if(holdings.length) {
-      const hcard = h("div",{className:"card"});
-      hcard.append(h("div",{className:"card-title"},`Holdings (${holdings.length})`));
-      hcard.appendChild(buildTable([
-        {label:"Holding",key:"holding_text",wrap:true},{label:"Statute",key:"statute_interpreted"},
-        {label:"Standard",key:"legal_standard"},{label:"Deficiency",key:"blm_deficiency",wrap:true},
-      ],holdings,{maxHeight:"400px"}));
-      frag.appendChild(hcard);
-    }
-    document.getElementById("content").replaceChildren(frag);
-    return;
-  }
-
-  const stats = h("div",{className:"grid grid-5"});
-  stats.append(
-    statCard("Cases",DB.lit_cases.length,"","var(--accent)"),
-    statCard("Holdings",DB.lit_holdings.length,"","var(--purple)"),
-    statCard("Patterns",DB.lit_patterns.length,"","var(--yellow)"),
-    statCard("Gaps",DB.lit_gaps.length,"","var(--red)"),
-    statCard("Vuln Scores",DB.lit_vuln_scores.length,"","var(--orange)")
-  );
-  frag.appendChild(stats);
-
-  // Risk pie
-  const dist = {high:0,medium:0,low:0};
-  DB.lit_vuln_scores.forEach(v=>{ const l=(v.level||"").toLowerCase(); if(dist[l]!==undefined) dist[l]++; });
-  const riskData = [{l:"High",v:dist.high,c:"#F87171"},{l:"Medium",v:dist.medium,c:"#FBBF24"},{l:"Low",v:dist.low,c:"#34D399"}].filter(d=>d.v>0);
-  if(riskData.length) {
-    const ccard = h("div",{className:"card"});
-    ccard.append(h("div",{className:"card-title"},"Vulnerability Risk Distribution"));
-    const cbox = h("div",{className:"chart-box",style:{height:"250px"}});
-    const cv = h("canvas"); cbox.appendChild(cv); ccard.appendChild(cbox); frag.appendChild(ccard);
-  }
-
-  // Cases table
-  const tcard = h("div",{className:"card"});
-  tcard.append(h("div",{className:"card-title"},"Cases"));
-  tcard.appendChild(buildTable([
-    {label:"Case",key:"short_name",render:r=>h("span",{style:{fontWeight:"600"}},r.short_name||r.case_name)},
-    {label:"Court",key:"court"},{label:"Status",key:"status",render:r=>badge(r.status||"—",r.status==="active"?"#F87171":"#34D399")},
-    {label:"Filed",key:"filed_date"},{label:"Theory",key:"primary_theory",trunc:true},
-  ],DB.lit_cases,{onClick:row=>renderLitigation(row), maxHeight:"350px"}));
-  frag.appendChild(tcard);
-
-  if(DB.lit_gaps.length) {
-    const gcard = h("div",{className:"card"});
-    gcard.append(h("div",{className:"card-title",style:{color:"var(--red)"}},`Identified Gaps (${DB.lit_gaps.length})`));
-    gcard.appendChild(buildTable([
-      {label:"Priority",key:"priority",render:r=>badge(r.priority||"—",r.priority==="critical"?"#F87171":r.priority==="high"?"#FB923C":"#FBBF24")},
-      {label:"Topic",key:"topic_area"},{label:"Gap",key:"gap_description",wrap:true},
-      {label:"Composite",key:"max_composite"},{label:"Remediation",key:"remediation_type"},
-    ],DB.lit_gaps,{maxHeight:"300px"}));
-    frag.appendChild(gcard);
-  }
-
-  document.getElementById("content").replaceChildren(frag);
-
-  // Render risk chart after DOM mount
-  if(riskData.length) {
-    const cv = frag.querySelector("canvas");
-    if(cv) makeChart(cv,"doughnut",{
-      data:{labels:riskData.map(d=>d.l),datasets:[{data:riskData.map(d=>d.v),backgroundColor:riskData.map(d=>d.c)}]},
-      options:{cutout:"55%"}
-    });
-  }
+  si.addEventListener("input",rf);cs.addEventListener("change",rf);stf.addEventListener("change",rf);
+  document.getElementById("con").replaceChildren(f);rf();
 }
 
 // --- NAV ---
-function setView(id) {
-  currentView = id;
-  document.querySelectorAll(".nav-btn").forEach(b=>b.classList.toggle("active",b.dataset.view===id));
-  document.getElementById("page-title").textContent = VIEWS.find(v=>v.id===id).label;
-  const renderers = { overview:renderOverview, comments:renderComments, themes:renderThemes, responses:renderResponses, codebook:renderCodebook, litigation:renderLitigation };
-  renderers[id]();
-}
+const VW=[{id:"overview",l:"Overview",ic:"◉",fn:rOv},{id:"comments",l:"Comments",ic:"◈",fn:rCm},{id:"themes",l:"Themes",ic:"◆",fn:rTh},{id:"responses",l:"Responses",ic:"◇",fn:rRe},{id:"codebook",l:"Codebook",ic:"▣",fn:rCb}];
+let cv="overview";
+function sv(id){cv=id;document.querySelectorAll(".nb").forEach(b=>b.classList.toggle("a",b.dataset.v===id));document.getElementById("ttl").textContent=VW.find(v=>v.id===id).l;VW.find(v=>v.id===id).fn()}
 
-// --- INIT ---
-(async function() {
-  const nav = document.getElementById("nav");
-  VIEWS.forEach(v => {
-    const btn = h("button", {className:"nav-btn"+(v.id==="overview"?" active":""), "data-view":v.id, onClick:()=>setView(v.id)});
-    btn.append(h("span",{style:{fontSize:"15px"}},v.icon), ` ${v.label}`);
-    nav.appendChild(btn);
-  });
+const nav=document.getElementById("nav");VW.forEach(v=>{const b=h("button",{className:"nb"+(v.id==="overview"?" a":""),"data-v":v.id,onClick:()=>sv(v.id)});b.append(h("span",{style:{fontSize:"15px"}},v.ic)," "+v.l);nav.appendChild(b)});
 
-  try {
-    await loadData();
-    renderOverview();
-  } catch(e) {
-    document.getElementById("content").innerHTML = `<div class="card" style="color:var(--red)">Failed to load: ${e.message}</div>`;
-  }
-})();
+(async()=>{try{await loadData();rOv()}catch(e){document.getElementById("con").innerHTML=`<div class="cd" style="color:var(--rd)">Failed: ${e.message}</div>`}})();
 </script>
 </body>
 </html>
