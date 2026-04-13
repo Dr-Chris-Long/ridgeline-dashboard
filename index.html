@@ -83,6 +83,17 @@ async function loadData(){
   const T={projects:"project_id,project_code,project_name,status",comments:"comment_id,project_id,author_name,submitter_org,comment_type,summary,substantive_confirmed,date_received,full_text",codes:"code_id,comment_id,code_text,category,stance,code_type,substantive",themes:"theme_id,theme_name,description,code_count,occurrences,status,theme_layer,project_id",unique_concerns:"uc_id,code_text,category,stance,occurrences,substantive,uc_type",responses:"response_id,comment_id,theme_id,response_text",theme_comments:"theme_id,comment_id","references":"r_id,reference_type,citation,issue_date,author,summary,peer_reviewed,applicable_to",code_references:"code_id,r_id",theme_references:"theme_id,r_id"};
   const e=Object.entries(T);const r=await Promise.all(e.map(([t,s])=>fetchAll(t,s)));
   e.forEach(([t],i)=>{DB[t]=r[i]});
+  // Exclude QG and LC projects from dashboard
+  const EXCLUDE_CODES=new Set(['QG','LC']);
+  const exPids=new Set(DB.projects.filter(p=>EXCLUDE_CODES.has(p.project_code)).map(p=>p.project_id));
+  DB.projects=DB.projects.filter(p=>!exPids.has(p.project_id));
+  DB.comments=DB.comments.filter(c=>!exPids.has(c.project_id));
+  const exCids=new Set(DB.comments.filter(c=>exPids.has(c.project_id)).map(c=>c.comment_id));
+  DB.themes=DB.themes.filter(t=>!exPids.has(t.project_id));
+  const exTids=new Set(DB.themes.filter(t=>exPids.has(t.project_id)).map(t=>t.theme_id));
+  DB.codes=(DB.codes||[]).filter(c=>!exCids.has(c.comment_id));
+  DB.theme_comments=(DB.theme_comments||[]).filter(tc=>!exCids.has(tc.comment_id)&&!exTids.has(tc.theme_id));
+  DB.responses=(DB.responses||[]).filter(r=>(!r.comment_id||!exCids.has(r.comment_id))&&(!r.theme_id||!exTids.has(r.theme_id)));
   pm=Object.fromEntries(DB.projects.map(p=>[p.project_id,p.project_code||p.project_name]));
   document.getElementById("ft").textContent=`${DB.projects.length}P · ${DB.comments.length}C · ${DB.themes.length}T · ${DB.codes.length}K · ${(DB.references||[]).length}R`;
 }
@@ -150,7 +161,7 @@ function refPanel(refs,title,compact){
 // Project data completeness status
 function getProjectStatus(){
   const covered=getCoveredComments();
-  const NA_PROJECTS={'QG':{status:'not-applicable',label:'Pre-Decision'},'LC':{status:'not-applicable',label:'Litigation'},'DBOW':{status:'blocked',label:'EA Not Loaded'}};
+  const NA_PROJECTS={'DBOW':{status:'blocked',label:'EA Not Loaded'}};
   return DB.projects.map(p=>{
     const code=pm[p.project_id];
     const comments=DB.comments.filter(c=>c.project_id===p.project_id);
@@ -266,7 +277,7 @@ function showProjectDetail(p){
 function rOv(){dc();const f=h("div",{className:"fl"});
   const tot=DB.comments.length,sub=DB.comments.filter(c=>c.substantive_confirmed).length;
   const ri=getCoveredComments();
-  const naProjects=new Set(['QG','LC','DBOW']);const naPids=new Set(DB.projects.filter(p=>(p.project_code&&naProjects.has(p.project_code))).map(p=>p.project_id));
+  const naProjects=new Set(['DBOW']);const naPids=new Set(DB.projects.filter(p=>(p.project_code&&naProjects.has(p.project_code))).map(p=>p.project_id));
   const actionableComments=DB.comments.filter(c=>!naPids.has(c.project_id));
   const actionableTotal=actionableComments.length;
   const actionableCovered=actionableComments.filter(c=>ri.has(c.comment_id)).length;
@@ -340,7 +351,7 @@ function rOv(){dc();const f=h("div",{className:"fl"});
   mc(c3,"bar",{data:{labels:topThemes.map(t=>t.theme_name),datasets:[{data:topThemes.map(t=>t.occurrences||0),backgroundColor:"#A78BFA",borderRadius:4}]},options:{indexAxis:"y",plugins:{legend:{display:false}},onClick:(e,el)=>{if(el.length){sv("themes");setTimeout(()=>rTh(topThemes[el[0].index]),50)}}}});
 
   // Response coverage stacked bar
-  const naSet=new Set(['QG','LC','DBOW']);
+  const naSet=new Set(['DBOW']);
   const projResp=DB.projects.map(p=>{
     const code=pm[p.project_id];
     const pc=DB.comments.filter(c=>c.project_id===p.project_id);
