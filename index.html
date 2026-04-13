@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RIDGELINE — NEPA Comment Analysis Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root {
+  --bg: #0B0F19; --surface: #131825; --surface-h: #1A2035; --border: #1E2A42; --border-l: #2A3A5C;
+  --text: #E2E8F0; --text-m: #8896B3; --text-d: #5A6A8A;
+  --accent: #4F8EF7; --accent-d: #2D5BA0;
+  --green: #34D399; --yellow: #FBBF24; --red: #F87171; --orange: #FB923C; --purple: #A78BFA;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'IBM Plex Sans',system-ui,sans-serif; background:var(--bg); color:var(--text); display:flex; min-height:100vh; }
+button { font-family:inherit; }
+::-webkit-scrollbar { width:6px; height:6px; }
+::-webkit-scrollbar-track { background:var(--bg); }
+::-webkit-scrollbar-thumb { background:var(--border-l); border-radius:3px; }
+
+.sidebar { width:220px; background:var(--surface); border-right:1px solid var(--border); display:flex; flex-direction:column; position:sticky; top:0; height:100vh; flex-shrink:0; }
+.sidebar-brand { padding:20px 16px; border-bottom:1px solid var(--border); }
+.sidebar-brand h1 { font-size:14px; color:var(--accent); letter-spacing:0.04em; margin:0; }
+.sidebar-brand p { font-size:11px; color:var(--text-d); margin-top:4px; }
+.sidebar-nav { padding:12px 8px; display:flex; flex-direction:column; gap:2px; }
+.nav-btn { display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:6px; border:none; cursor:pointer; font-size:13px; background:transparent; color:var(--text-m); width:100%; text-align:left; transition:all 0.15s; }
+.nav-btn:hover { background:var(--surface-h); }
+.nav-btn.active { background:rgba(79,142,247,0.1); color:var(--accent); font-weight:600; }
+.sidebar-footer { margin-top:auto; padding:12px 16px; border-top:1px solid var(--border); font-size:10px; color:var(--text-d); }
+
+.main { flex:1; padding:28px; overflow-y:auto; min-width:0; }
+.container { max-width:1200px; margin:0 auto; }
+.page-title { font-size:22px; font-weight:700; margin-bottom:4px; }
+.page-sub { font-size:12px; color:var(--text-d); margin-bottom:24px; }
+
+.grid { display:grid; gap:16px; }
+.grid-5 { grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); }
+.grid-2 { grid-template-columns:1fr 1fr; }
+@media(max-width:900px){ .grid-2{grid-template-columns:1fr;} }
+
+.card { background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:20px; }
+.card-click { cursor:pointer; transition:border-color 0.15s,background 0.15s; }
+.card-click:hover { border-color:var(--border-l); background:var(--surface-h); }
+
+.stat-label { font-size:11px; color:var(--text-m); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:8px; }
+.stat-value { font-size:32px; font-weight:700; line-height:1; font-family:'JetBrains Mono',monospace; }
+.stat-sub { font-size:12px; color:var(--text-d); margin-top:6px; }
+
+.badge { display:inline-block; padding:2px 8px; border-radius:4px; font-size:11px; font-weight:600; letter-spacing:0.03em; text-transform:uppercase; }
+
+.toolbar { display:flex; gap:12px; align-items:center; flex-wrap:wrap; margin-bottom:16px; }
+.toolbar input, .toolbar select { padding:8px 12px; border-radius:6px; border:1px solid var(--border); background:var(--surface); color:var(--text); font-size:13px; outline:none; font-family:inherit; }
+.toolbar input:focus, .toolbar select:focus { border-color:var(--accent); }
+.toolbar .count { font-size:12px; color:var(--text-d); margin-left:auto; }
+
+.tab-bar { display:flex; gap:2px; background:var(--surface); border-radius:6px; padding:3px; border:1px solid var(--border); }
+.tab-btn { padding:6px 14px; border-radius:4px; border:none; cursor:pointer; font-size:12px; font-weight:600; background:transparent; color:var(--text-m); transition:all 0.15s; }
+.tab-btn.active { background:var(--accent); color:#fff; }
+
+table { width:100%; border-collapse:collapse; font-size:13px; }
+th { text-align:left; padding:10px 14px; background:var(--surface-h); color:var(--text-m); font-size:11px; text-transform:uppercase; letter-spacing:0.06em; border-bottom:1px solid var(--border); position:sticky; top:0; z-index:1; white-space:nowrap; }
+td { padding:10px 14px; border-bottom:1px solid var(--border); color:var(--text); }
+tr.clickable { cursor:pointer; }
+tr.clickable:hover { background:var(--surface-h); }
+.table-wrap { overflow:auto; max-height:600px; border-radius:6px; border:1px solid var(--border); }
+.td-wrap { max-width:400px; white-space:normal; line-height:1.5; }
+.td-trunc { max-width:300px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+
+.back-btn { background:none; border:none; color:var(--accent); cursor:pointer; font-size:13px; padding:0; margin-bottom:16px; }
+.back-btn:hover { text-decoration:underline; }
+
+.chart-box { height:300px; position:relative; }
+.loading { text-align:center; padding:60px; }
+.loading p { font-size:14px; color:var(--text-m); }
+.detail-header { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:16px; }
+.detail-title { font-size:18px; font-weight:700; }
+.detail-meta { font-size:13px; color:var(--text-m); margin-top:4px; }
+.section-label { font-size:11px; color:var(--text-d); text-transform:uppercase; margin-bottom:6px; }
+.section-body { font-size:13px; color:var(--text-m); line-height:1.6; }
+.card-title { font-size:13px; font-weight:600; margin-bottom:16px; }
+.gap-20 { display:flex; flex-direction:column; gap:20px; }
+.gap-16 { display:flex; flex-direction:column; gap:16px; }
+.hidden { display:none; }
+</style>
+</head>
+<body>
+<div class="sidebar">
+  <div class="sidebar-brand"><h1>RIDGELINE</h1><p>NEPA Comment Analysis</p></div>
+  <div class="sidebar-nav" id="nav"></div>
+  <div class="sidebar-footer" id="footer-stats">Loading...</div>
+</div>
+<div class="main">
+  <div class="container">
+    <h2 class="page-title" id="page-title">Overview</h2>
+    <div class="page-sub">BLM Medford District · CTA Pipeline Dashboard</div>
+    <div id="content"><div class="loading"><p>Connecting to Supabase...</p></div></div>
+  </div>
+</div>
+
+<script>
+const SB_URL = "https://uojjoraxzmzwuilmndlu.supabase.co/rest/v1";
+const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVvampvcmF4em16d3VpbG1uZGx1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI1ODc4MTksImV4cCI6MjA4ODE2MzgxOX0.4WmtuoXjXj441KpbLxJkQTebulejiEafKu0bSvdefpM";
+const HDRS = { apikey: SB_KEY, Authorization: `Bearer ${SB_KEY}`, Prefer: "count=exact" };
+const COLORS = ["#4F8EF7","#34D399","#FBBF24","#F87171","#A78BFA","#FB923C","#38BDF8","#E879F9","#2DD4BF","#F472B6"];
+
+const VIEWS = [
+  { id:"overview", label:"Overview", icon:"◉" },
+  { id:"comments", label:"Comments", icon:"◈" },
+  { id:"themes", label:"Themes", icon:"◆" },
+  { id:"responses", label:"Responses", icon:"◇" },
+  { id:"codebook", label:"Codebook", icon:"▣" },
+  { id:"litigation", label:"Litigation", icon:"⚖" },
+];
+
+let DB = {};
+let currentView = "overview";
+let charts = [];
+
+// --- DATA LAYER ---
+async function fetchAll(table, select="*") {
+  let all = [], offset = 0, limit = 1000;
+  while(true) {
+    const r = await fetch(`${SB_URL}/${table}?select=${select}&limit=${limit}&offset=${offset}`, { headers: HDRS });
+    if (!r.ok) { console.error(`Error ${table}:`, r.status); return all; }
+    const d = await r.json();
+    all = all.concat(d);
+    if (d.length < limit) break;
+    offset += limit;
+  }
+  return all;
+}
+
+async function loadData() {
+  const tables = {
+    projects: "project_id,project_code,project_name,status",
+    comments: "comment_id,project_id,author_name,submitter_org,comment_type,summary,substantive_confirmed,date_received,full_text",
+    codes: "code_id,comment_id,code_text,category,stance,code_type,substantive",
+    themes: "theme_id,theme_name,description,scope,code_count,occurrences,status,theme_layer,project_id",
+    unique_concerns: "uc_id,code_text,category,stance,occurrences,substantive,uc_type",
+    responses: "response_id,comment_id,theme_id,response_text",
+    theme_comments: "theme_id,comment_id",
+    lit_cases: "*",
+    lit_holdings: "*",
+    lit_patterns: "*",
+    lit_gaps: "*",
+    lit_vuln_scores: "*",
+  };
+  const entries = Object.entries(tables);
+  const results = await Promise.all(entries.map(([t, s]) => fetchAll(t, s)));
+  entries.forEach(([t], i) => { DB[t] = results[i]; });
+
+  document.getElementById("footer-stats").textContent =
+    `${DB.projects.length}P · ${DB.comments.length}C · ${DB.themes.length}T · ${DB.codes.length}K`;
+}
+
+// --- HELPERS ---
+function h(tag, attrs, ...children) {
+  const el = document.createElement(tag);
+  if (attrs) Object.entries(attrs).forEach(([k,v]) => {
+    if (k === "style" && typeof v === "object") Object.assign(el.style, v);
+    else if (k.startsWith("on")) el.addEventListener(k.slice(2).toLowerCase(), v);
+    else if (k === "className") el.className = v;
+    else if (k === "innerHTML") el.innerHTML = v;
+    else el.setAttribute(k, v);
+  });
+  children.flat().forEach(c => { if(c!=null) el.append(typeof c==="string"||typeof c==="number" ? document.createTextNode(c) : c); });
+  return el;
+}
+
+function badge(text, color) {
+  return h("span", { className:"badge", style:{color, background:color+"18"} }, text);
+}
+
+function buildTable(cols, data, opts={}) {
+  const wrap = h("div", { className:"table-wrap", style:{ maxHeight: opts.maxHeight||"600px" } });
+  const tbl = h("table");
+  const thead = h("thead", null, h("tr", null, ...cols.map(c => h("th", null, c.label))));
+  const tbody = h("tbody");
+  (data||[]).forEach(row => {
+    const tr = h("tr", opts.onClick ? { className:"clickable", onClick:()=>opts.onClick(row) } : null);
+    cols.forEach(c => {
+      const td = h("td", c.wrap ? {className:"td-wrap"} : c.trunc ? {className:"td-trunc"} : null);
+      const val = c.render ? c.render(row) : row[c.key];
+      if (val instanceof HTMLElement) td.appendChild(val);
+      else td.textContent = val ?? "—";
+      tr.appendChild(td);
+    });
+    tbody.appendChild(tr);
+  });
+  tbl.append(thead, tbody);
+  wrap.appendChild(tbl);
+  return wrap;
+}
+
+function statCard(label, value, sub, color="var(--accent)") {
+  return h("div", {className:"card"}, 
+    h("div", {className:"stat-label"}, label),
+    h("div", {className:"stat-value", style:{color}}, String(value)),
+    sub ? h("div", {className:"stat-sub"}, sub) : null
+  );
+}
+
+function destroyCharts() { charts.forEach(c=>c.destroy()); charts=[]; }
+
+function makeChart(canvas, type, config) {
+  const ctx = canvas.getContext("2d");
+  const chart = new Chart(ctx, {
+    type, ...config,
+    options: {
+      ...config.options,
+      responsive: true, maintainAspectRatio: false,
+      plugins: { ...config.options?.plugins, legend: { labels: { color:"#8896B3", font:{size:11} }, ...config.options?.plugins?.legend } },
+      scales: type==="pie"||type==="doughnut" ? undefined : {
+        x: { ticks:{color:"#5A6A8A",font:{size:11}}, grid:{color:"#1E2A42"}, ...config.options?.scales?.x },
+        y: { ticks:{color:"#5A6A8A",font:{size:11}}, grid:{color:"#1E2A42"}, ...config.options?.scales?.y },
+      }
+    }
+  });
+  charts.push(chart);
+  return chart;
+}
+
+function projMap() { return Object.fromEntries(DB.projects.map(p => [p.project_id, p.project_code||p.project_name])); }
+
+// --- VIEWS ---
+function renderOverview() {
+  destroyCharts();
+  const pm = projMap();
+  const total = DB.comments.length;
+  const substantive = DB.comments.filter(c=>c.substantive_confirmed).length;
+  const respRate = total ? Math.round(new Set(DB.responses.map(r=>r.comment_id)).size / total * 100) : 0;
+
+  const frag = h("div", {className:"gap-20"});
+
+  // Stat cards
+  const stats = h("div", {className:"grid grid-5"});
+  stats.append(
+    statCard("Projects", DB.projects.length, "Active in pipeline"),
+    statCard("Comments", total, `${substantive} substantive`, "var(--green)"),
+    statCard("Themes", DB.themes.length, "Across all projects", "var(--purple)"),
+    statCard("Codes", DB.codes.length, `${DB.unique_concerns.length} unique concerns`, "var(--yellow)"),
+    statCard("Responses", DB.responses.length, `${respRate}% coverage`, respRate>=80?"var(--green)":respRate>=50?"var(--yellow)":"var(--red)")
+  );
+  frag.appendChild(stats);
+
+  // Charts row
+  const chartRow = h("div", {className:"grid grid-2"});
+
+  // Comments by project
+  const projStats = DB.projects.map(p => ({
+    name: pm[p.project_id]||p.project_id,
+    count: DB.comments.filter(c=>c.project_id===p.project_id).length
+  })).filter(p=>p.count>0).sort((a,b)=>b.count-a.count);
+
+  const c1card = h("div", {className:"card"});
+  c1card.append(h("div", {className:"card-title"}, "Comments by Project"));
+  const c1box = h("div", {className:"chart-box"});
+  const c1 = h("canvas");
+  c1box.appendChild(c1); c1card.appendChild(c1box); chartRow.appendChild(c1card);
+
+  // Stance distribution
+  const stances = {};
+  DB.codes.forEach(c => { const s=c.stance||"unclassified"; stances[s]=(stances[s]||0)+1; });
+  const stanceData = Object.entries(stances).sort((a,b)=>b[1]-a[1]);
+
+  const c2card = h("div", {className:"card"});
+  c2card.append(h("div", {className:"card-title"}, "Code Stance Distribution"));
+  const c2box = h("div", {className:"chart-box"});
+  const c2 = h("canvas");
+  c2box.appendChild(c2); c2card.appendChild(c2box); chartRow.appendChild(c2card);
+  frag.appendChild(chartRow);
+
+  // Category chart
+  const cats = {};
+  DB.codes.forEach(c => { const cat=c.category||"uncategorized"; cats[cat]=(cats[cat]||0)+1; });
+  const catData = Object.entries(cats).sort((a,b)=>b[1]-a[1]).slice(0,12);
+
+  const c3card = h("div", {className:"card"});
+  c3card.append(h("div", {className:"card-title"}, "Top Code Categories"));
+  const c3box = h("div", {className:"chart-box"});
+  const c3 = h("canvas");
+  c3box.appendChild(c3); c3card.appendChild(c3box); frag.appendChild(c3card);
+
+  document.getElementById("content").replaceChildren(frag);
+
+  makeChart(c1, "bar", {
+    data: { labels:projStats.map(p=>p.name), datasets:[{data:projStats.map(p=>p.count),backgroundColor:"#4F8EF7",borderRadius:4}] },
+    options: { indexAxis:"y", plugins:{legend:{display:false}}, scales:{x:{grid:{display:false}}} }
+  });
+  makeChart(c2, "doughnut", {
+    data: { labels:stanceData.map(s=>s[0]), datasets:[{data:stanceData.map(s=>s[1]),backgroundColor:COLORS.slice(0,stanceData.length)}] },
+    options: { cutout:"55%" }
+  });
+  makeChart(c3, "bar", {
+    data: { labels:catData.map(c=>c[0].length>22?c[0].slice(0,20)+"…":c[0]), datasets:[{data:catData.map(c=>c[1]),backgroundColor:"#A78BFA",borderRadius:4}] },
+    options: { plugins:{legend:{display:false}}, scales:{x:{ticks:{maxRotation:45,minRotation:25}}} }
+  });
+}
+
+function renderComments(detail) {
+  destroyCharts();
+  const pm = projMap();
+  const frag = h("div", {className:"gap-16"});
+
+  if (detail) {
+    frag.appendChild(h("button", {className:"back-btn", onClick:()=>renderComments()}, "← Back to comments"));
+    const card = h("div", {className:"card"});
+    const hdr = h("div", {className:"detail-header"});
+    const left = h("div");
+    left.append(h("div", {className:"detail-title"}, detail.author_name||"Anonymous"));
+    left.append(h("div", {className:"detail-meta"}, `${detail.submitter_org||""} · ${pm[detail.project_id]||""} · ${detail.date_received||"No date"}`));
+    const right = h("div", {style:{display:"flex",gap:"8px"}});
+    if(detail.substantive_confirmed) right.appendChild(badge("Substantive","#34D399"));
+    if(detail.comment_type) right.appendChild(badge(detail.comment_type,"#A78BFA"));
+    hdr.append(left, right); card.appendChild(hdr);
+    if(detail.summary) { card.append(h("div",{className:"section-label"},"Summary"), h("div",{className:"section-body"},detail.summary)); }
+    if(detail.full_text) {
+      card.append(h("div",{className:"section-label",style:{marginTop:"16px"}},"Full Text"),
+        h("div",{className:"section-body",style:{maxHeight:"300px",overflowY:"auto",whiteSpace:"pre-wrap"}},detail.full_text));
+    }
+    frag.appendChild(card);
+
+    const cc = DB.codes.filter(c=>c.comment_id===detail.comment_id);
+    if(cc.length) {
+      const ccard = h("div",{className:"card"});
+      ccard.append(h("div",{className:"card-title"},`Codes (${cc.length})`));
+      ccard.appendChild(buildTable([
+        {label:"Code",key:"code_text",wrap:true},
+        {label:"Category",key:"category"},
+        {label:"Stance",key:"stance",render:r=>badge(r.stance||"—",r.stance==="support"?"#34D399":r.stance==="oppose"?"#F87171":"#FBBF24")},
+        {label:"Substantive",key:"substantive",render:r=>r.substantive?"Yes":"No"},
+      ],cc,{maxHeight:"350px"}));
+      frag.appendChild(ccard);
+    }
+    document.getElementById("content").replaceChildren(frag);
+    return;
+  }
+
+  // Toolbar
+  const toolbar = h("div", {className:"toolbar"});
+  const search = h("input", {type:"text",placeholder:"Search author, org, summary...",style:{width:"260px"}});
+  const projSel = h("select");
+  projSel.append(h("option",{value:"all"},"All Projects"));
+  DB.projects.forEach(p=>projSel.append(h("option",{value:String(p.project_id)},pm[p.project_id])));
+  const typeSel = h("select");
+  typeSel.append(h("option",{value:"all"},"All Types"));
+  [...new Set(DB.comments.map(c=>c.comment_type).filter(Boolean))].forEach(t=>typeSel.append(h("option",{value:t},t)));
+  const countEl = h("div",{className:"count"});
+  toolbar.append(search, projSel, typeSel, countEl);
+  frag.appendChild(toolbar);
+
+  const tableContainer = h("div");
+  frag.appendChild(tableContainer);
+
+  function refresh() {
+    const s = search.value.toLowerCase();
+    const pf = projSel.value;
+    const tf = typeSel.value;
+    const filtered = DB.comments.filter(c => {
+      if(pf!=="all" && String(c.project_id)!==pf) return false;
+      if(tf!=="all" && c.comment_type!==tf) return false;
+      if(s) return (c.author_name||"").toLowerCase().includes(s)||(c.submitter_org||"").toLowerCase().includes(s)||(c.summary||"").toLowerCase().includes(s);
+      return true;
+    });
+    countEl.textContent = `${filtered.length} of ${DB.comments.length} comments`;
+    tableContainer.replaceChildren(buildTable([
+      {label:"ID",key:"comment_id"},
+      {label:"Project",key:"project_id",render:r=>pm[r.project_id]||r.project_id},
+      {label:"Author",key:"author_name",render:r=>r.author_name||"Anonymous"},
+      {label:"Org",key:"submitter_org"},
+      {label:"Type",key:"comment_type",render:r=>r.comment_type?badge(r.comment_type,"#4F8EF7"):"—"},
+      {label:"Subst.",key:"substantive_confirmed",render:r=>r.substantive_confirmed?badge("Yes","#34D399"):"No"},
+      {label:"Date",key:"date_received"},
+    ], filtered, {onClick: row=>renderComments(row)}));
+  }
+
+  search.addEventListener("input", refresh);
+  projSel.addEventListener("change", refresh);
+  typeSel.addEventListener("change", refresh);
+  document.getElementById("content").replaceChildren(frag);
+  refresh();
+}
+
+function renderThemes(detail) {
+  destroyCharts();
+  const pm = projMap();
+  const frag = h("div",{className:"gap-16"});
+
+  if(detail) {
+    frag.appendChild(h("button",{className:"back-btn",onClick:()=>renderThemes()},"← Back to themes"));
+    const card = h("div",{className:"card"});
+    const hdr = h("div",{className:"detail-header"});
+    const left = h("div");
+    left.append(h("div",{className:"detail-title"},detail.theme_name));
+    left.append(h("div",{className:"detail-meta"},`${pm[detail.project_id]||"—"} · ${detail.theme_layer||"no layer"} · ${detail.code_count||0} codes · ${detail.occurrences||0} occurrences`));
+    hdr.append(left, badge(detail.status||"draft",detail.status==="active"?"#34D399":"#FBBF24"));
+    card.appendChild(hdr);
+    if(detail.description) card.append(h("div",{className:"section-body",style:{marginTop:"12px"}},detail.description));
+    frag.appendChild(card);
+
+    const tc = DB.theme_comments.filter(t=>t.theme_id===detail.theme_id);
+    const linked = DB.comments.filter(c=>tc.some(t=>t.comment_id===c.comment_id));
+    if(linked.length) {
+      const lcard = h("div",{className:"card"});
+      lcard.append(h("div",{className:"card-title"},`Linked Comments (${linked.length})`));
+      lcard.appendChild(buildTable([
+        {label:"ID",key:"comment_id"},{label:"Author",key:"author_name",render:r=>r.author_name||"Anon"},
+        {label:"Org",key:"submitter_org"},{label:"Summary",key:"summary",wrap:true},
+      ],linked,{maxHeight:"400px"}));
+      frag.appendChild(lcard);
+    }
+    document.getElementById("content").replaceChildren(frag);
+    return;
+  }
+
+  const toolbar = h("div",{className:"toolbar"});
+  const projSel = h("select");
+  projSel.append(h("option",{value:"all"},"All Projects"));
+  DB.projects.forEach(p=>projSel.append(h("option",{value:String(p.project_id)},pm[p.project_id])));
+  const layerSel = h("select");
+  layerSel.append(h("option",{value:"all"},"All Layers"));
+  [...new Set(DB.themes.map(t=>t.theme_layer).filter(Boolean))].forEach(l=>layerSel.append(h("option",{value:l},l)));
+  const countEl = h("div",{className:"count"});
+  toolbar.append(projSel, layerSel, countEl);
+  frag.appendChild(toolbar);
+
+  const tableContainer = h("div");
+  frag.appendChild(tableContainer);
+
+  function refresh() {
+    const pf=projSel.value, lf=layerSel.value;
+    const filtered = DB.themes.filter(t=>{
+      if(pf!=="all"&&String(t.project_id)!==pf) return false;
+      if(lf!=="all"&&t.theme_layer!==lf) return false;
+      return true;
+    }).sort((a,b)=>(b.occurrences||0)-(a.occurrences||0));
+    countEl.textContent = `${filtered.length} themes`;
+    tableContainer.replaceChildren(buildTable([
+      {label:"Theme",key:"theme_name",render:r=>h("span",{style:{fontWeight:"600"}},r.theme_name)},
+      {label:"Project",key:"project_id",render:r=>pm[r.project_id]||"—"},
+      {label:"Layer",key:"theme_layer",render:r=>r.theme_layer?badge(r.theme_layer,"#A78BFA"):"—"},
+      {label:"Codes",key:"code_count",render:r=>r.code_count||0},
+      {label:"Occur.",key:"occurrences",render:r=>r.occurrences||0},
+      {label:"Status",key:"status",render:r=>badge(r.status||"draft",r.status==="active"?"#34D399":"#FBBF24")},
+    ],filtered,{onClick:row=>renderThemes(row)}));
+  }
+
+  projSel.addEventListener("change",refresh);
+  layerSel.addEventListener("change",refresh);
+  document.getElementById("content").replaceChildren(frag);
+  refresh();
+}
+
+function renderResponses() {
+  destroyCharts();
+  const pm = projMap();
+  const frag = h("div",{className:"gap-20"});
+  const responded = new Set(DB.responses.map(r=>r.comment_id));
+  const total = DB.comments.length;
+  const substTotal = DB.comments.filter(c=>c.substantive_confirmed).length;
+  const substResp = DB.comments.filter(c=>c.substantive_confirmed&&responded.has(c.comment_id)).length;
+  const unresponded = DB.comments.filter(c=>c.substantive_confirmed&&!responded.has(c.comment_id));
+  const overallRate = total?Math.round(responded.size/total*100):0;
+  const substRate = substTotal?Math.round(substResp/substTotal*100):0;
+
+  const stats = h("div",{className:"grid grid-5"});
+  stats.append(
+    statCard("Total Responses", DB.responses.length, null, "var(--green)"),
+    statCard("Overall Coverage", overallRate+"%", `${responded.size} of ${total}`, overallRate>=80?"var(--green)":overallRate>=50?"var(--yellow)":"var(--red)"),
+    statCard("Substantive Coverage", substRate+"%", `${substResp} of ${substTotal}`, substRate>=80?"var(--green)":substRate>=50?"var(--yellow)":"var(--red)"),
+    statCard("Unresponded Subst.", unresponded.length, null, unresponded.length?"var(--red)":"var(--green)")
+  );
+  frag.appendChild(stats);
+
+  // Theme response chart
+  const themeMap = Object.fromEntries(DB.themes.map(t=>[t.theme_id,t]));
+  const themeResp = {};
+  DB.responses.forEach(r=>{ if(r.theme_id){ if(!themeResp[r.theme_id]) themeResp[r.theme_id]={name:(themeMap[r.theme_id]||{}).theme_name||"?",count:0}; themeResp[r.theme_id].count++; }});
+  const trData = Object.values(themeResp).sort((a,b)=>b.count-a.count).slice(0,15);
+  if(trData.length) {
+    const ccard = h("div",{className:"card"});
+    ccard.append(h("div",{className:"card-title"},"Response Count by Theme"));
+    const cbox = h("div",{className:"chart-box"});
+    const cv = h("canvas"); cbox.appendChild(cv); ccard.appendChild(cbox); frag.appendChild(ccard);
+    document.getElementById("content").replaceChildren(frag);
+    makeChart(cv,"bar",{
+      data:{labels:trData.map(d=>d.name.length>30?d.name.slice(0,28)+"…":d.name),datasets:[{data:trData.map(d=>d.count),backgroundColor:"#34D399",borderRadius:4}]},
+      options:{indexAxis:"y",plugins:{legend:{display:false}}}
+    });
+  } else {
+    document.getElementById("content").replaceChildren(frag);
+  }
+
+  if(unresponded.length) {
+    const ucard = h("div",{className:"card"});
+    ucard.append(h("div",{className:"card-title",style:{color:"var(--red)"}},`Unresponded Substantive Comments (${unresponded.length})`));
+    ucard.appendChild(buildTable([
+      {label:"ID",key:"comment_id"},{label:"Project",key:"project_id",render:r=>pm[r.project_id]||"—"},
+      {label:"Author",key:"author_name",render:r=>r.author_name||"Anon"},{label:"Org",key:"submitter_org"},
+      {label:"Summary",key:"summary",wrap:true},
+    ],unresponded,{maxHeight:"400px"}));
+    frag.appendChild(ucard);
+  }
+}
+
+function renderCodebook() {
+  destroyCharts();
+  const frag = h("div",{className:"gap-16"});
+  let tab = "codes";
+
+  const toolbar = h("div",{className:"toolbar"});
+  const tabBar = h("div",{className:"tab-bar"});
+  const btnCodes = h("button",{className:"tab-btn active",onClick:()=>{tab="codes";btnCodes.className="tab-btn active";btnUC.className="tab-btn";refresh();}},`Codes (${DB.codes.length})`);
+  const btnUC = h("button",{className:"tab-btn",onClick:()=>{tab="uc";btnUC.className="tab-btn active";btnCodes.className="tab-btn";refresh();}},`Unique Concerns (${DB.unique_concerns.length})`);
+  tabBar.append(btnCodes, btnUC);
+
+  const search = h("input",{type:"text",placeholder:"Search code text...",style:{width:"240px"}});
+  const catSel = h("select");
+  catSel.append(h("option",{value:"all"},"All Categories"));
+  [...new Set(DB.codes.map(c=>c.category).filter(Boolean))].sort().forEach(c=>catSel.append(h("option",{value:c},c)));
+  toolbar.append(tabBar, search, catSel);
+  frag.appendChild(toolbar);
+
+  const tableContainer = h("div");
+  frag.appendChild(tableContainer);
+
+  function refresh() {
+    const s=search.value.toLowerCase(), cf=catSel.value;
+    const src = tab==="codes"?DB.codes:DB.unique_concerns;
+    const filtered = src.filter(c=>{
+      if(cf!=="all"&&c.category!==cf) return false;
+      if(s) return (c.code_text||"").toLowerCase().includes(s);
+      return true;
+    });
+
+    const cols = tab==="codes" ? [
+      {label:"ID",key:"code_id"},{label:"Code Text",key:"code_text",wrap:true},
+      {label:"Category",key:"category"},{label:"Stance",key:"stance",render:r=>r.stance?badge(r.stance,r.stance==="support"?"#34D399":r.stance==="oppose"?"#F87171":"#FBBF24"):"—"},
+      {label:"Type",key:"code_type"},{label:"Subst.",key:"substantive",render:r=>r.substantive?badge("Yes","#34D399"):"—"},
+    ] : [
+      {label:"UC ID",key:"uc_id"},{label:"Concern",key:"code_text",wrap:true},
+      {label:"Category",key:"category"},{label:"Stance",key:"stance",render:r=>r.stance?badge(r.stance,r.stance==="support"?"#34D399":r.stance==="oppose"?"#F87171":"#FBBF24"):"—"},
+      {label:"Occur.",key:"occurrences",render:r=>r.occurrences||0},{label:"Subst.",key:"substantive",render:r=>r.substantive?badge("Yes","#34D399"):"—"},
+    ];
+    tableContainer.replaceChildren(buildTable(cols, filtered));
+  }
+
+  search.addEventListener("input",refresh);
+  catSel.addEventListener("change",refresh);
+  document.getElementById("content").replaceChildren(frag);
+  refresh();
+}
+
+function renderLitigation(detail) {
+  destroyCharts();
+  const frag = h("div",{className:"gap-20"});
+
+  if(detail) {
+    frag.appendChild(h("button",{className:"back-btn",onClick:()=>renderLitigation()},"← Back"));
+    const card = h("div",{className:"card"});
+    card.append(h("div",{className:"detail-title"},detail.case_name||detail.short_name));
+    card.append(h("div",{className:"detail-meta"},`${detail.court||""} · ${detail.status||""} · Filed: ${detail.filed_date||"—"}`));
+    if(detail.claims_raised) card.append(h("div",{className:"section-body",style:{marginTop:"12px"}},detail.claims_raised));
+    frag.appendChild(card);
+
+    const holdings = DB.lit_holdings.filter(h=>h.case_id===detail.case_id);
+    if(holdings.length) {
+      const hcard = h("div",{className:"card"});
+      hcard.append(h("div",{className:"card-title"},`Holdings (${holdings.length})`));
+      hcard.appendChild(buildTable([
+        {label:"Holding",key:"holding_text",wrap:true},{label:"Statute",key:"statute_interpreted"},
+        {label:"Standard",key:"legal_standard"},{label:"Deficiency",key:"blm_deficiency",wrap:true},
+      ],holdings,{maxHeight:"400px"}));
+      frag.appendChild(hcard);
+    }
+    document.getElementById("content").replaceChildren(frag);
+    return;
+  }
+
+  const stats = h("div",{className:"grid grid-5"});
+  stats.append(
+    statCard("Cases",DB.lit_cases.length,"","var(--accent)"),
+    statCard("Holdings",DB.lit_holdings.length,"","var(--purple)"),
+    statCard("Patterns",DB.lit_patterns.length,"","var(--yellow)"),
+    statCard("Gaps",DB.lit_gaps.length,"","var(--red)"),
+    statCard("Vuln Scores",DB.lit_vuln_scores.length,"","var(--orange)")
+  );
+  frag.appendChild(stats);
+
+  // Risk pie
+  const dist = {high:0,medium:0,low:0};
+  DB.lit_vuln_scores.forEach(v=>{ const l=(v.level||"").toLowerCase(); if(dist[l]!==undefined) dist[l]++; });
+  const riskData = [{l:"High",v:dist.high,c:"#F87171"},{l:"Medium",v:dist.medium,c:"#FBBF24"},{l:"Low",v:dist.low,c:"#34D399"}].filter(d=>d.v>0);
+  if(riskData.length) {
+    const ccard = h("div",{className:"card"});
+    ccard.append(h("div",{className:"card-title"},"Vulnerability Risk Distribution"));
+    const cbox = h("div",{className:"chart-box",style:{height:"250px"}});
+    const cv = h("canvas"); cbox.appendChild(cv); ccard.appendChild(cbox); frag.appendChild(ccard);
+  }
+
+  // Cases table
+  const tcard = h("div",{className:"card"});
+  tcard.append(h("div",{className:"card-title"},"Cases"));
+  tcard.appendChild(buildTable([
+    {label:"Case",key:"short_name",render:r=>h("span",{style:{fontWeight:"600"}},r.short_name||r.case_name)},
+    {label:"Court",key:"court"},{label:"Status",key:"status",render:r=>badge(r.status||"—",r.status==="active"?"#F87171":"#34D399")},
+    {label:"Filed",key:"filed_date"},{label:"Theory",key:"primary_theory",trunc:true},
+  ],DB.lit_cases,{onClick:row=>renderLitigation(row), maxHeight:"350px"}));
+  frag.appendChild(tcard);
+
+  if(DB.lit_gaps.length) {
+    const gcard = h("div",{className:"card"});
+    gcard.append(h("div",{className:"card-title",style:{color:"var(--red)"}},`Identified Gaps (${DB.lit_gaps.length})`));
+    gcard.appendChild(buildTable([
+      {label:"Priority",key:"priority",render:r=>badge(r.priority||"—",r.priority==="critical"?"#F87171":r.priority==="high"?"#FB923C":"#FBBF24")},
+      {label:"Topic",key:"topic_area"},{label:"Gap",key:"gap_description",wrap:true},
+      {label:"Composite",key:"max_composite"},{label:"Remediation",key:"remediation_type"},
+    ],DB.lit_gaps,{maxHeight:"300px"}));
+    frag.appendChild(gcard);
+  }
+
+  document.getElementById("content").replaceChildren(frag);
+
+  // Render risk chart after DOM mount
+  if(riskData.length) {
+    const cv = frag.querySelector("canvas");
+    if(cv) makeChart(cv,"doughnut",{
+      data:{labels:riskData.map(d=>d.l),datasets:[{data:riskData.map(d=>d.v),backgroundColor:riskData.map(d=>d.c)}]},
+      options:{cutout:"55%"}
+    });
+  }
+}
+
+// --- NAV ---
+function setView(id) {
+  currentView = id;
+  document.querySelectorAll(".nav-btn").forEach(b=>b.classList.toggle("active",b.dataset.view===id));
+  document.getElementById("page-title").textContent = VIEWS.find(v=>v.id===id).label;
+  const renderers = { overview:renderOverview, comments:renderComments, themes:renderThemes, responses:renderResponses, codebook:renderCodebook, litigation:renderLitigation };
+  renderers[id]();
+}
+
+// --- INIT ---
+(async function() {
+  const nav = document.getElementById("nav");
+  VIEWS.forEach(v => {
+    const btn = h("button", {className:"nav-btn"+(v.id==="overview"?" active":""), "data-view":v.id, onClick:()=>setView(v.id)});
+    btn.append(h("span",{style:{fontSize:"15px"}},v.icon), ` ${v.label}`);
+    nav.appendChild(btn);
+  });
+
+  try {
+    await loadData();
+    renderOverview();
+  } catch(e) {
+    document.getElementById("content").innerHTML = `<div class="card" style="color:var(--red)">Failed to load: ${e.message}</div>`;
+  }
+})();
+</script>
+</body>
+</html>
