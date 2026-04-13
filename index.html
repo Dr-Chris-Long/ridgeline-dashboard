@@ -126,6 +126,93 @@ function getProjectStatus(){
 function stanceColor(s){return s==="support"||s==="S"?"#34D399":s==="oppose"||s==="O"?"#F87171":"#FBBF24"}
 function stanceLabel(s){return s==="S"?"Support":s==="O"?"Oppose":s==="N"?"Neutral":s||"?"}
 
+// --- PROJECT DETAIL ---
+function showProjectDetail(p){
+  dc();const f=h("div",{className:"fl"});
+  f.appendChild(h("button",{className:"bk",onClick:()=>rOv()},"← Back to Overview"));
+
+  // Header
+  const hdr=h("div",{className:"cd"});
+  const color=p.status==='complete'?'var(--gn)':p.status==='partial'?'var(--yw)':p.status==='pending-responses'?'var(--or)':'var(--td)';
+  const label=p.status==='complete'?'Complete':p.status==='partial'?'Partial':p.status==='pending-responses'?'Needs Responses':'No Data';
+  const proj=DB.projects.find(pr=>pr.project_id===p.pid);
+  hdr.append(
+    h("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center"}},
+      h("div",{style:{fontSize:"20px",fontWeight:700}},proj?proj.project_name:p.code),
+      bg(label,color.replace("var(--","#").replace("gn","34D399").replace("yw","FBBF24").replace("or","FB923C").replace("td","5A6A8A").replace(")",""))));
+  const stats=h("div",{style:{display:"flex",gap:"24px",marginTop:"12px"}});
+  stats.append(
+    h("div",null,h("div",{className:"sl"},"Comments"),h("div",{style:{fontSize:"24px",fontWeight:700,fontFamily:"monospace",color:"var(--ac)"}},p.comments)),
+    h("div",null,h("div",{className:"sl"},"Themes"),h("div",{style:{fontSize:"24px",fontWeight:700,fontFamily:"monospace",color:"var(--pp)"}},p.themes)),
+    h("div",null,h("div",{className:"sl"},"Codes"),h("div",{style:{fontSize:"24px",fontWeight:700,fontFamily:"monospace",color:"var(--yw)"}},p.codes)),
+    h("div",null,h("div",{className:"sl"},"Responses"),h("div",{style:{fontSize:"24px",fontWeight:700,fontFamily:"monospace",color:color}},p.responses)),
+    h("div",null,h("div",{className:"sl"},"Coverage"),h("div",{style:{fontSize:"24px",fontWeight:700,fontFamily:"monospace",color:color}},p.respPct+"%")));
+  hdr.appendChild(stats);
+  f.appendChild(hdr);
+
+  // Project themes
+  const pThemes=DB.themes.filter(t=>t.project_id===p.pid).sort((a,b)=>(b.occurrences||0)-(a.occurrences||0));
+  if(pThemes.length){
+    const tc=h("div",{className:"cd"});tc.append(h("div",{className:"ct2"},"Themes ("+pThemes.length+")"));
+    // Stance chart for this project's themes
+    const cvRow=h("div",{className:"g2"});
+    const chCard=h("div",{className:"cd"});chCard.append(h("div",{className:"ct2"},"Theme Occurrences"));const cv1=h("canvas");chCard.append(h("div",{className:"ch-lg"},cv1));cvRow.appendChild(chCard);
+    // Stance breakdown
+    const stCard=h("div",{className:"cd"});stCard.append(h("div",{className:"ct2"},"Stance Profile"));const cv2=h("canvas");stCard.append(h("div",{className:"ch-lg"},cv2));cvRow.appendChild(stCard);
+    f.appendChild(cvRow);
+
+    tc.appendChild(bt([
+      {l:"Theme",k:"theme_name",r:r=>h("span",{style:{fontWeight:"600",cursor:"pointer",color:"var(--ac)"},onClick:e=>{e.stopPropagation();sv("themes");setTimeout(()=>rTh(r),50)}},r.theme_name)},
+      {l:"Layer",k:"theme_layer",r:r=>r.theme_layer?bg(r.theme_layer,"#A78BFA"):"—"},
+      {l:"Codes",k:"code_count"},{l:"Occurrences",k:"occurrences"},
+      {l:"Status",k:"status",r:r=>bg(r.status||"draft",r.status==="Confirmed"||r.status==="active"?"#34D399":"#FBBF24")}
+    ],pThemes,{mh:"400px",oc:r=>{sv("themes");setTimeout(()=>rTh(r),50)}}));
+    f.appendChild(tc);
+
+    // Render charts after DOM
+    setTimeout(()=>{
+      const top10=pThemes.slice(0,10);
+      mc(cv1,"bar",{data:{labels:top10.map(t=>t.theme_name.length>40?t.theme_name.slice(0,38)+"…":t.theme_name),datasets:[{data:top10.map(t=>t.occurrences||0),backgroundColor:"#A78BFA",borderRadius:4}]},options:{indexAxis:"y",plugins:{legend:{display:false}}}});
+      // Stance for this project
+      const pCodes=DB.codes.filter(c=>DB.comments.some(cm=>cm.project_id===p.pid&&cm.comment_id===c.comment_id));
+      const stMap={};pCodes.forEach(c=>{const s=stanceLabel(c.stance);stMap[s]=(stMap[s]||0)+1});
+      const stD=Object.entries(stMap).sort((a,b)=>b[1]-a[1]);
+      mc(cv2,"doughnut",{data:{labels:stD.map(s=>s[0]),datasets:[{data:stD.map(s=>s[1]),backgroundColor:stD.map(s=>stanceColor(s[0]==="Support"?"S":s[0]==="Oppose"?"O":"N"))}]},options:{cutout:"55%",plugins:{legend:{position:"right"}}}});
+    },50);
+  }
+
+  // Project comments
+  const pComments=DB.comments.filter(c=>c.project_id===p.pid);
+  if(pComments.length){
+    const cc=h("div",{className:"cd"});cc.append(h("div",{className:"ct2"},"Comments ("+pComments.length+")"));
+    cc.appendChild(bt([
+      {l:"ID",k:"comment_id"},{l:"Author",k:"author_name",r:r=>r.author_name||"Anon"},
+      {l:"Org",k:"submitter_org",r:r=>r.submitter_org||"—"},
+      {l:"Type",k:"comment_type",r:r=>r.comment_type?bg(r.comment_type,"#4F8EF7"):"—"},
+      {l:"Sub",k:"substantive_confirmed",r:r=>r.substantive_confirmed?bg("Yes","#34D399"):"No"},
+      {l:"Date",k:"date_received"}
+    ],pComments,{mh:"400px",oc:r=>rCm(r)}));
+    f.appendChild(cc);
+  }
+
+  // Responses for this project
+  const covered=getCoveredComments();
+  const pResp=pComments.filter(c=>covered.has(c.comment_id));
+  const pUnresp=pComments.filter(c=>!covered.has(c.comment_id)&&c.substantive_confirmed);
+  if(pUnresp.length){
+    const uc=h("div",{className:"cd",style:{borderColor:"var(--or)"}});
+    uc.append(h("div",{className:"ct2",style:{color:"var(--rd)"}},"Unresponded Substantive ("+pUnresp.length+")"));
+    uc.appendChild(bt([
+      {l:"ID",k:"comment_id"},{l:"Author",k:"author_name",r:r=>r.author_name||"Anon"},
+      {l:"Org",k:"submitter_org"},{l:"Summary",k:"summary",w:1}
+    ],pUnresp,{mh:"300px",oc:r=>rCm(r)}));
+    f.appendChild(uc);
+  }
+
+  document.getElementById("con").replaceChildren(f);
+  document.getElementById("ttl").textContent=p.code+" — Project Detail";
+}
+
 // --- OVERVIEW ---
 function rOv(){dc();const f=h("div",{className:"fl"});
   const tot=DB.comments.length,sub=DB.comments.filter(c=>c.substantive_confirmed).length;
@@ -144,7 +231,7 @@ function rOv(){dc();const f=h("div",{className:"fl"});
   pStatus.forEach(p=>{
     const color=p.status==='complete'?'var(--gn)':p.status==='partial'?'var(--yw)':p.status==='pending-responses'?'var(--or)':'var(--td)';
     const label=p.status==='complete'?'Complete':p.status==='partial'?'Partial':p.status==='pending-responses'?'Needs Responses':'No Data';
-    const card=h("div",{style:{background:"var(--bg)",borderRadius:"6px",padding:"12px",border:"1px solid var(--bd)"}});
+    const card=h("div",{style:{background:"var(--bg)",borderRadius:"6px",padding:"12px",border:"1px solid var(--bd)",cursor:"pointer",transition:"border-color .15s"},onClick:()=>showProjectDetail(p),onMouseenter:e=>e.currentTarget.style.borderColor="var(--ac)",onMouseleave:e=>e.currentTarget.style.borderColor="var(--bd)"});
     card.append(
       h("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"6px"}},
         h("span",{style:{fontSize:"14px",fontWeight:700,color:"var(--tx)"}},p.code),
@@ -170,8 +257,8 @@ function rOv(){dc();const f=h("div",{className:"fl"});
 
   // Row 2: Category bars + Org breakdown
   const r2=h("div",{className:"g2"});
-  const ct={};DB.codes.forEach(c=>{const ca=c.category||"?";ct[ca]=(ct[ca]||0)+1});const cd=Object.entries(ct).sort((a,b)=>b[1]-a[1]).slice(0,12);
-  const c3c=h("div",{className:"cd"});c3c.append(h("div",{className:"ct2"},"Top Code Categories"));const c3=h("canvas");c3c.append(h("div",{className:"ch"},c3));r2.appendChild(c3c);
+  const topThemes=DB.themes.slice().sort((a,b)=>(b.occurrences||0)-(a.occurrences||0)).slice(0,12);
+  const c3c=h("div",{className:"cd"});c3c.append(h("div",{className:"ct2"},"Top Themes by Occurrence"));const c3=h("canvas");c3c.append(h("div",{className:"ch-lg"},c3));r2.appendChild(c3c);
 
   // Top orgs
   const orgCounts={};DB.comments.forEach(c=>{const o=c.submitter_org||"Individual";orgCounts[o]=(orgCounts[o]||0)+1});
@@ -196,7 +283,7 @@ function rOv(){dc();const f=h("div",{className:"fl"});
   // Render charts
   mc(c1,"bar",{data:{labels:ps.map(p=>p.n),datasets:[{data:ps.map(p=>p.c),backgroundColor:"#4F8EF7",borderRadius:4}]},options:{indexAxis:"y",plugins:{legend:{display:false}}}});
   mc(c2,"doughnut",{data:{labels:sd.map(s=>s[0]),datasets:[{data:sd.map(s=>s[1]),backgroundColor:sd.map((_,i)=>[stanceColor("S"),stanceColor("O"),"#FBBF24","#8896B3"][i]||CL[i])}]},options:{cutout:"55%"}});
-  mc(c3,"bar",{data:{labels:cd.map(c=>c[0].length>18?c[0].slice(0,16)+"…":c[0]),datasets:[{data:cd.map(c=>c[1]),backgroundColor:"#A78BFA",borderRadius:4}]},options:{plugins:{legend:{display:false}},scales:{x:{ticks:{maxRotation:45,minRotation:25}}}}});
+  mc(c3,"bar",{data:{labels:topThemes.map(t=>t.theme_name),datasets:[{data:topThemes.map(t=>t.occurrences||0),backgroundColor:"#A78BFA",borderRadius:4}]},options:{indexAxis:"y",plugins:{legend:{display:false}},onClick:(e,el)=>{if(el.length){sv("themes");setTimeout(()=>rTh(topThemes[el[0].index]),50)}}}});
 
   // Response coverage stacked bar
   const projResp=DB.projects.map(p=>{
