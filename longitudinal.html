@@ -6,312 +6,216 @@
 <title>RIDGELINE — Longitudinal Theme Analysis</title>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#0B0F19;--sf:#131825;--sh:#1A2035;--bd:#1E2A42;--bl:#2A3A5C;--tx:#E2E8F0;--tm:#8896B3;--td:#5A6A8A;--ac:#4F8EF7;--gn:#34D399;--yw:#FBBF24;--rd:#F87171;--or:#FB923C;--pp:#A78BFA}
-*{margin:0;padding:0;box-sizing:border-box}body{font-family:'IBM Plex Sans',system-ui,sans-serif;background:var(--bg);color:var(--tx);display:flex;min-height:100vh}
-button{font-family:inherit;cursor:pointer}::-webkit-scrollbar{width:6px;height:6px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--bl);border-radius:3px}
+:root{--bg:#0B0F19;--sf:#131825;--sh:#1A2035;--bd:#1E2A42;--bl:#2A3A5C;--tx:#E2E8F0;--tm:#8896B3;--td:#5A6A8A;--ac:#4F8EF7;--gn:#34D399;--yw:#FBBF24;--rd:#F87171;--or:#FB923C}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'IBM Plex Sans',system-ui,sans-serif;background:var(--bg);color:var(--tx);display:flex;min-height:100vh}
+button{font-family:inherit;cursor:pointer}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--bl);border-radius:3px}
 .sb{width:220px;background:var(--sf);border-right:1px solid var(--bd);display:flex;flex-direction:column;position:sticky;top:0;height:100vh;flex-shrink:0}
 .sb-b{padding:20px 16px;border-bottom:1px solid var(--bd)}.sb-b h1{font-size:14px;color:var(--ac);letter-spacing:.04em}.sb-b p{font-size:11px;color:var(--td);margin-top:4px}
 .sb-n{padding:12px 8px;display:flex;flex-direction:column;gap:2px;overflow-y:auto;flex:1}
-.nb{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:6px;border:none;font-size:13px;background:transparent;color:var(--tm);width:100%;text-align:left;transition:all .15s;line-height:1.3}
+.nb{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:6px;border:none;font-size:12px;background:transparent;color:var(--tm);width:100%;text-align:left;transition:all .15s;line-height:1.3}
 .nb:hover{background:var(--sh)}.nb.a{background:rgba(79,142,247,.1);color:var(--ac);font-weight:600}
 .sf{padding:12px 16px;border-top:1px solid var(--bd);font-size:10px;color:var(--td)}
 .mn{flex:1;padding:28px;overflow-y:auto;min-width:0}.ct{max-width:1100px;margin:0 auto}
 .pt{font-size:22px;font-weight:700;margin-bottom:4px}.ps{font-size:12px;color:var(--td);margin-bottom:24px}
-.g5{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:24px}
-.cd{background:var(--sf);border:1px solid var(--bd);border-radius:8px;padding:16px}
-.sl{font-size:11px;color:var(--tm);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px}
-.sv{font-size:28px;font-weight:700;line-height:1;font-family:'JetBrains Mono',monospace}
-.ss{font-size:12px;color:var(--td);margin-top:4px}
-.timeline{display:flex;gap:8px;margin-bottom:24px;overflow-x:auto;padding-bottom:8px}
-.t-col{flex:1;min-width:100px;display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;padding:8px 4px;border-radius:8px;border:2px solid transparent;transition:all .2s}
-.t-col:hover{background:var(--sh)}.t-col.sel{border-color:var(--ac);background:rgba(79,142,247,.06)}
-.t-bar{width:100%;border-radius:4px 4px 0 0;transition:height .3s}
-.t-code{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:12px}
-.t-year{font-size:10px;color:var(--td)}
-.t-occ{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600}
-.detail{background:var(--sf);border:1px solid var(--bd);border-radius:8px;padding:24px;margin-bottom:16px}
-.detail-hdr{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;flex-wrap:wrap;gap:8px}
-.detail-title{font-size:16px;font-weight:600}
-.detail-meta{display:flex;gap:8px;flex-wrap:wrap}
-.tag{font-family:'JetBrains Mono',monospace;font-size:11px;padding:3px 10px;border-radius:4px;background:var(--sh);color:var(--tm)}
-.tag-r{color:var(--rd);background:rgba(248,113,113,.1)}.tag-g{color:var(--gn);background:rgba(52,211,153,.1)}.tag-y{color:var(--yw);background:rgba(251,191,36,.1)}.tag-b{color:var(--ac);background:rgba(79,142,247,.1)}
-.section-label{font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;display:flex;align-items:center;gap:6px}
-.concern-text{font-size:13px;line-height:1.7;color:var(--tx);border-left:3px solid var(--or);padding:8px 12px;background:rgba(251,146,36,.04);border-radius:0 4px 4px 0;margin-bottom:16px}
-.response-text{font-size:13px;line-height:1.7;color:var(--tx);border-left:3px solid var(--gn);padding:8px 12px;background:rgba(52,211,153,.04);border-radius:0 4px 4px 0;margin-bottom:8px}
-.response-gap{font-size:13px;line-height:1.6;color:var(--rd);border-left:3px solid var(--rd);padding:8px 12px;background:rgba(248,113,113,.04);border-radius:0 4px 4px 0;font-style:italic}
-.nav-row{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
-.nav-btn{padding:6px 12px;border-radius:6px;border:none;font-size:12px;background:var(--sh);color:var(--tm);transition:all .15s}
-.nav-btn:hover{background:var(--bl)}.nav-btn.on{background:rgba(79,142,247,.15);color:var(--ac);font-weight:600}
-.empty{text-align:center;padding:40px;color:var(--td);font-size:14px}
-.loading{text-align:center;padding:60px;color:var(--tm)}
-.resp-count-bar{height:6px;border-radius:3px;background:var(--bd);margin-top:4px;overflow:hidden}
-.resp-count-fill{height:100%;border-radius:3px;background:var(--gn);transition:width .3s}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:24px}
+.stat{background:var(--sf);border:1px solid var(--bd);border-radius:8px;padding:16px;text-align:center}
+.stat .v{font-size:28px;font-weight:700;font-family:'JetBrains Mono',monospace}
+.stat .l{font-size:11px;color:var(--tm);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px}
+.stat .s{font-size:11px;color:var(--td);margin-top:4px}
+.timeline{display:flex;gap:6px;margin-bottom:20px;padding-bottom:8px;overflow-x:auto}
+.tcol{flex:1;min-width:90px;display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;padding:8px 4px;border-radius:8px;border:2px solid transparent;transition:all .2s}
+.tcol:hover{background:var(--sh)}.tcol.on{border-color:var(--ac);background:rgba(79,142,247,.06)}
+.tbar{width:100%;border-radius:4px 4px 0 0;transition:height .3s}
+.detail{background:var(--sf);border:1px solid var(--bd);border-radius:8px;padding:20px;margin-bottom:12px}
+.dtag{font-family:'JetBrains Mono',monospace;font-size:11px;padding:3px 10px;border-radius:4px;display:inline-block}
+.concern{font-size:13px;line-height:1.7;border-left:3px solid var(--or);padding:8px 12px;background:rgba(251,146,36,.04);border-radius:0 4px 4px 0;margin-bottom:12px}
+.response{font-size:13px;line-height:1.7;border-left:3px solid var(--gn);padding:8px 12px;background:rgba(52,211,153,.04);border-radius:0 4px 4px 0;margin-bottom:8px}
+.gap{font-size:13px;line-height:1.6;color:var(--rd);border-left:3px solid var(--rd);padding:8px 12px;background:rgba(248,113,113,.04);border-radius:0 4px 4px 0;font-style:italic}
+.legend{display:flex;gap:12px;margin-bottom:16px;font-size:11px;color:var(--td);flex-wrap:wrap}
+.legend span{display:flex;align-items:center;gap:4px}
+.legend i{width:10px;height:10px;border-radius:2px;display:inline-block}
+.empty{text-align:center;padding:32px;color:var(--td);font-size:13px}
+.tbl{width:100%;border-collapse:collapse;font-size:12px}
+.tbl th{text-align:left;padding:8px 10px;background:var(--sh);color:var(--tm);font-size:10px;text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid var(--bd);position:sticky;top:0}
+.tbl td{padding:8px 10px;border-bottom:1px solid var(--bd)}
+.tbl tr:hover{background:var(--sh);cursor:pointer}
+.pbar{height:6px;border-radius:3px;background:var(--bd);overflow:hidden;min-width:60px}
+.pfill{height:100%;border-radius:3px}
 @media(max-width:900px){.sb{display:none}.mn{padding:16px}}
 </style>
 </head>
 <body>
 <div class="sb">
-  <div class="sb-b">
-    <a href="index.html" style="text-decoration:none;color:var(--ac);font-size:11px;display:block;margin-bottom:8px">← RIDGELINE Home</a>
-    <h1>RIDGELINE</h1>
-    <p>Longitudinal Theme Analysis</p>
-  </div>
-  <div class="sb-n" id="cat-nav"></div>
-  <div class="sf" id="ft">Loading...</div>
+<div class="sb-b"><a href="index.html" style="text-decoration:none;color:var(--ac);font-size:11px;display:block;margin-bottom:8px">← RIDGELINE Home</a><h1>RIDGELINE</h1><p>Longitudinal Theme Analysis</p></div>
+<div class="sb-n" id="nav"></div>
+<div class="sf">93 themes · 8 projects · 2016–2025</div>
 </div>
-<div class="mn">
-  <div class="ct">
-    <h2 class="pt" id="title">Longitudinal Analysis</h2>
-    <div class="ps">Butte Falls Project Family · 2016–2025 · Comment & Response Evolution</div>
-    <div id="content"><div class="loading">Connecting to Supabase...</div></div>
-  </div>
-</div>
+<div class="mn"><div class="ct">
+<h2 class="pt" id="title">Longitudinal Analysis</h2>
+<div class="ps">Butte Falls Project Family · Comment & Response Evolution · 2016–2025</div>
+<div id="con"></div>
+</div></div>
 
 <script>
-const SB_URL="https://uojjoraxzmzwuilmndlu.supabase.co/rest/v1";
-const SB_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVvampvcmF4em16d3VpbG1uZGx1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI1ODc4MTksImV4cCI6MjA4ODE2MzgxOX0.4WmtuoXjXj441KpbLxJkQTebulejiEafKu0bSvdefpM";
-const H={apikey:SB_KEY,Authorization:`Bearer ${SB_KEY}`};
+var DATA=[{"project_code": "EC", "theme_name": "Silvicultural Prescriptions and RMP Compliance", "description": "Whether prescriptions (RD targets, BA retention, riparian thinning, gap sizes) comply with RMP. Includes decadal attainment, age-class balance, noxious weeds, and blowdown.", "occurrences": 19, "code_count": 16, "response_count": 0, "commenter_count": 5, "responses": []}, {"project_code": "EC", "theme_name": "Road System and Aquatic Resource Protection", "description": "Road density impacts on hydrology, sediment delivery to fish habitat, haul route standards, coho consultation, riparian canopy thresholds, peak flows, aquifer protection.", "occurrences": 18, "code_count": 15, "response_count": 0, "commenter_count": 5, "responses": []}, {"project_code": "EC", "theme_name": "Collaboration and Public Process Adequacy", "description": "Adequacy of public engagement including stakeholder collaboration, scoping information quality, adjacent landowner access, documentation clarity.", "occurrences": 12, "code_count": 11, "response_count": 6, "commenter_count": 4, "responses": ["82 acres of regeneration harvest would increase fire hazard for 5-20 years, representing less than 0.14% of Project Area. More than 3% of lands would see decrease in fire hazard from thinning. Site-specific analysis conducted; effects not significant.", "BLM describes surveys were completed for special status plants and discloses potential impacts and identified protection measures.", "BLM relies on reserve areas, retaining snags for nest structures, applying seasonal restrictions, and staggering treatments over several years. No measurable effects at regional scale per Partners in Flight.", "Potential effects to fishers considered but not analyzed in detail. No direct effects anticipated, nearest fisher detection is 18 miles east, sufficient habitat would remain (only 1.8-2.1% impacted).", "There is no management direction on RMP p. 115 specifically prohibiting removal of late-successional habitat. RMP p. 126 states BLM makes all HLB lands available for timber harvest. Thinning proposed would promote variable distribution of tree sizes increasing structural complexity over time."]}, {"project_code": "EC", "theme_name": "Northern Spotted Owl Habitat and Recovery", "description": "Whether proposed treatments adequately protect NSO critical habitat, implement Recovery Plan actions, and avoid take.", "occurrences": 12, "code_count": 8, "response_count": 8, "commenter_count": 6, "responses": ["Combined actions would decrease NSO habitat by 2.0% in short-term. This change would not alter intended critical habitat subunit function. Project follows RMP direction to not authorize timber sales that would cause incidental take.", "Issuing a draft, unsigned FONSI for public comment is appropriate; in some cases required (40 CFR 1501.4(e)(2)). Unsigned FONSIs are not final agency findings but propose a potential finding.", "No deferred watersheds exist under 2016 RMP; Evans Creek areas were undeferred in 2011. New permanent road construction would increase road density by 0.013 mi/sq.mi (0.002% increase). Not significant; EIS not necessary."]}, {"project_code": "EC", "theme_name": "Soil Integrity and Yarding Appropriateness", "description": "Whether proposed yarding systems are appropriate for granitic/fragile soils, TPCC analysis adequacy, repeated entry impacts.", "occurrences": 12, "code_count": 10, "response_count": 7, "commenter_count": 5, "responses": ["Pyroclastic soils are in Evans Creek watershed; however, they are not present within the proposed treatment areas.", "EA did include evaluation of potential effects to stream temperature. DO not discussed because no 303(d) listed streams for DO in Evans Creek watershed.", "Field surveys, NRCS soil surveys, DOGAMI information, GIS interpretation used during project planning."]}, {"project_code": "EC", "theme_name": "Adequacy of Purpose and Need Statement", "description": "Whether the P&N is appropriately scoped to implement the RMP or narrowly drawn to maximize timber volume. ASQ model binding nature, predetermined outcomes, FONSI timing, EIS threshold.", "occurrences": 11, "code_count": 8, "response_count": 8, "commenter_count": 5, "responses": ["BLM appropriately described the need to contribute at least 6.0 MMBF toward FY2019 ASQ. Purpose is based directly on management direction from the RMP.", "The project's purpose and need was developed based on management direction in the 2016 SWO ROD/RMP; this project carries out that management direction.", "Thinning treatments include gaps (group selection) to restore natural horizontal stand structure consistent with Klamath Mountain Province. Under action alternatives, more structural complexity in ~30 years than No Action."]}, {"project_code": "EC", "theme_name": "Fire Risk from Regeneration and Management", "description": "Whether regeneration/plantation establishment increases or decreases fire risk relative to mature forest. Competing research on plantation fire behavior.", "occurrences": 10, "code_count": 7, "response_count": 0, "commenter_count": 7, "responses": []}, {"project_code": "EC", "theme_name": "Non-NSO Wildlife and Sensitive Species", "description": "Impacts to migratory birds, Pacific fisher, bats, amphibians, and Bureau Sensitive Species. MBTA compliance, seasonal restrictions, survey needs.", "occurrences": 10, "code_count": 8, "response_count": 7, "commenter_count": 4, "responses": ["BLM appropriately complied with RMP direction to not authorize timber sales that would cause incidental take. EA clearly describes >60% canopy cover prescription applied only in response to avoiding incidental take.", "RMP provides direction to retain 15-30% of pre-harvest BA in regeneration units, but also requires BLM to retain all trees both >40\" DBH and established prior to 1850.", "The correct scale for applying skips is the stand area, not the Project Area.", "Selection harvest would achieve average RD between 20-45% after harvest. The <55% RD is correctly identified as threshold for competition and health issues."]}, {"project_code": "EC", "theme_name": "Socioeconomic Analysis and Operating Feasibility", "description": "Economic impacts including O&C county revenue, employment, sale viability, operating restrictions, carbon accounting.", "occurrences": 9, "code_count": 8, "response_count": 0, "commenter_count": 3, "responses": []}, {"project_code": "EC", "theme_name": "Cumulative Effects and Monitoring", "description": "Cumulative effects analysis adequacy including past project history, checkerboard ownership, watershed degradation metrics.", "occurrences": 8, "code_count": 4, "response_count": 0, "commenter_count": 6, "responses": []}, {"project_code": "EC", "theme_name": "Range of Alternatives and Treatment Design", "description": "Adequacy of alternatives including Citizens Alternative, AFRC maximum treatment alternative, unit deferrals/expansions.", "occurrences": 8, "code_count": 6, "response_count": 0, "commenter_count": 5, "responses": []}, {"project_code": "EC", "theme_name": "Late Successional Habitat and Connectivity", "description": "Adequacy of late successional habitat protection including connectivity corridors between LSRs, old growth patch isolation, late seral deficits.", "occurrences": 5, "code_count": 4, "response_count": 3, "commenter_count": 3, "responses": ["It is outside scope of this project to consider whether this individual project complies with RMP models. Appropriate scale for evaluating predictive outputs is decadal, with plan evaluation at 5-year intervals.", "Regeneration harvest in this project is specifically limited to resetting stand development in overly dense stands that would not respond well to commercial thinning.", "371 acres of young stands (33% of proposed harvest). Remaining 760 acres proposed for harvest were at least 80 years old."]}, {"project_code": "EC", "theme_name": "Recreation Access and OHV Management", "description": "Impacts to dispersed recreation, OHV damage from new roads/skid trails, and timber-recreation conflicts.", "occurrences": 5, "code_count": 2, "response_count": 0, "commenter_count": 3, "responses": []}, {"project_code": "EC", "theme_name": "O&C Act Interpretation and Legal Authority", "description": "Competing interpretations of the O&C Act regarding BLM discretion on harvest rotations, sustained yield vs conservation duties.", "occurrences": 4, "code_count": 3, "response_count": 3, "commenter_count": 2, "responses": ["BLM did include an alternative (Alternative 3) that would utilize only existing roads and would not construct any new roads."]}, {"project_code": "ELK", "theme_name": "Northern Spotted Owl Habitat Adequacy", "description": "EA inadequately analyzes NSO habitat impacts including fragmentation, barred owl competition, survey adequacy, overcutting history, snag/fisher habitat, critical habitat removal.", "occurrences": 17, "code_count": 13, "response_count": 5, "commenter_count": 3, "responses": ["Seasonal restrictions applied for NSO nesting season (March 1 - September 30). Operations cease within disruption distance of known active nest sites.", "Snag retention requirements per RMP maintained (minimum 2.4 hard snags per acre in HLB, 3.2 in LSR). Treatments retain existing large-diameter snags.", "Oak woodland restoration on 241 acres would retain and promote habitat for Lewis woodpecker and other declining species."]}, {"project_code": "ELK", "theme_name": "Sediment, Water Quality & Aquatic Species", "description": "Sediment delivery, CWA compliance, coho salmon impacts, summer streamflow deficits, road density, riparian reserve degradation.", "occurrences": 8, "code_count": 7, "response_count": 6, "commenter_count": 3, "responses": ["RCT and RNCT would occur on approximately 1.5% of total Riparian Reserve acres. Stream temperatures maintained because overstory treatments occur outside primary shade zone.", "Total new permanent road construction is 0.62 miles across 86,285 acres. Road density increase would be 0.01 miles/sq mile.", "Risk of detectable peak-flow enhancement is low. Majority of Project Area is in the rain zone below 3,500 ft.", "Sediment delivery from connected road surfaces would decrease through road renovation on approximately 90 miles.", "Project designed to maintain water quality or reduce impacts to minor/undetectable levels. PDFs restrict skid trails at least 50 feet from streams."]}, {"project_code": "ELK", "theme_name": "Logging Intensity, Prescriptions & RMP Consistency", "description": "Harvest prescriptions exceed RMP standards, EA fails to quantitatively disclose impacts, oak woodland analysis biased, herbicide use inadequately analyzed.", "occurrences": 7, "code_count": 7, "response_count": 0, "commenter_count": 2, "responses": []}, {"project_code": "ELK", "theme_name": "NEPA Process & Disclosure Deficiencies", "description": "EA internal inconsistencies, missing comparison tables, BA/BO unavailability, EIS requirement, ERMA/sensitive species policy conflicts.", "occurrences": 7, "code_count": 6, "response_count": 2, "commenter_count": 3, "responses": ["EA thoroughly describes monitoring protocols including pre-harvest stand examination, marking prescriptions verified by silviculturist, post-harvest canopy cover verification using densiometer and photo points."]}, {"project_code": "ELK", "theme_name": "Local Resident & Access Concerns", "description": "Individual concerns about home impacts, river access, road damage, property boundaries, and predator management.", "occurrences": 6, "code_count": 6, "response_count": 2, "commenter_count": 5, "responses": ["Short-term impacts include noise, dust, restricted access. Post-treatment, recreation access would be maintained or improved. Berry Rock Trail would add new non-motorized recreation opportunity."]}, {"project_code": "ELK", "theme_name": "Timber Production & Economic Viability", "description": "Support for maximizing O&C Act timber production, sustained yield mandate, Stewardship revenue concerns.", "occurrences": 5, "code_count": 5, "response_count": 0, "commenter_count": 4, "responses": []}, {"project_code": "ELK", "theme_name": "Climate, Carbon & Greenhouse Gas Analysis", "description": "Tiering to FEIS insufficient for project-level GHG/carbon analysis; temperature buffering benefits of No Action unanalyzed.", "occurrences": 4, "code_count": 3, "response_count": 1, "commenter_count": 2, "responses": ["Proposed Action is consistent with the 2016 SWO ROD/RMP and is not expected to have significant effects beyond those already analyzed in the FEIS."]}, {"project_code": "ELK", "theme_name": "Cumulative Effects Adequacy", "description": "Pervasive inadequacy of cumulative analysis across resources, scales, and inclusion of private lands and PCGP pipeline.", "occurrences": 3, "code_count": 2, "response_count": 0, "commenter_count": 3, "responses": []}, {"project_code": "ELK", "theme_name": "Fire Hazard, Windthrow & Disturbance Vulnerability", "description": "Thinning and regen harvest increase fire hazard and wind vulnerability contradicting project purpose and need.", "occurrences": 3, "code_count": 3, "response_count": 2, "commenter_count": 3, "responses": ["Fire hazard increase from Regeneration Harvest negligible at Project Area scale (77 acres or 0.09%). Thinning treatments create multi-aged stands more resilient to fire, drought, and insects. Regen harvest areas would move through slash then brush fuel types with higher fire volatility for 5-20 years.", "Wind events of sufficient magnitude are inherently random and occur chaotically. Prescriptions focus on removing low vigor trees, minimizing openings especially on ridgetops."]}, {"project_code": "ELK", "theme_name": "Peregrine Falcon & Berry Rock Trail Impacts", "description": "Concerns that proposed trail will cause irreversible peregrine reproductive failure through human disturbance.", "occurrences": 3, "code_count": 3, "response_count": 0, "commenter_count": 1, "responses": []}, {"project_code": "ELK", "theme_name": "Soils & Geologic Stability", "description": "Unstable areas lack spatially explicit mapping and field verification; site-specific soil analysis needed.", "occurrences": 2, "code_count": 1, "response_count": 3, "commenter_count": 2, "responses": ["Soil disturbance from ground-based operations limited to designated skid trails and landings. PDFs require rehabilitation. Existing detrimental soil conditions average 7-12%. Post-treatment projected within 15% RMP threshold.", "All areas of instability would be avoided during implementation. Extensive field review completed. Fragile soils mapped and buffered."]}, {"project_code": "ELK", "theme_name": "Alternatives Adequacy", "description": "Requests for additional alternatives including 2-step thinning, citizens alternative, and operational flexibility.", "occurrences": 1, "code_count": 1, "response_count": 0, "commenter_count": 1, "responses": []}, {"project_code": "GS", "theme_name": "NEPA Analytical Adequacy and Disclosure", "description": "Requests for greater analytical detail, site-specific data, procedural compliance. Purpose and need framing, tiering, marking guidelines, stand selection rationale.", "occurrences": 21, "code_count": 17, "response_count": 0, "commenter_count": 6, "responses": []}, {"project_code": "GS", "theme_name": "Aquatic Habitat and Sediment Risk", "description": "Challenge the EA No Effect determination for SONCC Coho salmon. Wet season haul, road construction, inadequate sediment barriers create unanalyzed risks to critical habitat.", "occurrences": 16, "code_count": 14, "response_count": 11, "commenter_count": 4, "responses": ["RMP modeling assumptions are not management direction BLM is required to follow and do not constitute 'terms, conditions, and decisions' of RMP per 43 CFR 1601.0-5(b). Modeling assumptions/results have no weight in evaluating action conformance with RMP.", "BLM willing to consider alternative methods for yarding systems providing more operator flexibility. However, more information needed.", "No riparian treatments would occur in inner zone (0-50 feet) of RR. The 35 feet was noted incorrectly on EA p. 37.", "PDFs are integral to Proposed Action. Include seasonal restrictions, protective buffers, snag retention, RR protection measures. Kattelmann 1996 found BMP implementation essential.", "Mechanical harvesting analyzed for all ground-based yarding areas. PRMP/FEIS consistency requires limiting operations to slopes <=35%, with flexibility to exceed for ridge tops."]}, {"project_code": "GS", "theme_name": "NSO Habitat and Recovery Compliance", "description": "Project fails to implement Recovery Actions 10 and 32. >50% treatment acres removing Critical Habitat. Disputes on spatial scale, canopy thresholds, incidental take framing.", "occurrences": 16, "code_count": 12, "response_count": 0, "commenter_count": 5, "responses": []}, {"project_code": "GS", "theme_name": "Project Support and Operational Flexibility", "description": "Supportive comments requesting full implementation, cable yarding flexibility, winter haul access, firewood permits, collaborative planning.", "occurrences": 14, "code_count": 14, "response_count": 0, "commenter_count": 6, "responses": []}, {"project_code": "GS", "theme_name": "Sustained Yield and Silvicultural Design", "description": "AFRC argues BLM abandons vegetation models that justified ASQ. Disputes over group selection extent, relative density targets, canopy cover thresholds, blowdown risk.", "occurrences": 12, "code_count": 11, "response_count": 11, "commenter_count": 4, "responses": ["BLM applied FVS modeling which builds in snag creation through imminent mortality. All stands modeled showed maintaining snag production over time.", "BLM follows RMP management direction and Ecological Forestry concepts. RCT targets lowest size classes (8\" to 20\" DBH).", "Project prescriptions reduce windthrow potential/improve resilience long-term by targeting low-vigor trees, minimizing openings on ridgetops.", "CEQ directs environmental analysis is forward-looking; review of past actions required only to extent it informs decision-making. KS Wild v. BLM, 387 F.3d 989 (9th Cir. 2004).", "RCT and RNCT would not occur in inner zone (0-50 feet). Riparian treatments proposed to reduce crown fire risk, not outside project scope."]}, {"project_code": "GS", "theme_name": "Riparian Reserve Treatment Intensity", "description": "Dispute over whether BLM RR prescriptions are consistent with RMP. Environmental commenters argue inner zone treatments exceed authorized scope.", "occurrences": 8, "code_count": 6, "response_count": 5, "commenter_count": 5, "responses": ["BLM discussed haul effects on all potentially affected resources. Fisheries biologist and hydrologist both concluded effects undetectable above background.", "BLM has taken hard look at PDF effectiveness. Kattelmann 1996 found BMPs generally effective. Ground-disturbing activity suspended if forecasted rain would saturate soils.", "BLM selects appropriate BMPs based on site-specific conditions, technical feasibility, resource availability, and water quality.", "Most proposed actions lack connectivity to hydrologic channels with no causal mechanism for sediment input. EA concludes No Effect for SONCC coho salmon."]}, {"project_code": "GS", "theme_name": "Adequacy of Alternatives Analysis", "description": "Whether a single action alternative meets NEPA requirements, with opposing views on O&C Act mandate vs ecological forestry.", "occurrences": 7, "code_count": 4, "response_count": 2, "commenter_count": 4, "responses": ["RCT and RNCT proposed to reduce risk of stand-replacing crown fires, consistent with RMP direction. Reduced canopy bulk density limits large-scale crown fire potential."]}, {"project_code": "GS", "theme_name": "Cumulative Effects and Long-term Monitoring", "description": "Demand for quantified cumulative impacts combining federal and private actions on checkerboard lands.", "occurrences": 5, "code_count": 3, "response_count": 0, "commenter_count": 3, "responses": []}, {"project_code": "GS", "theme_name": "Non-NSO Species and Biodiversity", "description": "Neotropical migratory birds under MBTA, Bureau Sensitive Species lacking survey data, Fisher habitat, Fritillaria gentneri.", "occurrences": 5, "code_count": 3, "response_count": 0, "commenter_count": 3, "responses": []}, {"project_code": "GS", "theme_name": "Road Infrastructure and Soil Integrity", "description": "Temporary road construction framed as irreversible soil commitment. Road density reduction and BMP disclosure requests.", "occurrences": 5, "code_count": 3, "response_count": 0, "commenter_count": 4, "responses": []}, {"project_code": "LL", "theme_name": "Old-Growth Characterization and Vegetation Management", "description": "Challenges to EA stand characterizations, old-growth retention integrity, large-tree removal rationale, mistletoe habitat logging, watershed simplification trends.", "occurrences": 18, "code_count": 15, "response_count": 1, "commenter_count": 7, "responses": ["Prescriptions and PDFs minimize likelihood of increasing susceptibility to blowdown. Wind events inherently random and chaotically occurring. Smith et al. (1997) recommend retaining the largest and most well-developed trees."]}, {"project_code": "LL", "theme_name": "Fire Hazard, Risk Methodology, and Treatment Effects", "description": "Contested fire risk analysis methods. Opposition argues VRH/regeneration increases fire hazard through plantation establishment; supporters argue treatment reduces crown fire risk. Includes 2020 fire precedents, plantation flammability research.", "occurrences": 16, "code_count": 14, "response_count": 1, "commenter_count": 6, "responses": ["Prescribed fire actions consistent with PRMP/FEIS. Total proposed (1,367 acres over five years) within annual and decadal levels projected in FEIS."]}, {"project_code": "LL", "theme_name": "NEPA Process and Public Participation", "description": "Adequacy of public notification, comment period length, legal notice publication, administrative record production, ePlanning access.", "occurrences": 15, "code_count": 15, "response_count": 0, "commenter_count": 5, "responses": []}, {"project_code": "LL", "theme_name": "Timber Economics, Operations, and Community Impact", "description": "Economic viability, O&C Act sustained-yield harvest levels, ASQ adequacy, contract flexibility, equipment restrictions, mill supply, community economic dependence.", "occurrences": 15, "code_count": 11, "response_count": 0, "commenter_count": 4, "responses": []}, {"project_code": "LL", "theme_name": "Northern Spotted Owl Habitat and Recovery", "description": "NSO NRF and dispersal habitat impacts, critical habitat designation, LSR connectivity, recovery action implementation, competing views on primary threat factors (barred owls/fire vs. habitat loss).", "occurrences": 14, "code_count": 13, "response_count": 4, "commenter_count": 6, "responses": ["No potential for significant effects beyond those already analyzed in the FEIS. The FEIS concluded implementation of the RMP would contribute to a landscape supporting large blocks of NSO habitat. USFWS confirmed these analyses are a reasonable approach.", "No proposed treatment within any 2021 NSO Critical Habitat.", "PDFs would restrict activities to outside of the breeding season for occupied owl sites and/or occur beyond recommended disturbance distance thresholds.", "Current research provides no evidence that BLM can manage individual forest stands to provide NSOs with a competitive advantage over barred owls. No evidence that 'more' acres of older forest would alter the competitive relationship at population levels."]}, {"project_code": "LL", "theme_name": "Road System, Access, and Transportation Management", "description": "Competing positions on road construction, decommissioning, and access management. Opposition seeks road density reduction; supporters oppose decommissioning.", "occurrences": 13, "code_count": 11, "response_count": 1, "commenter_count": 5, "responses": ["Approximately three percent of OHV travel could be temporarily impacted by the Project, which is a small amount in relation to amount still available for OHV use."]}, {"project_code": "LL", "theme_name": "Soil, Water, and Aquatic Resource Protection", "description": "Water quality compliance (303(d), turbidity, TMDL), riparian reserve integrity, road-related sedimentation, TPCC soils analysis gaps, salmon/steelhead habitat.", "occurrences": 12, "code_count": 12, "response_count": 7, "commenter_count": 1, "responses": ["Proposed Actions will either not have connectivity to streams or BMPs/PDFs and RMP buffer distances will protect aquatic habitat function. Rashin et al. (2006) found sediment delivery unlikely when erosion features >32 feet from channels.", "BMPs and PDFs would reduce detrimental soil disturbance below the required 20%. BLM incorporated assumption of 10% growth loss in vegetation modeling.", "RR widths on streams vary between 175-208 feet depending on site potential tree height. Buffer widths in excess of the 10 meters reported by Rashin et al. as effective.", "Within RRs, BLM proposing 17 new landings with overlap of outer portions of RR (3.82 acres of RR overlap), 200 feet of pre-designated skid trails, 70 feet of road construction."]}, {"project_code": "LL", "theme_name": "Sensitive Species and Biodiversity Analysis Gaps", "description": "Gaps in EA analysis of non-NSO species including Western Pond Turtle, migratory birds, Pacific fisher, Bureau Sensitive Species, special status plants.", "occurrences": 11, "code_count": 11, "response_count": 8, "commenter_count": 4, "responses": ["With completion of required surveys and protection of known sites under all Action Alternatives, no potential for significant impacts to Bureau Sensitive plants or fungi, or federally listed T&E species.", "RMP would increase high-quality forage habitat for deer and elk on BLM lands in 50 years. Proposed Actions would not lead to adverse effects on winter range or migration.", "Franklin's Bumble Bee: only 9 acres of proposed treatment within dry meadow habitat, 4 within HPZ. Proposed Action not expected to adversely affect habitat at local scale.", "No potential for significant effects to gray wolves beyond FEIS. Sufficient habitat in Planning Area to support gray wolves. Land-use practices do not appear to be affecting viability.", "Effect on snags and coarse woody debris not analyzed in detail because no potential for effects beyond FEIS. FEIS projected increase in habitat for species dependent on legacy structures."]}, {"project_code": "LL", "theme_name": "O&C Act Statutory Authority and BLM Discretion", "description": "Competing interpretations of O&C Act sustained-yield mandate \u2014 whether BLM must maximize timber harvest or retains discretion for conservation.", "occurrences": 7, "code_count": 7, "response_count": 0, "commenter_count": 2, "responses": []}, {"project_code": "LL", "theme_name": "Project Design, Alternatives, and Scope", "description": "Coalition alternative focused on small-diameter fir encroachment removal while retaining NRF. Concerns about unit spatial distribution and WUI prioritization.", "occurrences": 4, "code_count": 4, "response_count": 0, "commenter_count": 3, "responses": []}, {"project_code": "LL", "theme_name": "Carbon Sequestration and Climate Change", "description": "Arguments about forest carbon dynamics and climate mitigation. Claims young forests sequester more carbon, wood products substitute for fossil-intensive materials.", "occurrences": 3, "code_count": 3, "response_count": 1, "commenter_count": 1, "responses": ["Effects of the Alternatives on carbon storage and greenhouse gas emissions tiers to the analysis in the FEIS. No potential for reasonably foreseeable significant effects beyond those disclosed in the FEIS."]}, {"project_code": "LL", "theme_name": "Cumulative Effects Analysis Adequacy", "description": "Combined impacts of federal/private logging, timber haul sediment, OHV use, edge effects from canopy removal across mixed-ownership landscape.", "occurrences": 3, "code_count": 3, "response_count": 0, "commenter_count": 1, "responses": []}, {"project_code": "OB", "theme_name": "Timber Production, Economic Viability, and Sustained Yield", "description": "O&C Act sustained yield compliance, post-fire salvage timing, operational flexibility, rural community economic dependence, climate change challenges to sustained yield assumptions.", "occurrences": 21, "code_count": 12, "response_count": 0, "commenter_count": 10, "responses": []}, {"project_code": "OB", "theme_name": "Adequacy of NSO Impact Analysis and Recovery Compliance", "description": "Whether project adequately analyzes and mitigates impacts to NSO habitat, complies with Recovery Actions 10 and 32, balances ASQ objectives with species recovery.", "occurrences": 15, "code_count": 11, "response_count": 11, "commenter_count": 9, "responses": ["Canopy cover is not a metric used to determine stand susceptibility to disturbance. Section 3.2.7.2 analyzes effects of thinning on stand resiliency using specific metrics supported by numerous studies.", "Critical Habitat Unit is not a habitat type, but an area designated by USFWS. BLM is not proposing to remove any critical habitat units. BO found implementation not likely to jeopardize NSO or adversely modify critical habitat.", "The land use allocations, management direction, and guidance in Appendix A constitute BLM's contribution towards Recovery Actions 10 and 32. BLM will not defer or forego timber harvest in HLB beyond specific requirements.", "Snag and down woody material retention will be met at the scale of the harvest unit. Snag creation levels within HLB on Medford district is zero snags per acre.", "No nesting habitat proposed for fire salvage. The 68 acres was functioning as foraging/roosting habitat. After consulting with USFWS, prescriptions modified to retain over 40% canopy cover \u2014 will downgrade rather than remove."]}, {"project_code": "OB", "theme_name": "Silvicultural Prescription Design and Large Tree Retention", "description": "Whether prescriptions comply with ecological forestry principles, protect large-diameter trees, maintain structural complexity. Diameter limit implementation, snag density modeling, blowdown risk.", "occurrences": 15, "code_count": 13, "response_count": 0, "commenter_count": 6, "responses": []}, {"project_code": "OB", "theme_name": "Riparian Reserve Management Scope and Prescription Adequacy", "description": "Whether RR treatments are within project scope, comply with RMP direction, and adequately protect aquatic values. Inner zone harvest authority, canopy cover, wet season haul.", "occurrences": 14, "code_count": 13, "response_count": 12, "commenter_count": 6, "responses": ["Sediment inputs would be undetectable beyond background levels. 27 miles of non-paved haul routes, only 5 perennial stream crossings. Over the long-term, road renovation would reduce sediment inputs.", "RCT prescriptions in accordance with RMP (p. 82). All other proposed treatments within RRs are non-commercial. No proposed riparian thinning treatments in fish-bearing streams.", "No roads, routes, or landings proposed for construction in Riparian Reserves. Proposed road in unit 12-2 located on flat stable bench above slope break outside RR with no hydrological connectivity.", "The proposed regeneration harvest effects are disclosed in the EA. FEIS identified stand-level fire hazard would transition from moderate to high for up to 50 years on dry forest sites.", "This project would not result in significant additions of sediment to streams. Any sediment delivery would be small in magnitude, spread over large temporal and spatial scales, within the range analyzed in the FEIS/RMP."]}, {"project_code": "OB", "theme_name": "Road, Soil, and Transportation System Impacts", "description": "Road construction irreversibility, soil data adequacy, TPCC soils, machine piling, road density reduction, RMP direction to reduce transportation mileage.", "occurrences": 10, "code_count": 8, "response_count": 5, "commenter_count": 7, "responses": ["BLM assessed the risk of project activities introducing or spreading noxious weeds. Wildfire creates bare soil susceptible to invasion. Fire suppression activities spread invasive species seed.", "PDFs apply BMPs from Appendix C of the 2016 SWO ROD/RMP. Developed to avoid or reduce potential for adverse impacts.", "Road construction was analyzed in the FEIS. Approximately 3% increase in road construction in next 10 years included in calculations."]}, {"project_code": "OB", "theme_name": "Fire Hazard Consequences of Regeneration and Plantation Establishment", "description": "Whether regeneration harvest and plantation establishment increases or decreases fire hazard. Scientific arguments about plantation fire susceptibility. Contradiction with project P&N.", "occurrences": 9, "code_count": 6, "response_count": 5, "commenter_count": 8, "responses": ["27 miles of non-paved haul routes, only 5 perennial crossings. Sediment input from haul extremely unlikely to be detectable above background levels.", "BLM disclosed effects on migratory birds and Birds of Conservation Concern. Implementation of PDFs and adequate undisturbed areas would minimize disturbance.", "The RMP does not require that every project achieve every objective. Management directions implemented across multiple projects over time."]}, {"project_code": "OB", "theme_name": "Alternatives Range and Project Design", "description": "Whether alternatives analyzed are sufficient, including citizens alternative (fuels reduction, retain >20\" DBH, no regeneration).", "occurrences": 7, "code_count": 5, "response_count": 0, "commenter_count": 6, "responses": []}, {"project_code": "OB", "theme_name": "NEPA Process, Documentation, and Significance Determination", "description": "EIS vs. EA significance threshold, Purpose and Need scope, tiering to PRMP/FEIS, technical documentation completeness.", "occurrences": 6, "code_count": 5, "response_count": 0, "commenter_count": 4, "responses": []}, {"project_code": "OB", "theme_name": "Protection of Sensitive and Migratory Bird Species", "description": "Bureau Sensitive Species (particularly goshawk) and migratory birds under MBTA. Goshawk nest tree destruction, seasonal restrictions.", "occurrences": 6, "code_count": 4, "response_count": 4, "commenter_count": 2, "responses": ["Goshawk nest tree in Unit 7-1 is no longer marked for harvest and there will be a seasonal restriction during nesting season.", "No requirement for snag creation in HLB for Medford District. However, 2016 RMP directs creating two snags per acre in LSR and RR treatment areas.", "Silviculturist, in consultation with wildlife biologist, monitors the marking of trees to ensure it meets consultation requirements and stand management objectives."]}, {"project_code": "OB", "theme_name": "Public Safety, Access, and Community Impacts", "description": "Residential safety, hunting safety, unauthorized OHV access, fire suppression property damage, adjacent landowner disturbance.", "occurrences": 6, "code_count": 6, "response_count": 0, "commenter_count": 4, "responses": []}, {"project_code": "OB", "theme_name": "Adequacy of Cumulative Effects Analysis", "description": "Whether EA provides legally sufficient cumulative effects analysis per 9th Circuit requirements, including checkerboard lands and PCGP.", "occurrences": 4, "code_count": 2, "response_count": 0, "commenter_count": 3, "responses": []}, {"project_code": "OB", "theme_name": "Cultural Resource Protection and Tribal Consultation", "description": "Cultural resource survey completion, government-to-government consultation with Confederated Tribes of Grand Ronde.", "occurrences": 2, "code_count": 2, "response_count": 0, "commenter_count": 1, "responses": []}, {"project_code": "RO", "theme_name": "Timber Production, Economic Viability, and O&C Compliance", "description": "Support for timber production including ASQ conformance, economic viability, O&C Act compliance, maximum harvest alternatives, county revenue.", "occurrences": 35, "code_count": 32, "response_count": 0, "commenter_count": 6, "responses": []}, {"project_code": "RO", "theme_name": "Sediment, Water Quality, and Coho Salmon Protection", "description": "Inadequate analysis of road-related sediment to already-impaired streams, lack of site-specific BMPs, degraded baseline conditions, coho habitat effects.", "occurrences": 28, "code_count": 26, "response_count": 2, "commenter_count": 4, "responses": ["BLM is required to follow Aquatic Organisms Passage guidance for new stream crossings. New road construction under ALTs 2-4 do not include stream crossings over fish streams.", "Wetlands less than 1 acre (including seeps and springs) are identified during pre-project planning and buffered by 25 feet."]}, {"project_code": "RO", "theme_name": "NEPA Process, Alternatives, and Decision Framework", "description": "EA procedural adequacy including biased P&N, lack of impact comparison tables, improper tiering without site-specific analysis, EIS threshold arguments.", "occurrences": 25, "code_count": 25, "response_count": 0, "commenter_count": 3, "responses": []}, {"project_code": "RO", "theme_name": "Stand Structure, Old Growth, and Vegetation Analysis", "description": "Inadequate disclosure of logging intensity through TPA data, old growth tree removal, relative density uncertainty, structural complexity loss, skip implementation.", "occurrences": 25, "code_count": 25, "response_count": 4, "commenter_count": 2, "responses": ["0.25 and 0.50 mile radius from active nest tree for the season. BLM not implementing seasonal restrictions around unoccupied owl sites.", "Added dates that seasonal restriction would occur for fisher denning behavior based on documented SW Oregon fisher denning behavior.", "PDF 16 is specific to avoiding special habitats by buffering them during harvest. Post-project vehicle restriction covered by PDF 32."]}, {"project_code": "RO", "theme_name": "Adequacy of NSO Habitat Impact Analysis", "description": "Whether EA adequately analyzes and compares NSO impacts across alternatives \u2014 NRF removal, RA32 mapping, core area thresholds, survey reliability, fragmentation, barred owl competition.", "occurrences": 21, "code_count": 20, "response_count": 10, "commenter_count": 3, "responses": ["Each alternative is within scope analyzed in 2016 FEIS/RMP. Table 1-7 discloses habitat effects by alternative. Reduction in NRF and foraging habitat (3.0-8.0%) would occur outside currently occupied owl sites.", "EA did not analyze low flows in detail because none of the alternatives would have a measurable effect. Due to spatial variability, Riparian Reserves, and stand age mosaic, low flows not considered an issue.", "An additional EIS is not necessary. BLM provided sufficient analysis to support that impacts to NSOs are within the range of effects analyzed in the PRMP/FEIS.", "The BLM is not required to disclose amount of treatment in field-identified RA 32 habitat within HLB. NRF and RA32 habitat are weighted equally for incidental take determination.", "Purpose and need allows consideration of broad range of alternatives; EA analyzed 4 different action alternatives that all met the purpose and need."]}, {"project_code": "RO", "theme_name": "Fire Hazard Tradeoffs Between Alternatives", "description": "EA fails to explicitly compare fire hazard outcomes across alternatives \u2014 regeneration creates 50+ years of high fire hazard vs thinning reduces it. Zald & Dunn 2018 findings.", "occurrences": 13, "code_count": 12, "response_count": 0, "commenter_count": 4, "responses": []}, {"project_code": "RO", "theme_name": "Summer Streamflow Deficits from Regeneration Harvest", "description": "New scientific evidence (Perry & Jones 2017, Segura et al. 2020) demonstrates regeneration harvest causes long-term summer low flow deficits not analyzed in EA or RMP FEIS.", "occurrences": 11, "code_count": 11, "response_count": 7, "commenter_count": 1, "responses": ["BLM considered site-specific sedimentation potential and did not solely rely on FEIS analysis.", "BLM did conduct site-specific analysis of effects on fisher and habitat. Fishers detected in Analysis Area in 1999, 2010, 2012, 2016. If den site discovered, BLM would retain 80% canopy within 50 feet.", "BLM does not do explicit spatial/temporal analysis for subset components of RMP treatments (thinning vs group selection vs skips). Silviculture prescription planning for entire stand incorporates these.", "BLM properly tiered to PRMP/FEIS climate change analysis. Project conforms to RMP management direction. No site-specific information that would change FEIS conclusions."]}, {"project_code": "RO", "theme_name": "Climate Change, Carbon Storage, and Genetic Adaptation", "description": "EA improperly eliminated climate change from detailed analysis by tiering to inadequate FEIS, failed to analyze carbon emissions, proforestation, climate refugia.", "occurrences": 8, "code_count": 8, "response_count": 0, "commenter_count": 1, "responses": []}, {"project_code": "RO", "theme_name": "Fisher Habitat Protection and Survey Gaps", "description": "EA inadequately analyzes fisher denning habitat removal, provides conflicting impact assessments, relies on tiered FEIS analysis without site-specific surveys.", "occurrences": 8, "code_count": 8, "response_count": 7, "commenter_count": 1, "responses": ["Alternative 4 does not remove denning habitat but downgrades it to foraging habitat, therefore could result in reduction in fisher similar to Alternative 2.", "BLM will retain existing snags except those felled for safety reasons or logging systems.", "Riparian Reserves effective at preventing off site sediment movement to streams. Road work and haul sediment would be small in magnitude, within FEIS range.", "RMP refers to 'old growth' in context of late successional forests. RMP explicitly says retain all trees >40\" DBH established prior to 1850 in LITA and MITA."]}, {"project_code": "RO", "theme_name": "Cumulative Effects and Foreseeable Actions", "description": "Failure to detail foreseeable projects, watershed-level landscape simplification, missing analysis of combined public/private harvest impacts.", "occurrences": 5, "code_count": 5, "response_count": 0, "commenter_count": 2, "responses": []}, {"project_code": "RO", "theme_name": "Soil Compaction, Road Impacts, and Site Suitability", "description": "Irreversible soil compaction from new roads and landings, road routing decisions that fell old growth, unplantable rock outcrops.", "occurrences": 4, "code_count": 4, "response_count": 0, "commenter_count": 1, "responses": []}, {"project_code": "RO", "theme_name": "Human Environment and Recreational Forest Values", "description": "EA fails to analyze human need for quality forest experiences per 43 CFR 1508.14, biophilia values destroyed by regeneration harvest.", "occurrences": 3, "code_count": 3, "response_count": 0, "commenter_count": 1, "responses": []}, {"project_code": "SC", "theme_name": "Adequacy of NEPA Process and EIS Determination", "description": "Procedural challenges: tiering to RMP FEIS, exclusion of resource issues, absence of site-specific baseline data, reliance on PDFs as analysis substitutes, EIS threshold. Siuslaw HLB precedent.", "occurrences": 19, "code_count": 15, "response_count": 11, "commenter_count": 10, "responses": ["BLM took a 'hard look' at environmental effects. An EIS is not necessary because effects were within those analyzed in the PRMP/FEIS to which this EA is tiered.", "BLM adheres to aquatic and riparian conservation strategies in the more recent 2016 RMP and FEIS. Big Butte Creek WQRP is not a regulatory document.", "Alternative 5 designed to reduce/avoid/delay negative impacts to NSO Conservation Priority Sites, consistent with RMP-ROD Appendix A guidance and Recovery Action 10.", "BLM did not analyze effects on NSO habitat in detail because no potential for significant effects beyond PRMP/FEIS. Project implements only a portion of projected harvest.", "Regeneration harvest will increase stand level fire hazard for 50 years. Selected Alternative does not include regeneration harvest in WUI or within one mile of WDAs \u2014 no potential for significance."]}, {"project_code": "SC", "theme_name": "Timber Production, ASQ Attainment, and O&C Act Compliance", "description": "Support for maximizing timber volume consistent with O&C Act sustained yield mandates, RMP ASQ targets, and HLB management direction.", "occurrences": 17, "code_count": 7, "response_count": 6, "commenter_count": 9, "responses": ["It is outside scope of this project to consider whether this individual project is complying with RMP models. Appropriate scale is District SYU, not Field Office Project level, at the decadal scale with plan evaluation at 5-year intervals.", "BLM applies BMPs and PDFs site specifically as conditions warrant. PDFs specific to roadwork and timber haul shown in Appendix 3.", "Proposed trail system has been pulled out of the South Clark EA and is now proposed under a separate EA (Fredenburg Butte Recreation Project).", "The 25% soil moisture is an appropriate threshold for 'dry conditions' based on the liquid limit of the majority of soils in the project area."]}, {"project_code": "SC", "theme_name": "Fire Hazard, WUI Safety, and Fuels Management", "description": "Wildfire risk, fire hazard changes from harvest prescriptions, WUI safety for Butte Falls, prescribed fire. Central tension: fuel reduction vs regeneration increases fire hazard for 50 years.", "occurrences": 16, "code_count": 14, "response_count": 13, "commenter_count": 7, "responses": ["Both the FEIS and South Clark EA have acknowledged that regeneration harvest will increase stand level fire hazard for 50 years. Selected Alternative does not include regen harvest in WUI or within one mile of WDAs.", "Timber unit and ROW layout and marking was started during the NEPA process. Marking is not a final action and can be adjusted based on the decision.", "BLM added a PDF that slash pile burning will not occur in the spring season when birds would be nesting.", "BLM has considerable discretion in developing purpose and need. Purpose constructed to implement silvicultural practices and produce timber to contribute to attainment of ASQ.", "BLM has set aside late-successional reserves and riparian reserves to protect structurally-complex forest. As BLM implements EO 14072, anticipates development of additional guidance."]}, {"project_code": "SC", "theme_name": "Trail System Design and Recreation Access", "description": "Support/opposition for proposed non-motorized trail system. Mountain bike trails, NICA race logistics, wildlife disturbance in deer/elk winter range.", "occurrences": 16, "code_count": 9, "response_count": 0, "commenter_count": 11, "responses": []}, {"project_code": "SC", "theme_name": "Forest Structure, Mature Stand Retention, and Ecological Values", "description": "Ecological value of retaining mature and structurally complex forest. Old growth inventory under EO 14072. 6% HRV deficit for mature stands.", "occurrences": 14, "code_count": 14, "response_count": 0, "commenter_count": 5, "responses": []}, {"project_code": "SC", "theme_name": "Wildlife Habitat and Species Conservation", "description": "NSO NRF habitat downgrading, BSS species conservation, elk/deer winter range, Rogue Pack wolf activity, migratory bird restrictions. ODFW recommendations central.", "occurrences": 12, "code_count": 10, "response_count": 0, "commenter_count": 6, "responses": []}, {"project_code": "SC", "theme_name": "Road Infrastructure, Access, and Transportation", "description": "Clark Creek Road damage, cattle guard failure, Section 16 erosion. Competing requests for road maintenance vs decommissioning.", "occurrences": 8, "code_count": 5, "response_count": 0, "commenter_count": 7, "responses": []}, {"project_code": "SC", "theme_name": "Socioeconomic Impacts and Community Interests", "description": "Rural employment dependence, Oregon FPA volume reduction, NICA racing economic benefits, local contract bidding interest.", "occurrences": 8, "code_count": 5, "response_count": 0, "commenter_count": 8, "responses": []}, {"project_code": "SC", "theme_name": "Water Quality, Aquatic Resources, and Watershed Protection", "description": "Water quality impacts from roads and harvest including 303(d) streams, TMDL/WQRP compliance, erosion, fisheries habitat.", "occurrences": 7, "code_count": 6, "response_count": 0, "commenter_count": 4, "responses": []}, {"project_code": "SC", "theme_name": "Soil Disturbance Compliance and Analysis Scale", "description": "Competing positions on RMP 20% soil disturbance limit. Industry requests waiver; conservation argues analysis must occur at harvest-unit scale.", "occurrences": 3, "code_count": 3, "response_count": 0, "commenter_count": 2, "responses": []}, {"project_code": "SC", "theme_name": "Cumulative Effects and Landscape-Scale Impacts", "description": "Nearly a dozen ongoing/foreseeable actions listed without quantified analysis of combined effects on shared resource values.", "occurrences": 2, "code_count": 1, "response_count": 0, "commenter_count": 2, "responses": []}, {"project_code": "TC", "theme_name": "Wildlife Species Impact Analysis Adequacy", "description": "NSO NRF habitat removal, recovery action implementation, barred owl competition, BSS wildlife tiering, Pacific fisher, MBTA restrictions, Gentner's fritillary surveys.", "occurrences": 12, "code_count": 11, "response_count": 9, "commenter_count": 4, "responses": ["RMP does not require BLM to meet quantitative connectivity amounts or define/require fragmentation analysis. BLM need not speculate about all conceivable impacts.", "Barred owl control program would substantially moderate NSO population declines. Current research provides no evidence BLM can manage individual stands to provide NSO competitive advantage over barred owls.", "No proposed units in TPCC non-suitable fragile soils. BLM designated additional TPCC non-suitable areas and dropped acreage from unit pool.", "EA tiers to the 2016 PRMP/FEIS. Additional EIS is not necessary.", "Trail Creek project developed based on 2016 ROD/RMP management directions consistent with O&C Act. None of the LITA stands yet suitable for regeneration harvest."]}, {"project_code": "TC", "theme_name": "Silvicultural Prescription Design and Harvest Methods", "description": "Canopy reduction levels, gap creation, diameter retention limits, regeneration vs. thinning, stocking metrics (SDI vs canopy cover), tethered assist, snag creation.", "occurrences": 11, "code_count": 11, "response_count": 10, "commenter_count": 4, "responses": ["Fragile soils designated TPCC non-suitable excluded from project units. TPCC FPR fragile-suitable used as skips if <5 acres or harvested with modifications.", "BLM is not required to perform project-level analysis of 4-acre gaps. In full compliance with ROD management direction for HLB-UTA group selection openings up to 4 acres.", "No fishers previously detected in Planning Area. PDFs reduce potential impacts: PDF #13 protects fisher dens; #21 protects hardwoods >24\"; #24 retains snags. PRMP/FEIS projects increase of 60 fishers within 50 years.", "NSO habitat effects described EA pp. 123-124. Project designed to follow SWO ROD/RMP management direction for each LUA. Tiering appropriate per 40 C.F.R. 1502.28 and 1502.20.", "PDFs in EA Appendix 3 carried forward into contracts as required specifications. BLM contract administrators/inspectors monitor operations."]}, {"project_code": "TC", "theme_name": "Alternatives Analysis and Project Design", "description": "Preferences for specific alternatives, requests for new alternatives (no old-growth removal), road density disputes, road decommissioning.", "occurrences": 7, "code_count": 6, "response_count": 0, "commenter_count": 5, "responses": []}, {"project_code": "TC", "theme_name": "NEPA Process Adequacy and Site-Specific Analysis", "description": "Whether EA meets NEPA requirements for site-specific analysis, adequacy of tiering to 2016 RMP FEIS, need for EIS, duty to respond to scoping comments.", "occurrences": 7, "code_count": 7, "response_count": 7, "commenter_count": 2, "responses": ["BLM asserts it took a 'hard look' at environmental effects. EA tiered to 2016 PRMP/FEIS per 43 C.F.R. 46.140(c). EIS not necessary because effects within those analyzed in PRMP/FEIS.", "BLM considered canopy cover reductions to 30%. Alternatives 2, 3, and 4 retain 40-50% for dispersal habitat and >60% for NRF habitat.", "Predicting windthrow/blowdown would be speculative \u2014 no science or tools available to estimate probability.", "ODEQ has not designated any streams in planning area for sediment issues; therefore no sediment TMDLs established."]}, {"project_code": "TC", "theme_name": "Vegetation Management and Botanical Resources", "description": "Prior harvest history, noxious weed spread, Bureau Sensitive plant survey adequacy, old-growth/mature forest conservation value.", "occurrences": 7, "code_count": 5, "response_count": 0, "commenter_count": 4, "responses": []}, {"project_code": "TC", "theme_name": "Water Resources, Aquatic Species, and Sediment", "description": "Private water rights/springs, ESA-listed coho salmon, sediment from roads, 303(d)-listed water quality, drought effects on streamside vegetation.", "occurrences": 7, "code_count": 7, "response_count": 5, "commenter_count": 3, "responses": ["LUAs, management direction, and RMP guidance constitute BLM's contribution towards Recovery Actions 10 and 32. BLM will not defer timber harvest in HLB beyond specific requirements.", "Alternative 4 designed to reduce/avoid/delay negative impacts to NSO Conservation Priority Sites. Proposes 1,843 acres commercial thinning/selection harvest.", "BLM included adequate range of alternatives. Purpose is commercial thinning in HLB-LITA and timber selection harvest in HLB-UTA.", "Until implementation of barred owl management plan, BLM will not authorize timber harvest causing incidental take of NSO. PDFs necessary to fulfill consultation requirements."]}, {"project_code": "TC", "theme_name": "O&C Act Compliance and Timber Economics", "description": "O&C Act sustained-yield mandates, ASQ adequacy, economic analysis methodology, timber sale operational flexibility.", "occurrences": 5, "code_count": 5, "response_count": 0, "commenter_count": 2, "responses": []}, {"project_code": "TC", "theme_name": "Soil Integrity and Road Infrastructure", "description": "Site-specific soil problems, TPCC fragile soil impacts, machine piling, temporary-to-permanent road switch, road decommissioning disputes.", "occurrences": 5, "code_count": 5, "response_count": 0, "commenter_count": 2, "responses": []}, {"project_code": "TC", "theme_name": "Fire Risk and Fuels Management", "description": "Conservation argues excessive harvest increases fire risk; industry argues preservation increases fire risk. Drought-year operational timing.", "occurrences": 4, "code_count": 4, "response_count": 0, "commenter_count": 3, "responses": []}, {"project_code": "TC", "theme_name": "Cumulative Effects Analysis", "description": "EA fails to analyze cumulative impacts from combined federal/private operations in checkerboard ownership. 9th Circuit precedent.", "occurrences": 2, "code_count": 2, "response_count": 0, "commenter_count": 1, "responses": []}];
 
-const PROJECTS=[
-  {code:"ELK",name:"Elk Camel",year:"2016-17",color:"#38BDF8"},
-  {code:"OB",name:"Obenchain",year:"2017-21",color:"#A78BFA"},
-  {code:"GS",name:"Gold Sardine",year:"2017-18",color:"#FB923C"},
-  {code:"EC",name:"Evans Creek",year:"2018-19",color:"#34D399"},
-  {code:"RO",name:"Round Oak",year:"2019-20",color:"#F87171"},
-  {code:"TC",name:"Trail Creek",year:"2021-23",color:"#FBBF24"},
-  {code:"SC",name:"South Clark",year:"2022-24",color:"#4F8EF7"},
-  {code:"LL",name:"Lost Lewis",year:"2024-25",color:"#E879F9"}
-];
-const EXCLUDE=new Set(["QG","LC","DBOW"]);
-
-const CATEGORIES=[
-  {id:"silv",label:"Silviculture & thinning",keywords:["silvicultural","prescription","harvest method","stand structure","old-growth","vegetation","logging intensity","forest structure","mature stand"],desc:"How BLM designs harvest prescriptions — thinning intensity, diameter limits, canopy retention, gap sizes, regeneration vs. selection. Track whether BLM's silvicultural rationale has shifted across projects."},
-  {id:"nso",label:"NSO / spotted owl",keywords:["northern spotted owl","nso","spotted owl habitat","wildlife species impact"],desc:"NSO NRF/dispersal habitat impacts, recovery action compliance, critical habitat, take avoidance, barred owl competition dynamics. Watch for the shift from habitat-quantity to barred-owl-as-primary-threat framing."},
-  {id:"fire",label:"Fire & fuels",keywords:["fire","fuels","wui","wildfire","burn"],desc:"Whether harvest increases or decreases fire risk — plantation flammability, thinning vs. regeneration outcomes, WUI safety, prescribed fire. The plantation-flammability argument has grown from 3 occurrences (ELK) to 16 (SC/LL)."},
-  {id:"aquatic",label:"Aquatic & water quality",keywords:["sediment","water quality","aquatic","coho","riparian","streamflow","watershed"],desc:"Road-related sediment, coho habitat, 303(d) compliance, riparian reserves, streamflow, WQRP implementation. Track BLM's evolving reliance on 'undetectable above background' language."},
-  {id:"nepa",label:"NEPA process",keywords:["nepa","purpose and need","disclosure","eis","process","public participation"],desc:"EA vs. EIS threshold, tiering to FEIS, purpose and need scope, comparison tables, significance determinations. Note how BLM's tiering language has become more assertive over time."},
-  {id:"cumul",label:"Cumulative effects",keywords:["cumulative effect"],desc:"Past/present/future actions, checkerboard ownership, private lands, watershed-level impacts. Persistent response gap across all 9 years — zero formal responses in 6 of 8 projects."},
-  {id:"alternatives",label:"Alternatives & range",keywords:["alternative","range of alt","project design"],desc:"Adequacy of alternatives analyzed, citizens alternatives, operational flexibility. Industry and conservation groups push from opposite directions."},
-  {id:"timber",label:"Timber economics & O&C",keywords:["timber","economic","o&c","sustained yield","asq"],desc:"O&C Act sustained yield mandate, ASQ attainment, economic viability, operational flexibility. Track the tension between maximizing volume and ecological constraints."},
-  {id:"species",label:"Non-NSO species",keywords:["sensitive species","migratory bird","fisher","biodiversity","wildlife","peregrine","botanical"],desc:"Pacific fisher, migratory birds, Bureau Sensitive Species, botanical resources, deer/elk, wolves. Response patterns vary wildly — some projects respond exhaustively, others ignore entirely."},
-  {id:"soil",label:"Soil & roads",keywords:["soil","road","transportation","infrastructure","geologic"],desc:"Soil disturbance thresholds, TPCC classification, road density, road construction/decommissioning. The 20% detrimental disturbance limit is a recurring battleground."},
-  {id:"climate",label:"Climate & carbon",keywords:["climate","carbon","greenhouse","sequestration"],desc:"Forest carbon dynamics, GHG emissions, proforestation arguments. Consistently tiered to FEIS with minimal project-level analysis — an emerging litigation vector."},
-  {id:"community",label:"Public process & community",keywords:["collaboration","public","recreation","socioeconomic","community","trail","access","cultural"],desc:"Public engagement adequacy, recreation access, socioeconomic impacts, tribal consultation. SC's trail system became the largest single theme by comment volume."}
+var PROJECTS=[
+{code:"ELK",name:"Elk Camel",year:"2016-17",color:"#38BDF8"},
+{code:"OB",name:"Obenchain",year:"2017-21",color:"#A78BFA"},
+{code:"GS",name:"Gold Sardine",year:"2017-18",color:"#FB923C"},
+{code:"EC",name:"Evans Creek",year:"2018-19",color:"#34D399"},
+{code:"RO",name:"Round Oak",year:"2019-20",color:"#F87171"},
+{code:"TC",name:"Trail Creek",year:"2021-23",color:"#FBBF24"},
+{code:"SC",name:"South Clark",year:"2022-24",color:"#4F8EF7"},
+{code:"LL",name:"Lost Lewis",year:"2024-25",color:"#E879F9"}
 ];
 
-let DB_themes=[], DB_projects=[], DB_responses=[], DB_theme_comments=[];
-var selCat="silv", selProject=null;
+var CATS=[
+{id:"all",label:"All themes",kw:null},
+{id:"silv",label:"Silviculture & prescriptions",kw:["silvicultural","prescription","harvest method","stand structure","old-growth","vegetation","logging intensity","forest structure","mature stand"]},
+{id:"nso",label:"NSO / spotted owl",kw:["northern spotted owl","nso","spotted owl","wildlife species impact"]},
+{id:"fire",label:"Fire & fuels",kw:["fire","fuels","wui","wildfire","burn"]},
+{id:"aquatic",label:"Aquatic & water",kw:["sediment","water quality","aquatic","coho","riparian","streamflow","watershed"]},
+{id:"nepa",label:"NEPA process",kw:["nepa","purpose and need","disclosure","eis ","process adequacy","public participation"]},
+{id:"cumul",label:"Cumulative effects",kw:["cumulative effect"]},
+{id:"alt",label:"Alternatives",kw:["alternative","project design","range of alt"]},
+{id:"timber",label:"Timber & O&C",kw:["timber","economic","o&c","sustained yield","asq"]},
+{id:"species",label:"Non-NSO species",kw:["sensitive species","migratory bird","fisher","biodiversity","peregrine","botanical"]},
+{id:"soil",label:"Soil & roads",kw:["soil","road","transportation","infrastructure","geologic"]},
+{id:"climate",label:"Climate & carbon",kw:["climate","carbon","greenhouse","sequestration"]},
+{id:"community",label:"Community & access",kw:["collaboration","recreation","socioeconomic","community","trail","access","cultural","public safety"]}
+];
 
-async function fetchAll(t,s="*"){
-  let a=[],o=0;
-  while(true){
-    const r=await fetch(`${SB_URL}/${t}?select=${s}&limit=1000&offset=${o}`,{headers:H});
-    if(!r.ok)return a;const d=await r.json();a=a.concat(d);if(d.length<1000)break;o+=1000;
-  }
-  return a;
+var selCat="all",selProj=null;
+
+function esc(s){if(!s)return"";var d=document.createElement("div");d.textContent=s;return d.innerHTML}
+
+function match(t,cat){
+if(!cat.kw)return true;
+var n=(t.theme_name||"").toLowerCase(),d=(t.description||"").toLowerCase();
+return cat.kw.some(function(k){return n.indexOf(k)>=0||d.indexOf(k)>=0});
 }
 
-async function loadData(){
-  const [projects,themes,responses,tc]=await Promise.all([
-    fetchAll("projects","project_id,project_code,project_name,status"),
-    fetchAll("themes","theme_id,theme_name,description,code_count,occurrences,status,theme_layer,project_id"),
-    fetchAll("responses","response_id,comment_id,theme_id,response_text"),
-    fetchAll("theme_comments","theme_id,comment_id")
-  ]);
-  const exPids=new Set(projects.filter(p=>EXCLUDE.has(p.project_code)).map(p=>p.project_id));
-  DB_projects=projects.filter(p=>!exPids.has(p.project_id));
-  DB_themes=themes.filter(t=>!exPids.has(t.project_id)&&t.theme_layer==="analytical");
-  DB_responses=responses;
-  DB_theme_comments=tc;
-  document.getElementById("ft").textContent=`${DB_themes.length} themes · ${DB_responses.length} responses`;
+function getFiltered(){
+var cat=CATS.find(function(c){return c.id===selCat});
+return DATA.filter(function(t){return match(t,cat)});
 }
 
-function getProjectCode(pid){
-  const p=DB_projects.find(x=>x.project_id===pid);
-  return p?p.project_code:"?";
+function byProject(filtered){
+var m={};PROJECTS.forEach(function(p){m[p.code]=[]});
+filtered.forEach(function(t){if(m[t.project_code])m[t.project_code].push(t)});
+return m;
 }
-
-function matchCategory(theme,cat){
-  const n=(theme.theme_name||"").toLowerCase();
-  const d=(theme.description||"").toLowerCase();
-  return cat.keywords.some(k=>n.includes(k)||d.includes(k));
-}
-
-function getThemesForCategory(cat){
-  const matched=DB_themes.filter(t=>matchCategory(t,cat));
-  const byProject={};
-  PROJECTS.forEach(p=>{byProject[p.code]=[]});
-  matched.forEach(t=>{
-    const code=getProjectCode(t.project_id);
-    if(byProject[code])byProject[code].push(t);
-  });
-  return byProject;
-}
-
-function getResponsesForTheme(tid){
-  return DB_responses.filter(r=>r.theme_id===tid&&r.response_text&&r.response_text.length>20);
-}
-
-function getCommentCountForTheme(tid){
-  return new Set(DB_theme_comments.filter(tc=>tc.theme_id===tid).map(tc=>tc.comment_id)).size;
-}
-
-function esc(s){if(!s)return"";const d=document.createElement("div");d.textContent=s;return d.innerHTML}
 
 function render(){
-  const cat=CATEGORIES.find(c=>c.id===selCat);
-  if(!cat)return;
-  document.getElementById("title").textContent=cat.label;
-  const byProject=getThemesForCategory(cat);
-  const con=document.getElementById("content");
-  con.innerHTML="";
+var cat=CATS.find(function(c){return c.id===selCat});
+var filtered=getFiltered();
+var bp=byProject(filtered);
+var con=document.getElementById("con");
+con.innerHTML="";
+document.getElementById("title").textContent=cat.label;
 
-  // Stats row
-  let totalThemes=0,totalResponses=0,totalComments=0,gapProjects=0;
-  PROJECTS.forEach(p=>{
-    const themes=byProject[p.code];
-    totalThemes+=themes.length;
-    themes.forEach(t=>{
-      totalResponses+=getResponsesForTheme(t.theme_id).length;
-      totalComments+=getCommentCountForTheme(t.theme_id);
-    });
-    if(themes.length>0){
-      const hasAnyResp=themes.some(t=>getResponsesForTheme(t.theme_id).length>0);
-      if(!hasAnyResp)gapProjects++;
-    }
-  });
-  const statsHtml=`<div class="g5">
-    <div class="cd"><div class="sl">Theme instances</div><div class="sv" style="color:var(--ac)">${totalThemes}</div><div class="ss">Across ${PROJECTS.filter(p=>byProject[p.code].length>0).length} projects</div></div>
-    <div class="cd"><div class="sl">Responses</div><div class="sv" style="color:var(--gn)">${totalResponses}</div><div class="ss">Formal BLM responses</div></div>
-    <div class="cd"><div class="sl">Linked comments</div><div class="sv" style="color:var(--or)">${totalComments}</div><div class="ss">Distinct commenters</div></div>
-    <div class="cd"><div class="sl">Response gaps</div><div class="sv" style="color:${gapProjects>0?'var(--rd)':'var(--gn)'}">${gapProjects}</div><div class="ss">Projects with zero responses</div></div>
-  </div>`;
-  con.insertAdjacentHTML("beforeend",statsHtml);
+// Stats
+var tThemes=filtered.length,tResp=0,tComm=0,gaps=0;
+filtered.forEach(function(t){tResp+=t.response_count;tComm+=t.commenter_count;if(t.response_count===0)gaps++});
+con.innerHTML+='<div class="stats"><div class="stat"><div class="l">Themes</div><div class="v" style="color:var(--ac)">'+tThemes+'</div></div><div class="stat"><div class="l">Responses</div><div class="v" style="color:var(--gn)">'+tResp+'</div></div><div class="stat"><div class="l">Commenters</div><div class="v" style="color:var(--or)">'+tComm+'</div></div><div class="stat"><div class="l">No response</div><div class="v" style="color:'+(gaps>0?'var(--rd)':'var(--gn)')+'">'+gaps+'</div><div class="s">'+Math.round(gaps/Math.max(1,tThemes)*100)+'% gap rate</div></div></div>';
 
-  // Description
-  con.insertAdjacentHTML("beforeend",`<div style="margin-bottom:20px;font-size:14px;color:var(--tm);line-height:1.6">${esc(cat.desc)}</div>`);
+// Timeline
+var maxOcc=1;PROJECTS.forEach(function(p){var s=0;bp[p.code].forEach(function(t){s+=t.occurrences});if(s>maxOcc)maxOcc=s});
+var tl='<div class="timeline">';
+PROJECTS.forEach(function(p){
+var themes=bp[p.code],occ=0,resp=0;themes.forEach(function(t){occ+=t.occurrences;resp+=t.response_count});
+var h=Math.max(8,Math.round(occ/maxOcc*100));
+var isSel=selProj===p.code;
+tl+='<div class="tcol'+(isSel?" on":"")+'" onclick="selProj='+(isSel?'null':"'"+p.code+"'")+';render()">';
+tl+='<div style="font-family:JetBrains Mono,monospace;font-size:11px;font-weight:700;color:'+(occ>0?p.color:'var(--td)')+'">'+occ+'</div>';
+tl+='<div class="tbar" style="height:'+h+'px;background:'+(occ>0?p.color:'var(--bl)')+';opacity:'+(occ>0?1:.3)+'"></div>';
+tl+='<div style="font-size:11px;font-weight:600;color:'+(isSel?'var(--ac)':'var(--tx)')+'">'+p.code+'</div>';
+tl+='<div style="font-size:10px;color:var(--td)">'+p.year+'</div>';
+tl+='<div style="font-size:10px;color:'+(resp>0?'var(--gn)':'var(--rd)')+'">'+resp+' resp</div>';
+tl+='</div>';
+});
+tl+='</div>';
+con.innerHTML+=tl;
 
-  // Timeline bars
-  const maxOcc=Math.max(1,...PROJECTS.map(p=>byProject[p.code].reduce((s,t)=>s+t.occurrences,0)));
-  let timeHtml=`<div class="timeline">`;
-  PROJECTS.forEach(p=>{
-    const themes=byProject[p.code];
-    const occ=themes.reduce((s,t)=>s+t.occurrences,0);
-    const resp=themes.reduce((s,t)=>s+getResponsesForTheme(t.theme_id).length,0);
-    const h=Math.max(8,Math.round((occ/maxOcc)*100));
-    const barColor=resp>0?p.color:"var(--bl)";
-    const isSel=selProject===p.code;
-    timeHtml+=`<div class="t-col${isSel?" sel":""}" onclick="selProject=${isSel?"null":`'${p.code}'`};render()">
-      <div class="t-occ" style="color:${occ>0?p.color:'var(--td)'}">${occ||"—"}</div>
-      <div class="t-bar" style="height:${h}px;background:${barColor};opacity:${occ>0?1:.3}"></div>
-      <div class="t-code" style="color:${isSel?'var(--ac)':'var(--tx)'}">${p.code}</div>
-      <div class="t-year">${p.year}</div>
-      <div style="font-size:10px;color:${resp>0?'var(--gn)':'var(--rd)'}">${resp>0?resp+" resp":"no resp"}</div>
-    </div>`;
-  });
-  timeHtml+=`</div>`;
-  con.insertAdjacentHTML("beforeend",timeHtml);
+con.innerHTML+='<div class="legend"><span><i style="background:var(--rd)"></i>15+ occurrences</span><span><i style="background:var(--yw)"></i>7–14</span><span><i style="background:var(--gn)"></i>1–6</span><span><i style="background:var(--or)"></i>Comment concern</span><span><i style="background:var(--gn)"></i>BLM response</span><span><i style="background:var(--rd)"></i>Response gap</span></div>';
 
-  if(!selProject){
-    // Show all projects summary
-    con.insertAdjacentHTML("beforeend",`<div class="empty">Select a project above to see comment concerns and BLM responses</div>`);
-    // But also show the full cross-project summary table
-    let tableHtml=`<div style="margin-top:24px"><div class="sl">Cross-project theme mapping</div><div style="overflow-x:auto;border:1px solid var(--bd);border-radius:8px;margin-top:8px">
-      <table style="width:100%;border-collapse:collapse;font-size:12px">
-      <thead><tr><th style="text-align:left;padding:10px 12px;background:var(--sh);color:var(--tm);font-size:10px;text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid var(--bd);position:sticky;top:0">Project</th>
-      <th style="padding:10px 12px;background:var(--sh);color:var(--tm);font-size:10px;text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid var(--bd);text-align:left">Theme name</th>
-      <th style="padding:10px 8px;background:var(--sh);color:var(--tm);font-size:10px;text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid var(--bd);text-align:center">Occ</th>
-      <th style="padding:10px 8px;background:var(--sh);color:var(--tm);font-size:10px;text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid var(--bd);text-align:center">Cmts</th>
-      <th style="padding:10px 8px;background:var(--sh);color:var(--tm);font-size:10px;text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid var(--bd);text-align:center">Resp</th>
-      <th style="padding:10px 12px;background:var(--sh);color:var(--tm);font-size:10px;text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid var(--bd);text-align:left;min-width:120px">Coverage</th>
-      </tr></thead><tbody>`;
-    PROJECTS.forEach(p=>{
-      const themes=byProject[p.code];
-      if(themes.length===0)return;
-      themes.forEach((t,i)=>{
-        const resp=getResponsesForTheme(t.theme_id).length;
-        const cmts=getCommentCountForTheme(t.theme_id);
-        const pct=cmts>0?Math.min(100,Math.round(resp/cmts*100)):0;
-        const rowBg=i%2===0?"transparent":"var(--sh)";
-        tableHtml+=`<tr style="cursor:pointer;background:${rowBg}" onclick="selProject='${p.code}';render()">
-          <td style="padding:8px 12px;border-bottom:1px solid var(--bd);white-space:nowrap"><span style="color:${p.color};font-weight:600;font-family:'JetBrains Mono',monospace;font-size:11px">${p.code}</span> <span style="color:var(--td);font-size:11px">${p.year}</span></td>
-          <td style="padding:8px 12px;border-bottom:1px solid var(--bd);max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(t.theme_name)}</td>
-          <td style="padding:8px;border-bottom:1px solid var(--bd);text-align:center;font-family:'JetBrains Mono',monospace;font-weight:600;color:${t.occurrences>=15?'var(--rd)':t.occurrences>=7?'var(--yw)':'var(--gn)'}">${t.occurrences}</td>
-          <td style="padding:8px;border-bottom:1px solid var(--bd);text-align:center;font-family:'JetBrains Mono',monospace">${cmts}</td>
-          <td style="padding:8px;border-bottom:1px solid var(--bd);text-align:center;font-family:'JetBrains Mono',monospace;color:${resp>0?'var(--gn)':'var(--rd)'}">${resp}</td>
-          <td style="padding:8px 12px;border-bottom:1px solid var(--bd)"><div class="resp-count-bar"><div class="resp-count-fill" style="width:${pct}%;background:${resp>0?'var(--gn)':'var(--rd)'}"></div></div><span style="font-size:10px;color:var(--td)">${pct}%</span></td>
-        </tr>`;
-      });
-    });
-    tableHtml+=`</tbody></table></div></div>`;
-    con.insertAdjacentHTML("beforeend",tableHtml);
-    return;
-  }
+if(!selProj){
+// Cross-project table
+var h='<div style="overflow:auto;max-height:600px;border:1px solid var(--bd);border-radius:8px"><table class="tbl"><thead><tr><th>Project</th><th>Theme</th><th style="text-align:center">Occ</th><th style="text-align:center">Cmts</th><th style="text-align:center">Resp</th><th>Coverage</th></tr></thead><tbody>';
+PROJECTS.forEach(function(p){
+bp[p.code].sort(function(a,b){return b.occurrences-a.occurrences});
+bp[p.code].forEach(function(t){
+var pct=t.commenter_count>0?Math.min(100,Math.round(t.response_count/t.commenter_count*100)):0;
+var occColor=t.occurrences>=15?'var(--rd)':t.occurrences>=7?'var(--yw)':'var(--gn)';
+h+='<tr onclick="selProj=\''+p.code+'\';render()">';
+h+='<td><span style="color:'+p.color+';font-weight:600;font-family:JetBrains Mono,monospace;font-size:11px">'+p.code+'</span> <span style="color:var(--td);font-size:10px">'+p.year+'</span></td>';
+h+='<td style="max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(t.theme_name)+'</td>';
+h+='<td style="text-align:center;font-family:JetBrains Mono,monospace;font-weight:600;color:'+occColor+'">'+t.occurrences+'</td>';
+h+='<td style="text-align:center;font-family:JetBrains Mono,monospace">'+t.commenter_count+'</td>';
+h+='<td style="text-align:center;font-family:JetBrains Mono,monospace;color:'+(t.response_count>0?'var(--gn)':'var(--rd)')+'">'+t.response_count+'</td>';
+h+='<td><div class="pbar"><div class="pfill" style="width:'+pct+'%;background:'+(t.response_count>0?'var(--gn)':'var(--rd)')+'"></div></div></td>';
+h+='</tr>';
+})});
+h+='</tbody></table></div>';
+con.innerHTML+=h;
+con.innerHTML+='<div class="empty" style="margin-top:12px">Click a project bar or table row to see full comment and response detail</div>';
+return;
+}
 
-  // Detail view for selected project
-  const proj=PROJECTS.find(p=>p.code===selProject);
-  const themes=byProject[selProject];
-  if(themes.length===0){
-    con.insertAdjacentHTML("beforeend",`<div class="detail"><div class="empty">No themes matching "${cat.label}" found in ${proj.name} (${proj.year})</div></div>`);
-    return;
-  }
+// Detail view
+var proj=PROJECTS.find(function(p){return p.code===selProj});
+var themes=bp[selProj];
+if(!themes.length){con.innerHTML+='<div class="empty">No matching themes in '+proj.name+'</div>';return}
+themes.sort(function(a,b){return b.occurrences-a.occurrences});
+themes.forEach(function(t){
+var occColor=t.occurrences>=15?'var(--rd)':t.occurrences>=7?'var(--yw)':'var(--gn)';
+var d='<div class="detail">';
+d+='<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;flex-wrap:wrap;gap:8px">';
+d+='<div><div style="font-size:11px;font-family:JetBrains Mono,monospace;color:'+proj.color+';text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">'+proj.name+' — '+proj.year+'</div>';
+d+='<div style="font-size:15px;font-weight:600">'+esc(t.theme_name)+'</div></div>';
+d+='<div style="display:flex;gap:6px;flex-wrap:wrap">';
+d+='<span class="dtag" style="color:'+occColor+';background:'+occColor+'18">'+t.occurrences+' occ</span>';
+d+='<span class="dtag" style="color:var(--ac);background:var(--ac)18">'+t.code_count+' codes</span>';
+d+='<span class="dtag" style="color:var(--tm);background:var(--sh)">'+t.commenter_count+' commenters</span>';
+d+='<span class="dtag" style="color:'+(t.response_count>0?'var(--gn)':'var(--rd)')+';background:'+(t.response_count>0?'var(--gn)':'var(--rd)')+'18">'+t.response_count+' responses</span>';
+d+='</div></div>';
 
-  themes.sort((a,b)=>b.occurrences-a.occurrences);
-  themes.forEach(t=>{
-    const resps=getResponsesForTheme(t.theme_id);
-    const cmts=getCommentCountForTheme(t.theme_id);
-    let html=`<div class="detail">
-      <div class="detail-hdr">
-        <div>
-          <div style="font-size:11px;font-family:'JetBrains Mono',monospace;color:${proj.color};text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">${proj.name} — ${proj.year}</div>
-          <div class="detail-title">${esc(t.theme_name)}</div>
-        </div>
-        <div class="detail-meta">
-          <span class="tag tag-b">${t.occurrences} occurrences</span>
-          <span class="tag tag-b">${t.code_count} codes</span>
-          <span class="tag">${cmts} commenters</span>
-          <span class="tag ${resps.length>0?'tag-g':'tag-r'}">${resps.length} responses</span>
-        </div>
-      </div>`;
+if(t.description){
+d+='<div style="font-size:12px;font-weight:600;color:var(--or);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">What commenters raised</div>';
+d+='<div class="concern">'+esc(t.description)+'</div>';
+}
 
-    // Concern
-    if(t.description){
-      html+=`<div class="section-label" style="color:var(--or)">▸ What commenters raised</div>
-        <div class="concern-text">${esc(t.description)}</div>`;
-    }
-
-    // Responses
-    if(resps.length>0){
-      html+=`<div class="section-label" style="color:var(--gn)">▸ BLM response (${resps.length} excerpt${resps.length>1?"s":""})</div>`;
-      resps.forEach((r,i)=>{
-        const txt=r.response_text.length>800?r.response_text.substring(0,800)+"…":r.response_text;
-        html+=`<div class="response-text"><span style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--td);margin-right:6px">[${i+1}]</span>${esc(txt)}</div>`;
-      });
-    }else{
-      html+=`<div class="section-label" style="color:var(--rd)">▸ BLM response</div>
-        <div class="response-gap">No formal response on record for this theme. This concern was raised by ${cmts} commenter${cmts>1?"s":""} with ${t.occurrences} coded occurrences but was not addressed in the administrative record. This is a response gap that may become a litigation vector.</div>`;
-    }
-    html+=`</div>`;
-    con.insertAdjacentHTML("beforeend",html);
-  });
+if(t.responses&&t.responses.length>0){
+d+='<div style="font-size:12px;font-weight:600;color:var(--gn);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">BLM response ('+t.responses.length+' excerpt'+(t.responses.length>1?'s':'')+')</div>';
+t.responses.forEach(function(r,i){
+d+='<div class="response"><span style="font-family:JetBrains Mono,monospace;font-size:10px;color:var(--td);margin-right:6px">['+(i+1)+']</span>'+esc(r)+'</div>';
+});
+}else{
+d+='<div style="font-size:12px;font-weight:600;color:var(--rd);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">BLM response</div>';
+d+='<div class="gap">No formal response on record. This concern was raised by '+t.commenter_count+' commenter'+(t.commenter_count>1?'s':'')+' with '+t.occurrences+' coded occurrences but was not addressed in the administrative record.</div>';
+}
+d+='</div>';
+con.innerHTML+=d;
+});
 }
 
 function buildNav(){
-  const nav=document.getElementById("cat-nav");
-  CATEGORIES.forEach(c=>{
-    const btn=document.createElement("button");
-    btn.className="nb"+(c.id===selCat?" a":"");
-    btn.textContent=c.label;
-    btn.onclick=()=>{selCat=c.id;selProject=null;buildNav();render()};
-    nav.appendChild(btn);
-  });
+var nav=document.getElementById("nav");
+nav.innerHTML="";
+CATS.forEach(function(c){
+var b=document.createElement("button");
+b.className="nb"+(c.id===selCat?" a":"");
+b.textContent=c.label;
+b.onclick=function(){selCat=c.id;selProj=null;buildNav();render()};
+nav.appendChild(b);
+});
 }
 
-(async()=>{
-  await loadData();
-  buildNav();
-  render();
-})();
+buildNav();
+render();
 </script>
 </body>
 </html>
