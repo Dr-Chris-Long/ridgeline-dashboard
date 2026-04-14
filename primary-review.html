@@ -267,7 +267,6 @@ tr.expandable { cursor:pointer; }
     <button class="btn" onclick="exportCSV('review')">⬇ Review Decisions</button>
     <button class="btn" onclick="exportCSV('audit')">⬇ Audit Log</button>
   </div>
-  </div>
   <div class="tbl-wrap" style="max-height:60vh;overflow-y:auto;">
     <table id="explorer-table"><thead><tr><th style="width:110px">Finding</th><th style="width:60px">Sev</th><th>Category</th><th>Obligation</th><th>Type</th><th>Fix</th><th>Gap</th><th>Review</th></tr></thead><tbody></tbody></table>
   </div>
@@ -337,7 +336,7 @@ tr.expandable { cursor:pointer; }
     <p style="font-size:13px;color:var(--text2);line-height:1.6;margin-bottom:12px;">These <span id="lar-count" style="font-weight:700;color:var(--green);"></span> findings were flagged as AR gaps, but the gap descriptions indicate the relevant documents <strong>probably exist</strong> in the full Administrative Record — they just weren't provided to the analysis. Specialist reports, appendices, consultation correspondence, and implementation documents likely address these gaps.</p>
     <p style="font-size:13px;color:var(--text2);line-height:1.6;margin-bottom:12px;"><strong>Action for planners:</strong> Pull the referenced AR documents, verify the analysis exists, and either (a) confirm the finding is resolved, or (b) escalate if the AR document doesn't actually address the gap. This is the fastest path to reducing the finding count.</p>
     <div class="btn-group">
-      <button class="btn btn-accent" onclick="exportCSV('filtered');goExplorer({type:'LIKELY_IN_AR'})">⬇ Export Likely in AR Findings</button>
+      <button class="btn btn-accent" onclick="exportCSV('likelyar')">⬇ Export Likely in AR Findings</button>
     </div>
   </div>
 
@@ -590,7 +589,7 @@ function buildSummary() {
     {val:total,label:'Total Findings',color:'var(--accent)',click:"goExplorer({})"},
     {val:counts.R,label:'RED — Action Required',color:'var(--red)',click:"goExplorer({sev:'R'})"},
     {val:counts.Y,label:'YELLOW — Monitor',color:'var(--yellow)',click:"goExplorer({sev:'Y'})"},
-    {val:likelyAR,label:'Likely Resolved by AR',color:'var(--green)',click:"goExplorer({type:'LIKELY_IN_AR'})"},
+    {val:likelyAR,label:'Likely Resolved by AR',color:'var(--green)',click:"goTab('likelyar')"},
     {val:arGaps,label:'AR Gaps Identified',color:'var(--critical)',click:"goExplorer({gap:'true'})"},
     {val:arbiterUsed,label:'Arbiter Invocations',color:'var(--accent)',click:"goExplorer({search:'arbiter:yes'})"},
   ].map(s=>`<div class="stat" onclick="${s.click}"><div class="val" style="color:${s.color}">${s.val}</div><div class="label">${s.label}</div></div>`).join('');
@@ -841,6 +840,13 @@ function goExplorer(opts){
   document.getElementById('f-search').value=opts.search||'';
   filterFindings();
 }
+function goTab(tabId){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('page-'+tabId).classList.add('active');
+  const tab=document.querySelector('[data-page="'+tabId+'"]');
+  if(tab)tab.classList.add('active');
+}
 
 // ============ REVIEW STATE ============
 const reviewState={};
@@ -883,6 +889,16 @@ function exportCSV(mode){
       const rv=reviewState[f.i];
       if(!rv||!rv.disposition) return;
       csv+=[csvVal('F-'+f.i),csvVal(SEV_LABELS[f.s]),csvVal(f.c),csvVal(f.o),csvVal(f.d),csvVal(rv.disposition),csvVal(rv.notes),csvVal(rv.timestamp)].join(',')+'\n';
+    });
+    downloadCSV(csv,filename);
+  }
+  else if(mode==='likelyar'){
+    const data=FINDINGS.filter(f=>f._type==='LIKELY_IN_AR');
+    filename=`RIDGELINE_likely_in_AR_${new Date().toISOString().slice(0,10)}.csv`;
+    let csv=hdr(['Finding_ID','Severity','Category','Obligation','Compliance_Question','Fix_Difficulty','AR_Gap_Description','Fix_Recommendation','Review_Disposition','Review_Notes']);
+    data.forEach(f=>{
+      const rv=reviewState[f.i]||{};
+      csv+=[csvVal('F-'+f.i),csvVal(SEV_LABELS[f.s]),csvVal(f.c),csvVal(f.o),csvVal(f.q),csvVal(f.f),csvVal(f.ad),csvVal(f.fr),csvVal(rv.disposition),csvVal(rv.notes)].join(',')+'\n';
     });
     downloadCSV(csv,filename);
   }
