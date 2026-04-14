@@ -193,15 +193,15 @@ tr.expandable { cursor:pointer; }
 
 <!-- =================== HOME =================== -->
 <div id="page-home" class="page active">
-  <div style="text-align:center;padding:40px 24px 24px;">
-    <h1 style="font-family:var(--mono);font-size:36px;font-weight:700;letter-spacing:2px;background:linear-gradient(135deg,var(--accent) 0%,#a78bfa 50%,var(--accent) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">RIDGELINE</h1>
-    <div style="font-size:15px;color:var(--text2);font-weight:300;margin-top:4px;">NEPA Compliance Analysis System</div>
+  <div style="text-align:center;padding:40px 24px 20px;">
+    <h1 style="font-family:var(--mono);font-size:36px;font-weight:700;letter-spacing:2px;color:var(--accent);">RIDGELINE</h1>
+    <div style="font-size:15px;color:var(--text2);margin-top:4px;">NEPA Compliance Analysis System</div>
     <div style="font-size:11px;color:var(--text3);font-family:var(--mono);margin-top:12px;">Bureau of Land Management · Medford District Office</div>
   </div>
-  <div style="max-width:700px;margin:24px auto;display:grid;grid-template-columns:1fr;gap:16px;">
-    <div class="card" style="cursor:pointer;border-left:3px solid var(--red);transition:border-color 0.2s;text-align:left;width:100%;" onclick="var ps=document.querySelectorAll('.page');for(var i=0;i<ps.length;i++)ps[i].classList.remove('active');var ts=document.querySelectorAll('.tab');for(var i=0;i<ts.length;i++)ts[i].classList.remove('active');document.getElementById('page-summary').classList.add('active');document.querySelector('[data-page=summary]').classList.add('active');" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--red)'">
+  <div style="max-width:700px;margin:20px auto;">
+    <div class="card" style="margin-bottom:16px;border-left:3px solid var(--red);">
       <h3 style="color:var(--text);font-size:16px;text-transform:none;letter-spacing:0;">Adversarial Compliance Review</h3>
-      <p style="font-size:13px;color:var(--text2);line-height:1.6;margin-top:8px;">Multi-model adversarial analysis of EA compliance against 390 regulatory obligation clusters. Identifies litigation vulnerabilities, cascade chains, and fix recommendations.</p>
+      <p style="font-size:13px;color:var(--text2);line-height:1.6;margin-top:8px;">Multi-model adversarial analysis of the Last Chance EA against 390 regulatory obligation clusters. Use the <strong>Summary</strong> tab above to enter.</p>
       <div style="display:flex;gap:16px;margin-top:12px;">
         <div><span style="font-family:var(--mono);font-size:20px;font-weight:600;color:var(--red);">63</span><span style="font-size:10px;color:var(--text3);margin-left:4px;">RED</span></div>
         <div><span style="font-family:var(--mono);font-size:20px;font-weight:600;color:var(--yellow);">297</span><span style="font-size:10px;color:var(--text3);margin-left:4px;">YELLOW</span></div>
@@ -209,30 +209,21 @@ tr.expandable { cursor:pointer; }
       </div>
       <div style="display:flex;gap:6px;margin-top:10px;">
         <span style="font-family:var(--mono);font-size:10px;padding:2px 8px;border-radius:4px;background:var(--bg3);color:var(--text2);">Last Chance FMP</span>
-        <span style="font-family:var(--mono);font-size:10px;padding:2px 8px;border-radius:4px;background:var(--bg3);color:var(--text2);">Run: 2822839a</span>
-        <span style="font-family:var(--mono);font-size:10px;padding:2px 8px;border-radius:4px;background:var(--bg3);color:var(--text2);">Apr 13, 2026</span>
+        <span style="font-family:var(--mono);font-size:10px;padding:2px 8px;border-radius:4px;background:var(--bg3);color:var(--text2);">Run: 2822839a · Apr 13, 2026</span>
       </div>
-      <div style="font-size:12px;color:var(--accent);margin-top:12px;">Open Dashboard →</div>
     </div>
-    <div class="card" style="cursor:pointer;border-left:3px solid var(--accent);transition:border-color 0.2s;"  >
+    <div class="card" style="border-left:3px solid var(--accent);">
       <h3 style="color:var(--text);font-size:16px;text-transform:none;letter-spacing:0;">Comment & Thematic Analysis</h3>
-      <p style="font-size:13px;color:var(--text2);line-height:1.6;margin-top:8px;">Public comment processing, thematic coding, and reference extraction across the Butte Falls timber project family. Includes longitudinal analysis of comment persistence and response drift.</p>
+      <p style="font-size:13px;color:var(--text2);line-height:1.6;margin-top:8px;">Public comment processing across the Butte Falls project family with longitudinal analysis. Available as the <strong>CTA Dashboard</strong> artifact in this conversation.</p>
       <div style="display:flex;gap:16px;margin-top:12px;">
         <div><span style="font-family:var(--mono);font-size:20px;font-weight:600;color:var(--accent);">9</span><span style="font-size:10px;color:var(--text3);margin-left:4px;">Projects</span></div>
-        <div><span style="font-family:var(--mono);font-size:20px;font-weight:600;color:var(--accent);">111</span><span style="font-size:10px;color:var(--text3);margin-left:4px;">Comments</span></div>
-        <div><span style="font-family:var(--mono);font-size:20px;font-weight:600;color:var(--accent);">111</span><span style="font-size:10px;color:var(--text3);margin-left:4px;">Themes</span></div>
         <div><span style="font-family:var(--mono);font-size:20px;font-weight:600;color:var(--accent);">1,601</span><span style="font-size:10px;color:var(--text3);margin-left:4px;">Codes</span></div>
+        <div><span style="font-family:var(--mono);font-size:20px;font-weight:600;color:var(--accent);">2013–2025</span><span style="font-size:10px;color:var(--text3);margin-left:4px;">Span</span></div>
       </div>
-      <div style="display:flex;gap:6px;margin-top:10px;">
-        <span style="font-family:var(--mono);font-size:10px;padding:2px 8px;border-radius:4px;background:var(--bg3);color:var(--text2);">Butte Falls Family</span>
-        <span style="font-family:var(--mono);font-size:10px;padding:2px 8px;border-radius:4px;background:var(--bg3);color:var(--text2);">2013–2025</span>
-        <span style="font-family:var(--mono);font-size:10px;padding:2px 8px;border-radius:4px;background:var(--bg3);color:var(--text2);">Live Supabase</span>
-      </div>
-      <div style="font-size:12px;color:var(--accent);margin-top:12px;">Available as separate dashboard in this conversation</div>
     </div>
   </div>
-  <div style="max-width:700px;margin:24px auto;text-align:center;padding-top:16px;border-top:1px solid var(--border);">
-    <p style="font-size:11px;color:var(--text3);line-height:1.8;">RIDGELINE v1 · LEGION Orchestration Framework · Pre-decisional internal review tool<br>All findings require human review. AI use authorized under DOI policy.</p>
+  <div style="max-width:700px;margin:20px auto;text-align:center;padding-top:16px;border-top:1px solid var(--border);">
+    <p style="font-size:11px;color:var(--text3);line-height:1.8;">RIDGELINE v1 · LEGION Orchestration Framework<br>Pre-decisional internal review tool. All findings require human review.</p>
   </div>
 </div>
 
