@@ -100,7 +100,7 @@ const CATEGORIES=[
 ];
 
 let DB_themes=[], DB_projects=[], DB_responses=[], DB_theme_comments=[];
-let selCat="silv", selProject=null;
+var selCat="silv", selProject=null;
 
 async function fetchAll(t,s="*"){
   let a=[],o=0;
@@ -156,7 +156,7 @@ function getCommentCountForTheme(tid){
   return new Set(DB_theme_comments.filter(tc=>tc.theme_id===tid).map(tc=>tc.comment_id)).size;
 }
 
-function esc(s){const d=document.createElement("div");d.textContent=s;return d.innerHTML}
+function esc(s){if(!s)return"";const d=document.createElement("div");d.textContent=s;return d.innerHTML}
 
 function render(){
   const cat=CATEGORIES.find(c=>c.id===selCat);
