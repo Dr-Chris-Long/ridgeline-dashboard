@@ -414,12 +414,12 @@ function buildSummary() {
   const total=FINDINGS.length;
 
   document.getElementById('stats-row').innerHTML=[
-    {val:total,label:'Total Findings',color:'var(--accent)',click:'goExplorer({})'},
-    {val:counts.R,label:'RED — Action Required',color:'var(--red)',click:'goExplorer({sev:"R"})'},
-    {val:counts.Y,label:'YELLOW — Monitor',color:'var(--yellow)',click:'goExplorer({sev:"Y"})'},
-    {val:counts.G+counts.X,label:'GREEN / GRAY',color:'var(--green)',click:'goExplorer({sev:"G"})'},
-    {val:arGaps,label:'AR Gaps Identified',color:'var(--critical)',click:'goExplorer({gap:"true"})'},
-    {val:arbiterUsed,label:'Arbiter Invocations',color:'var(--accent)',click:'goExplorer({search:"arbiter:yes"})'},
+    {val:total,label:'Total Findings',color:'var(--accent)',click:"goExplorer({})"},
+    {val:counts.R,label:'RED — Action Required',color:'var(--red)',click:"goExplorer({sev:'R'})"},
+    {val:counts.Y,label:'YELLOW — Monitor',color:'var(--yellow)',click:"goExplorer({sev:'Y'})"},
+    {val:counts.G+counts.X,label:'GREEN / GRAY',color:'var(--green)',click:"goExplorer({sev:'G'})"},
+    {val:arGaps,label:'AR Gaps Identified',color:'var(--critical)',click:"goExplorer({gap:'true'})"},
+    {val:arbiterUsed,label:'Arbiter Invocations',color:'var(--accent)',click:"goExplorer({search:'arbiter:yes'})"},
   ].map(s=>`<div class="stat" onclick="${s.click}"><div class="val" style="color:${s.color}">${s.val}</div><div class="label">${s.label}</div></div>`).join('');
 
   document.getElementById('sev-bar').innerHTML=SEV_ORDER.map(s=>{
