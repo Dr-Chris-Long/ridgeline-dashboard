@@ -961,29 +961,66 @@ function buildCascades(){
   document.getElementById('cascade-list').innerHTML=CASCADES.map((c,idx)=>{
     // Resolve member findings
     const members=(c.m||[]).map(id=>FINDINGS.find(f=>f.i===id)).filter(Boolean);
-    const reds=members.filter(f=>f.s==='R');
-    const yellows=members.filter(f=>f.s==='Y');
     const uniqueMembers=[...new Map(members.map(f=>[f.i,f])).values()];
-    const uniqueReds=[...new Map(reds.map(f=>[f.i,f])).values()];
-    const uniqueYellows=[...new Map(yellows.map(f=>[f.i,f])).values()];
+    const uniqueReds=[...new Map(members.filter(f=>f.s==='R').map(f=>[f.i,f])).values()];
+    const uniqueYellows=[...new Map(members.filter(f=>f.s==='Y').map(f=>[f.i,f])).values()];
+    const likelyAR=uniqueMembers.filter(f=>f._type==='LIKELY_IN_AR');
+    const likelyARReds=likelyAR.filter(f=>f.s==='R');
+    const needsNewWork=uniqueMembers.filter(f=>f._type!=='LIKELY_IN_AR'&&f._type!=='INAPPLICABLE');
 
-    // Group yellows by category for summary
+    // Group yellows by category
     const yCats={};
     uniqueYellows.forEach(f=>{yCats[f.c]=(yCats[f.c]||0)+1;});
     const yCatSorted=Object.entries(yCats).sort((a,b)=>b[1]-a[1]);
 
+    // Likely in AR quick wins section
+    let arHTML='';
+    if(likelyAR.length>0){
+      arHTML+=`<div style="background:var(--green-bg);border:1px solid rgba(63,185,80,0.2);border-radius:6px;padding:14px 16px;margin-bottom:14px;">
+        <div class="field-label" style="color:var(--green);">⚡ Quick Wins — ${likelyAR.length} Findings Likely Resolved by AR Documents</div>
+        <p style="font-size:12px;color:var(--text2);margin:6px 0 10px;">These findings are probably resolved by pulling existing specialist reports, appendices, or consultation documents from the Administrative Record. <strong>Do this first</strong> — it's the cheapest way to reduce this chain's finding count${likelyARReds.length>0?` and eliminates ${likelyARReds.length} RED finding${likelyARReds.length>1?'s':''}`:''}.
+        </p>`;
+      if(likelyARReds.length>0){
+        arHTML+=`<div style="margin-bottom:8px;font-size:11px;font-weight:600;color:var(--red);">RED findings resolvable by AR (${likelyARReds.length}):</div>
+        <div style="max-height:150px;overflow-y:auto;">
+        ${likelyARReds.map(f=>`<div style="display:flex;gap:8px;padding:4px 0;border-bottom:1px solid rgba(63,185,80,0.1);font-size:12px;cursor:pointer;" onclick="event.stopPropagation();goExplorer({search:'${f.i}'})">
+          <span style="font-family:var(--mono);color:var(--red);min-width:100px;">F-${esc(f.i)}</span>
+          <span style="color:var(--text);">${esc(f.o)}</span>
+          <span style="color:var(--text3);margin-left:auto;font-size:11px;">→ ${esc((f.ad||'').substring(0,80))}${(f.ad||'').length>80?'…':''}</span>
+        </div>`).join('')}
+        </div>`;
+      }
+      const likelyARYellows=likelyAR.filter(f=>f.s==='Y');
+      if(likelyARYellows.length>0){
+        arHTML+=`<div style="margin-top:8px;font-size:11px;color:var(--text2);">+ ${likelyARYellows.length} YELLOW findings also likely in AR</div>`;
+      }
+      arHTML+=`</div>`;
+    }
+
+    // Remaining findings that need new work
+    let remainHTML='';
+    if(needsNewWork.length>0 && likelyAR.length>0){
+      remainHTML+=`<div style="font-size:12px;color:var(--text2);margin-bottom:14px;padding:8px 12px;background:var(--bg3);border-radius:4px;">
+        After resolving AR documents: <strong style="color:var(--text);">${needsNewWork.length} findings</strong> remain that require new analysis or documentation (${needsNewWork.filter(f=>f.s==='R').length} RED, ${needsNewWork.filter(f=>f.s==='Y').length} YELLOW).
+      </div>`;
+    }
+
     let findingsHTML='';
     if(uniqueReds.length>0){
       findingsHTML+=`<div style="margin-bottom:14px;">
-        <div class="field-label" style="color:var(--red);">RED Findings in This Chain (${uniqueReds.length})</div>
+        <div class="field-label" style="color:var(--red);">All RED Findings in This Chain (${uniqueReds.length})</div>
         <div style="max-height:300px;overflow-y:auto;border:1px solid var(--border);border-radius:6px;">
         <table style="width:100%;font-size:12px;">
-          <thead><tr><th style="font-size:10px;padding:6px 8px;">Finding</th><th style="font-size:10px;padding:6px 8px;">Obligation</th><th style="font-size:10px;padding:6px 8px;">Rule Violated / Case Made</th></tr></thead>
-          <tbody>${uniqueReds.map(f=>`<tr style="cursor:pointer;" onclick="event.stopPropagation();goExplorer({search:'${f.i}'})">
+          <thead><tr><th style="font-size:10px;padding:6px 8px;">Finding</th><th style="font-size:10px;padding:6px 8px;">Obligation</th><th style="font-size:10px;padding:6px 8px;">Type</th><th style="font-size:10px;padding:6px 8px;">Rule Violated / Case Made</th></tr></thead>
+          <tbody>${uniqueReds.map(f=>{
+            const tl=TYPE_LABELS[f._type]||f._type;
+            const tc=TYPE_COLORS[f._type]||'var(--text2)';
+            return `<tr style="cursor:pointer;" onclick="event.stopPropagation();goExplorer({search:'${f.i}'})">
             <td style="font-family:var(--mono);font-size:11px;padding:6px 8px;white-space:nowrap;color:var(--red);">F-${esc(f.i)}</td>
             <td style="padding:6px 8px;">${esc(f.o)}</td>
-            <td style="padding:6px 8px;color:var(--text2);">${esc((f.q||'')+(f.pa?' — '+f.pa.substring(0,150)+'…':''))}</td>
-          </tr>`).join('')}</tbody>
+            <td style="padding:6px 8px;font-size:11px;color:${tc};">${tl}</td>
+            <td style="padding:6px 8px;color:var(--text2);">${esc((f.q||'')+(f.pa?' — '+f.pa.substring(0,120)+'…':''))}</td>
+          </tr>`;}).join('')}</tbody>
         </table></div>
       </div>`;
     }
@@ -1009,6 +1046,8 @@ function buildCascades(){
           <div class="field-label">What's Wrong</div>
           <div class="field-value">${esc(c.desc)}</div>
         </div>
+        ${arHTML}
+        ${remainHTML}
         ${findingsHTML}
         ${c.root?`<div style="background:var(--accent-bg);border:1px solid rgba(88,166,255,0.2);border-radius:6px;padding:12px 16px;margin-bottom:14px;">
           <div class="field-label" style="color:var(--accent);">Root Node / Fix Target</div>
