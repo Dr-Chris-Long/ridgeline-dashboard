@@ -246,14 +246,29 @@ tr.expandable { cursor:pointer; }
       <option value="">All AR Status</option>
       <option value="true">Has AR Gap</option>
       <option value="false">No AR Gap</option>
+      <option value="likely">Likely Resolved by AR</option>
+    </select>
+    <select id="f-type" onchange="filterFindings()">
+      <option value="">All Finding Types</option>
+      <option value="FATAL_FLAW">Fatal Flaw</option>
+      <option value="MISSING_ANALYSIS">Missing Analysis</option>
+      <option value="DOCUMENTATION_GAP">Documentation Gap</option>
+      <option value="LIKELY_IN_AR">Likely in AR</option>
+      <option value="INAPPLICABLE">Inapplicable</option>
     </select>
     <input type="text" id="f-search" placeholder="Search obligations, questions, arguments..." oninput="filterFindings()">
     <span class="count-badge" id="filter-count"></span>
-    <button class="btn btn-sm" onclick="exportCSV('filtered')">⬇ Export Filtered</button>
-    <button class="btn btn-sm" onclick="exportCSV('all')">⬇ Export All</button>
+  </div>
+  <div style="display:flex;gap:10px;align-items:center;margin-bottom:12px;padding:10px 16px;background:var(--bg2);border:1px solid var(--border);border-radius:6px;">
+    <span style="font-size:12px;color:var(--text2);font-weight:500;">Export:</span>
+    <button class="btn" onclick="exportCSV('filtered')">⬇ Current Filter (<span id="export-count">0</span>)</button>
+    <button class="btn" onclick="exportCSV('all')">⬇ All 387 Findings</button>
+    <button class="btn" onclick="exportCSV('review')">⬇ Review Decisions</button>
+    <button class="btn" onclick="exportCSV('audit')">⬇ Audit Log</button>
+  </div>
   </div>
   <div class="tbl-wrap" style="max-height:60vh;overflow-y:auto;">
-    <table id="explorer-table"><thead><tr><th style="width:110px">Finding</th><th style="width:60px">Sev</th><th>Category</th><th>Obligation</th><th>Compliance Question</th><th>Fix</th><th>Gap</th><th>Review</th></tr></thead><tbody></tbody></table>
+    <table id="explorer-table"><thead><tr><th style="width:110px">Finding</th><th style="width:60px">Sev</th><th>Category</th><th>Obligation</th><th>Type</th><th>Fix</th><th>Gap</th><th>Review</th></tr></thead><tbody></tbody></table>
   </div>
   <div id="finding-detail" class="detail-panel" style="display:none;"></div>
 </div>
@@ -500,6 +515,32 @@ const CASCADES=[{"id":"CDR-007","name":"Mitigation Enforceability Collapse","cou
 
 const SEV_LABELS={R:'RED',Y:'YELLOW',G:'GREEN',X:'GRAY'};
 const SEV_ORDER=['R','Y','G','X'];
+const TYPE_LABELS={FATAL_FLAW:'Fatal Flaw',MISSING_ANALYSIS:'Missing Analysis',DOCUMENTATION_GAP:'Doc Gap',LIKELY_IN_AR:'Likely in AR',INAPPLICABLE:'N/A'};
+const TYPE_COLORS={FATAL_FLAW:'var(--red)',MISSING_ANALYSIS:'var(--yellow)',DOCUMENTATION_GAP:'var(--accent)',LIKELY_IN_AR:'var(--green)',INAPPLICABLE:'var(--gray)'};
+
+// Derive finding types from available data (PS-06b classification not persisted to DB)
+function classifyFinding(f){
+  if(f.s==='X') return 'INAPPLICABLE';
+  const ad=(f.ad||'').toLowerCase();
+  const da=(f.da||'').toLowerCase();
+  const fr=(f.fr||'').toLowerCase();
+  // Likely in AR: gap identified but documents probably exist
+  const arSignals=ad.includes('not provided')||ad.includes('missing from')||ad.includes('referenced but')||
+    ad.includes('may contain')||ad.includes('may exist')||ad.includes('specialist report')||
+    ad.includes('appendix')||ad.includes('not included')||ad.includes('not excerpted')||
+    ad.includes('missing the')||ad.includes('source document missing')||
+    da.includes('may exist in')||da.includes('elsewhere in the')||da.includes('separate ar')||
+    da.includes('ar documents')||da.includes('not excerpted');
+  if(f.g && arSignals) return 'LIKELY_IN_AR';
+  // Fatal flaw: RED + defense concurs or no fix available
+  if(f.s==='R' && !f.f && !f.fr) return 'FATAL_FLAW';
+  if(f.s==='R' && f.d==='CONSENSUS_R1' && !f.f) return 'FATAL_FLAW';
+  // Documentation gap: fix is LOW difficulty or just needs documentation
+  if(f.f==='LOW' || fr.includes('document')||fr.includes('incorporate')||fr.includes('add section')||fr.includes('adds')) return 'DOCUMENTATION_GAP';
+  return 'MISSING_ANALYSIS';
+}
+// Apply classification
+FINDINGS.forEach(f=>{ f._type=classifyFinding(f); });
 
 // Tab navigation
 document.getElementById('tab-bar').addEventListener('click', e => {
@@ -515,15 +556,15 @@ function esc(s) { const d=document.createElement('div'); d.textContent=s; return
 
 // ============ SUMMARY ============
 function buildSummary() {
-  const counts={R:0,Y:0,G:0,X:0}; let arGaps=0, arbiterUsed=0;
-  FINDINGS.forEach(f=>{counts[f.s]++;if(f.g)arGaps++;if(f.b)arbiterUsed++;});
+  const counts={R:0,Y:0,G:0,X:0}; let arGaps=0, arbiterUsed=0, likelyAR=0;
+  FINDINGS.forEach(f=>{counts[f.s]++;if(f.g)arGaps++;if(f.b)arbiterUsed++;if(f._type==='LIKELY_IN_AR')likelyAR++;});
   const total=FINDINGS.length;
 
   document.getElementById('stats-row').innerHTML=[
     {val:total,label:'Total Findings',color:'var(--accent)',click:"goExplorer({})"},
     {val:counts.R,label:'RED — Action Required',color:'var(--red)',click:"goExplorer({sev:'R'})"},
     {val:counts.Y,label:'YELLOW — Monitor',color:'var(--yellow)',click:"goExplorer({sev:'Y'})"},
-    {val:counts.G+counts.X,label:'GREEN / GRAY',color:'var(--green)',click:"goExplorer({sev:'G'})"},
+    {val:likelyAR,label:'Likely Resolved by AR',color:'var(--green)',click:"goExplorer({type:'LIKELY_IN_AR'})"},
     {val:arGaps,label:'AR Gaps Identified',color:'var(--critical)',click:"goExplorer({gap:'true'})"},
     {val:arbiterUsed,label:'Arbiter Invocations',color:'var(--accent)',click:"goExplorer({search:'arbiter:yes'})"},
   ].map(s=>`<div class="stat" onclick="${s.click}"><div class="val" style="color:${s.color}">${s.val}</div><div class="label">${s.label}</div></div>`).join('');
@@ -609,6 +650,7 @@ function filterFindings(){
   const ak=document.getElementById('f-atk').value;
   const fx=document.getElementById('f-fix').value;
   const gp=document.getElementById('f-gap').value;
+  const ft=document.getElementById('f-type').value;
   const sr=document.getElementById('f-search').value.toLowerCase();
   filtered=FINDINGS.filter(f=>{
     if(sv&&f.s!==sv) return false;
@@ -618,6 +660,8 @@ function filterFindings(){
     if(fx&&fx!=='null'&&f.f!==fx) return false;
     if(gp==='true'&&!f.g) return false;
     if(gp==='false'&&f.g) return false;
+    if(gp==='likely'&&f._type!=='LIKELY_IN_AR') return false;
+    if(ft&&f._type!==ft) return false;
     if(sr){
       if(sr==='arbiter:yes') return f.b===true;
       if(sr==='arbiter:no') return !f.b;
@@ -629,18 +673,21 @@ function filterFindings(){
     return true;
   });
   document.getElementById('filter-count').textContent=`${filtered.length} of ${FINDINGS.length} findings`;
+  const ec=document.getElementById('export-count');if(ec)ec.textContent=filtered.length;
   renderTable();
 }
 function renderTable(){
   document.querySelector('#explorer-table tbody').innerHTML=filtered.map(f=>{
     const rv=reviewState[f.i];
     const badge=rv&&rv.disposition?`<span class="review-badge rb-${rv.disposition.toLowerCase()}">${rv.disposition}</span>`:'';
+    const tl=TYPE_LABELS[f._type]||f._type;
+    const tc=TYPE_COLORS[f._type]||'var(--text2)';
     return `<tr class="expandable" onclick="showDetail('${f.i}')">
     <td style="font-family:var(--mono);font-size:12px;white-space:nowrap;">F-${esc(f.i)}</td>
     <td><span class="sev sev-${f.s}">${SEV_LABELS[f.s]}</span></td>
     <td style="font-size:12px;">${esc(f.c.replace(/_/g,' '))}</td>
-    <td style="font-size:12px;max-width:200px;">${esc(f.o)}</td>
-    <td style="font-size:12px;max-width:300px;">${esc(f.q)}</td>
+    <td style="font-size:12px;max-width:280px;">${esc(f.o)}</td>
+    <td style="font-size:11px;color:${tc};">${tl}</td>
     <td style="font-size:11px;color:var(--text2);">${esc(f.f||'—')}</td>
     <td>${f.g?'<span style="color:var(--red);">●</span>':''}</td>
     <td>${badge}</td>
@@ -661,6 +708,9 @@ function showDetail(id){
   if(f.f) h+=`<span class="dp-badge" style="background:var(--bg3);color:var(--text2);">Fix: ${esc(f.f)}</span>`;
   if(f.t) h+=`<span class="dp-badge" style="background:var(--bg3);color:var(--text2);">${esc(f.t)}</span>`;
   if(f.g) h+=`<span class="dp-badge" style="background:var(--red-bg);color:var(--red);">AR GAP</span>`;
+  const ftl=TYPE_LABELS[f._type]||f._type;
+  const ftc=TYPE_COLORS[f._type]||'var(--text2)';
+  h+=`<span class="dp-badge" style="background:var(--bg3);color:${ftc};">${ftl}</span>`;
   h+=`</div>`;
 
   h+=`<div class="dp-field"><div class="dp-field-label">Obligation</div><div class="dp-field-value" style="font-weight:600;">${esc(f.o)}</div></div>`;
@@ -761,6 +811,7 @@ function goExplorer(opts){
   document.getElementById('f-atk').value=opts.atk||'';
   document.getElementById('f-fix').value=opts.fix||'';
   document.getElementById('f-gap').value=opts.gap||'';
+  document.getElementById('f-type').value=opts.type||'';
   document.getElementById('f-search').value=opts.search||'';
   filterFindings();
 }
@@ -792,10 +843,10 @@ function exportCSV(mode){
   if(mode==='filtered'||mode==='all'){
     const data=mode==='filtered'?filtered:FINDINGS;
     filename=`RIDGELINE_findings_${mode}_${new Date().toISOString().slice(0,10)}.csv`;
-    let csv=hdr(['Finding_ID','Severity','Category','Attack_Type','Obligation','Compliance_Question','Disposition','Fix_Difficulty','Urgency','Calendar_Time','Threat_Score','AR_Gap','Arbiter_Invoked','Fix_Recommendation','If_Not_Fixed','AR_Gap_Description','Residual_Risk','Review_Disposition','Review_Notes']);
+    let csv=hdr(['Finding_ID','Severity','Finding_Type','Category','Attack_Type','Obligation','Compliance_Question','Disposition','Fix_Difficulty','Urgency','Calendar_Time','Threat_Score','AR_Gap','Arbiter_Invoked','Fix_Recommendation','If_Not_Fixed','AR_Gap_Description','Residual_Risk','Review_Disposition','Review_Notes']);
     data.forEach(f=>{
       const rv=reviewState[f.i]||{};
-      csv+=[csvVal('F-'+f.i),csvVal(SEV_LABELS[f.s]),csvVal(f.c),csvVal(f.a),csvVal(f.o),csvVal(f.q),csvVal(f.d),csvVal(f.f),csvVal(f.u),csvVal(f.t),csvVal(f.x),csvVal(f.g),csvVal(f.b),csvVal(f.fr),csvVal(f.in),csvVal(f.ad),csvVal(f.rr),csvVal(rv.disposition),csvVal(rv.notes)].join(',')+'\n';
+      csv+=[csvVal('F-'+f.i),csvVal(SEV_LABELS[f.s]),csvVal(f._type),csvVal(f.c),csvVal(f.a),csvVal(f.o),csvVal(f.q),csvVal(f.d),csvVal(f.f),csvVal(f.u),csvVal(f.t),csvVal(f.x),csvVal(f.g),csvVal(f.b),csvVal(f.fr),csvVal(f.in),csvVal(f.ad),csvVal(f.rr),csvVal(rv.disposition),csvVal(rv.notes)].join(',')+'\n';
     });
     downloadCSV(csv,filename);
   }
