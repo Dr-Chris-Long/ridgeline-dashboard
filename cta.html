@@ -65,7 +65,7 @@ tr.ck{cursor:pointer}tr.ck:hover{background:var(--sh)}
 </style>
 </head>
 <body>
-<div class="sb"><div class="sb-b"><h1>RIDGELINE</h1><p>NEPA Comment Analysis</p></div><div class="sb-n" id="nav"></div><div class="sf" id="ft">Loading...</div></div>
+<div class="sb"><div class="sb-b"><a href="index.html" style="text-decoration:none;color:var(--ac);font-size:11px;display:block;margin-bottom:8px;">← RIDGELINE Home</a><h1>RIDGELINE</h1><p>NEPA Comment Analysis</p></div><div class="sb-n" id="nav"></div><div class="sf" id="ft">Loading...</div></div>
 <div class="mn"><div class="ct"><h2 class="pt" id="ttl">Overview</h2><div class="ps">BLM Medford District · CTA Pipeline Dashboard</div><div id="con"><p style="text-align:center;padding:60px;color:var(--tm)">Connecting to Supabase...</p></div></div></div>
 <div class="tooltip" id="tip"></div>
 
@@ -80,7 +80,7 @@ const tip=document.getElementById("tip");
 async function fetchAll(t,s="*"){let a=[],o=0;while(true){const r=await fetch(`${SB_URL}/${t}?select=${s}&limit=1000&offset=${o}`,{headers:HDRS});if(!r.ok)return a;const d=await r.json();a=a.concat(d);if(d.length<1000)break;o+=1000}return a}
 
 async function loadData(){
-  const T={projects:"project_id,project_code,project_name,status",comments:"comment_id,project_id,author_name,submitter_org,comment_type,summary,substantive_confirmed,date_received,full_text",codes:"code_id,comment_id,code_text,category,stance,code_type,substantive",themes:"theme_id,theme_name,description,code_count,occurrences,status,theme_layer,project_id",unique_concerns:"uc_id,code_text,category,stance,occurrences,substantive,uc_type",responses:"response_id,comment_id,theme_id,response_text",theme_comments:"theme_id,comment_id","references":"r_id,reference_type,citation,issue_date,author,summary,peer_reviewed,applicable_to",code_references:"code_id,r_id",theme_references:"theme_id,r_id"};
+  const T={projects:"project_id,project_code,project_name,status",comments:"comment_id,project_id,author_name,submitter_org,comment_type,summary,substantive_confirmed,date_received,full_text",codes:"code_id,comment_id,code_text,category,stance,code_type,substantive",themes:"theme_id,theme_name,description,code_count,occurrences,status,theme_layer,project_id",unique_concerns:"uc_id,code_text,category,stance,occurrences,substantive,uc_type",responses:"response_id,comment_id,theme_id,response_text",theme_comments:"theme_id,comment_id","references":"r_id,reference_type,citation,issue_date,author,summary,peer_reviewed,applicable_to",code_references:"code_id,r_id",theme_references:"theme_id,r_id",pa_response_trace:"trace_id,topic_id,topic_name,project,response_id,comment_id,entity_name,response_text,response_length",pa_response_gaps:"gap_id,topic_id,comment_id,project,entity_name,codes_on_topic,has_any_response"};
   const e=Object.entries(T);const r=await Promise.all(e.map(([t,s])=>fetchAll(t,s)));
   e.forEach(([t],i)=>{DB[t]=r[i]});
   // Exclude non-actionable projects from dashboard entirely
@@ -1215,8 +1215,240 @@ function exportXLSX(mode,pid){
   },100);
 }
 
+// --- LONGITUDINAL ANALYSIS ---
+function rLong(){
+  dc();const con=document.getElementById("con");con.innerHTML="";
+  const traces=DB.pa_response_trace||[];
+  const gaps=DB.pa_response_gaps||[];
+
+  if(traces.length===0){
+    con.appendChild(h("div",{className:"cd",style:{color:"var(--yw)"}},
+      "Longitudinal data not yet loaded. The pa_response_trace table may be empty or not accessible."
+    ));
+    return;
+  }
+
+  // Get unique topics and projects, ordered
+  const projectOrder=["Double Bowen","Elk Camel","Obenchain","Gold Sardine","Evans Creek","Round Oak","Trail Creek","South Clark","Lost Lewis","Last Chance"];
+  const rawProjects=[...new Set(traces.map(t=>t.project))].filter(Boolean);
+  const projects=projectOrder.filter(p=>rawProjects.includes(p)||rawProjects.some(r=>r.includes(p)));
+  // Also add any projects not in our order list
+  rawProjects.forEach(p=>{if(!projects.includes(p)&&p!=="UNKNOWN")projects.push(p)});
+
+  const topicMap={};
+  traces.forEach(t=>{
+    if(!topicMap[t.topic_name])topicMap[t.topic_name]={projects:{},totalResponses:0,totalLength:0,entities:new Set()};
+    const tm=topicMap[t.topic_name];
+    const proj=t.project==="UNKNOWN"?null:t.project;
+    if(!proj)return;
+    if(!tm.projects[proj])tm.projects[proj]={responses:[],entities:new Set(),totalLength:0};
+    tm.projects[proj].responses.push(t);
+    tm.projects[proj].entities.add(t.entity_name);
+    tm.projects[proj].totalLength+=t.response_length||0;
+    tm.totalResponses++;
+    tm.totalLength+=t.response_length||0;
+    tm.entities.add(t.entity_name);
+  });
+
+  const topics=Object.entries(topicMap).sort((a,b)=>Object.keys(b[1].projects).length-Object.keys(a[1].projects).length);
+
+  // Gap analysis by topic
+  const gapMap={};
+  gaps.forEach(g=>{
+    const k=g.topic_id;
+    if(!gapMap[k])gapMap[k]={total:0,unanswered:0,projects:new Set()};
+    gapMap[k].total++;
+    if(!g.has_any_response)gapMap[k].unanswered++;
+    if(g.project)gapMap[k].projects.add(g.project);
+  });
+
+  // === INTRO ===
+  con.appendChild(h("div",{className:"cd",style:{marginBottom:"16px"}},
+    h("div",{className:"sl"},"Cross-Project Comment Analysis"),
+    h("p",{style:{fontSize:"13px",color:"var(--tm)",lineHeight:"1.6",margin:"8px 0"}},
+      `${topics.length} normalized topics tracked across ${projects.length} projects spanning ${projects[0]||"?"} to ${projects[projects.length-1]||"?"}. This view shows how comment themes persist, how BLM responses evolve (or don't), and where response gaps create litigation exposure.`
+    )
+  ));
+
+  // === PERSISTENCE MATRIX ===
+  const matCard=h("div",{className:"cd",style:{marginBottom:"16px",overflowX:"auto"}});
+  matCard.appendChild(h("div",{className:"sl"},"Topic Persistence Matrix"));
+  matCard.appendChild(h("p",{style:{fontSize:"12px",color:"var(--td)",marginBottom:"12px"}},"Each cell shows response count. Green = responded. Red = gap identified. Click a topic row to see response detail below."));
+
+  const tbl=h("table",{style:{fontSize:"12px"}});
+  const thead=h("thead");
+  const hRow=h("tr",null,h("th",{style:{minWidth:"200px"}},"Topic"),h("th",null,"Span"),...projects.map(p=>h("th",{style:{fontSize:"10px",maxWidth:"80px",whiteSpace:"normal",textAlign:"center"}},p.replace(/ /g,"\u00A0"))));
+  thead.appendChild(hRow);
+  tbl.appendChild(thead);
+
+  const tbody=h("tbody");
+  let selectedTopic=null;
+  const detailDiv=h("div",{id:"long-detail"});
+
+  topics.forEach(([name,data])=>{
+    const projCount=Object.keys(data.projects).length;
+    const tr=h("tr",{className:"ck",onClick:()=>{selectedTopic=name;showTopicDetail(name,data)}});
+    tr.appendChild(h("td",{style:{fontWeight:"600",fontSize:"12px"}},name));
+    tr.appendChild(h("td",{style:{fontFamily:"JetBrains Mono",fontSize:"11px",color:"var(--ac)",textAlign:"center"}},String(projCount)));
+
+    projects.forEach(proj=>{
+      const pd=data.projects[proj];
+      const td=h("td",{style:{textAlign:"center",fontSize:"11px",fontFamily:"JetBrains Mono"}});
+      if(pd){
+        const rCount=pd.responses.length;
+        td.textContent=rCount;
+        td.style.background="rgba(52,211,153,0.12)";
+        td.style.color="#34D399";
+      }else{
+        // Check if there's a gap for this topic/project
+        const hasGap=gaps.some(g=>g.project===proj&&traces.some(t=>t.topic_name===name&&t.topic_id===g.topic_id));
+        if(hasGap){
+          td.textContent="gap";
+          td.style.background="rgba(248,113,113,0.12)";
+          td.style.color="#F87171";
+          td.style.fontSize="10px";
+        }else{
+          td.textContent="—";
+          td.style.color="var(--td)";
+        }
+      }
+      tr.appendChild(td);
+    });
+    tbody.appendChild(tr);
+  });
+  tbl.appendChild(tbody);
+  matCard.appendChild(tbl);
+  con.appendChild(matCard);
+
+  // === DETAIL AREA ===
+  con.appendChild(detailDiv);
+
+  function showTopicDetail(name,data){
+    detailDiv.innerHTML="";
+    const card=h("div",{className:"cd",style:{marginBottom:"16px"}});
+    card.appendChild(h("div",{className:"sl"},`Response Drift — ${name}`));
+    card.appendChild(h("p",{style:{fontSize:"12px",color:"var(--td)",marginBottom:"12px"}},
+      `Showing BLM's actual responses to "${name}" across ${Object.keys(data.projects).length} projects. Look for: substantive changes vs. boilerplate repetition, increasing/decreasing specificity, and whether the response actually addresses the commenter's concern.`
+    ));
+
+    // Response cards per project, chronological
+    const projKeys=projects.filter(p=>data.projects[p]);
+    projKeys.forEach((proj,idx)=>{
+      const pd=data.projects[proj];
+      const rCard=h("div",{style:{background:"var(--bg)",border:"1px solid var(--bd)",borderRadius:"6px",padding:"14px 16px",marginBottom:"10px"}});
+
+      const header=h("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"8px"}});
+      header.appendChild(h("span",{style:{fontSize:"14px",fontWeight:"600",color:"var(--ac)"}},proj));
+      header.appendChild(h("span",{style:{fontSize:"11px",color:"var(--td)",fontFamily:"JetBrains Mono"}},
+        `${pd.responses.length} responses · ${Math.round(pd.totalLength/1000)}K chars · ${[...pd.entities].join(", ")}`
+      ));
+      rCard.appendChild(header);
+
+      // Show each response
+      pd.responses.forEach((resp,ri)=>{
+        const rDiv=h("div",{style:{borderLeft:"3px solid var(--bd)",paddingLeft:"12px",marginBottom:"8px"}});
+        rDiv.appendChild(h("div",{style:{fontSize:"11px",color:"var(--tm)",marginBottom:"4px",fontWeight:"500"}},
+          `${resp.entity_name||"Unknown"} · ${resp.response_length||0} chars`
+        ));
+        const preview=resp.response_text?(resp.response_text.length>400?resp.response_text.substring(0,400)+"…":resp.response_text):"No text";
+        rDiv.appendChild(h("div",{style:{fontSize:"12px",color:"var(--tx)",lineHeight:"1.55"}},preview));
+        rCard.appendChild(rDiv);
+      });
+
+      // Drift indicator
+      if(idx>0){
+        const prevProj=projKeys[idx-1];
+        const prevPd=data.projects[prevProj];
+        if(prevPd&&prevPd.responses.length>0&&pd.responses.length>0){
+          const prevText=(prevPd.responses[0].response_text||"").toLowerCase().substring(0,200);
+          const currText=(pd.responses[0].response_text||"").toLowerCase().substring(0,200);
+          // Simple similarity check - shared words
+          const prevWords=new Set(prevText.split(/\s+/));
+          const currWords=new Set(currText.split(/\s+/));
+          const shared=[...prevWords].filter(w=>currWords.has(w)&&w.length>3).length;
+          const sim=Math.round(shared/Math.max(prevWords.size,currWords.size)*100);
+          const simColor=sim>70?"#F87171":sim>40?"#FBBF24":"#34D399";
+          const simLabel=sim>70?"HIGH SIMILARITY — likely boilerplate":sim>40?"MODERATE overlap":"SUBSTANTIVE CHANGE detected";
+          rCard.appendChild(h("div",{style:{fontSize:"10px",color:simColor,marginTop:"4px",fontFamily:"JetBrains Mono"}},
+            `↑ vs ${prevProj}: ${sim}% word overlap — ${simLabel}`
+          ));
+        }
+      }
+      card.appendChild(rCard);
+    });
+
+    detailDiv.appendChild(card);
+
+    // Response gaps for this topic
+    const topicGaps=gaps.filter(g=>{
+      const matchingTraces=traces.filter(t=>t.topic_name===name);
+      const topicIds=new Set(matchingTraces.map(t=>t.topic_id));
+      return topicIds.has(g.topic_id)&&!g.has_any_response;
+    });
+    if(topicGaps.length>0){
+      const gCard=h("div",{className:"cd",style:{borderLeft:"3px solid #F87171"}});
+      gCard.appendChild(h("div",{className:"sl",style:{color:"#F87171"}},`Response Gaps — ${name}`));
+      gCard.appendChild(h("p",{style:{fontSize:"12px",color:"var(--td)",marginBottom:"8px"}},
+        `${topicGaps.length} instances where comments on this topic received no substantive response. Each gap is a potential litigation vulnerability under NEPA's response-to-comments requirement.`
+      ));
+      topicGaps.slice(0,10).forEach(g=>{
+        gCard.appendChild(h("div",{style:{fontSize:"12px",padding:"4px 0",borderBottom:"1px solid var(--bd)"}},
+          `${g.project||"?"} · ${g.entity_name||"Unknown"} · ${g.codes_on_topic||0} coded comments — NO RESPONSE`
+        ));
+      });
+      if(topicGaps.length>10)gCard.appendChild(h("div",{style:{fontSize:"11px",color:"var(--td)",marginTop:"4px"}},`+ ${topicGaps.length-10} more gaps`));
+      detailDiv.appendChild(gCard);
+    }
+  }
+
+  // === RESPONSE GAP SUMMARY ===
+  const gapCard=h("div",{className:"cd",style:{marginBottom:"16px"}});
+  gapCard.appendChild(h("div",{className:"sl"},"Response Gap Summary"));
+  gapCard.appendChild(h("p",{style:{fontSize:"12px",color:"var(--td)",marginBottom:"12px"}},
+    `${gaps.filter(g=>!g.has_any_response).length} of ${gaps.length} tracked comment-topic pairs have no substantive response. These are litigation-vulnerable under NEPA's response requirement.`
+  ));
+
+  const gapsByProject={};
+  gaps.filter(g=>!g.has_any_response&&g.project&&g.project!=="UNKNOWN").forEach(g=>{
+    gapsByProject[g.project]=(gapsByProject[g.project]||0)+1;
+  });
+  const maxGap=Math.max(...Object.values(gapsByProject),1);
+  Object.entries(gapsByProject).sort((a,b)=>b[1]-a[1]).forEach(([proj,cnt])=>{
+    const row=h("div",{style:{marginBottom:"6px"}});
+    row.appendChild(h("div",{style:{display:"flex",justifyContent:"space-between",fontSize:"12px",marginBottom:"2px"}},
+      h("span",null,proj),h("span",{style:{fontFamily:"JetBrains Mono",color:"#F87171"}},String(cnt)+" unanswered")
+    ));
+    const bar=h("div",{style:{background:"var(--bd)",height:"14px",borderRadius:"3px",overflow:"hidden"}});
+    bar.appendChild(h("div",{style:{background:"#F87171",height:"100%",width:Math.round(cnt/maxGap*100)+"%",borderRadius:"3px",opacity:"0.7"}}));
+    row.appendChild(bar);
+    gapCard.appendChild(row);
+  });
+  con.appendChild(gapCard);
+
+  // === ENTITY TRACKING ===
+  const entCard=h("div",{className:"cd",style:{marginBottom:"16px"}});
+  entCard.appendChild(h("div",{className:"sl"},"Commenter Entity Activity"));
+  const entMap={};
+  traces.forEach(t=>{
+    if(!t.entity_name||t.project==="UNKNOWN")return;
+    if(!entMap[t.entity_name])entMap[t.entity_name]={projects:new Set(),topics:new Set(),responses:0};
+    entMap[t.entity_name].projects.add(t.project);
+    entMap[t.entity_name].topics.add(t.topic_name);
+    entMap[t.entity_name].responses++;
+  });
+  Object.entries(entMap).sort((a,b)=>b[1].responses-a[1].responses).forEach(([name,data])=>{
+    entCard.appendChild(h("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"6px 0",borderBottom:"1px solid var(--bd)",fontSize:"12px"}},
+      h("span",{style:{fontWeight:"500"}},name),
+      h("span",{style:{color:"var(--td)",fontFamily:"JetBrains Mono",fontSize:"11px"}},
+        `${data.projects.size} projects · ${data.topics.size} topics · ${data.responses} responses`
+      )
+    ));
+  });
+  con.appendChild(entCard);
+}
+
 // --- NAV ---
-const VW=[{id:"overview",l:"Overview",ic:"◉",fn:rOv},{id:"projects",l:"Projects",ic:"◫",fn:rPj},{id:"comments",l:"Comments",ic:"◈",fn:rCm},{id:"themes",l:"Themes",ic:"◆",fn:rTh},{id:"responses",l:"Responses",ic:"◇",fn:rRe},{id:"codebook",l:"Codebook",ic:"▣",fn:rCb},{id:"references",l:"References",ic:"◆",fn:rRef},{id:"methodology",l:"Methodology",ic:"◎",fn:rMeth},{id:"export",l:"Export",ic:"⬡",fn:rExport}];
+const VW=[{id:"overview",l:"Overview",ic:"◉",fn:rOv},{id:"projects",l:"Projects",ic:"◫",fn:rPj},{id:"comments",l:"Comments",ic:"◈",fn:rCm},{id:"themes",l:"Themes",ic:"◆",fn:rTh},{id:"responses",l:"Responses",ic:"◇",fn:rRe},{id:"longitudinal",l:"Longitudinal",ic:"◧",fn:rLong},{id:"codebook",l:"Codebook",ic:"▣",fn:rCb},{id:"references",l:"References",ic:"◆",fn:rRef},{id:"methodology",l:"Methodology",ic:"◎",fn:rMeth},{id:"export",l:"Export",ic:"⬡",fn:rExport}];
 let cv="overview";
 function sv(id){cv=id;document.querySelectorAll(".nb").forEach(b=>b.classList.toggle("a",b.dataset.v===id));document.getElementById("ttl").textContent=VW.find(v=>v.id===id).l;VW.find(v=>v.id===id).fn()}
 
