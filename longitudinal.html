@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RIDGELINE — Longitudinal Theme Analysis</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0B0F19;--sf:#131825;--sh:#1A2035;--bd:#1E2A42;--bl:#2A3A5C;--tx:#E2E8F0;--tm:#8896B3;--td:#5A6A8A;--ac:#4F8EF7;--gn:#34D399;--yw:#FBBF24;--rd:#F87171;--or:#FB923C;--pp:#A78BFA}
+*{margin:0;padding:0;box-sizing:border-box}body{font-family:'IBM Plex Sans',system-ui,sans-serif;background:var(--bg);color:var(--tx);display:flex;min-height:100vh}
+button{font-family:inherit;cursor:pointer}::-webkit-scrollbar{width:6px;height:6px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--bl);border-radius:3px}
+.sb{width:220px;background:var(--sf);border-right:1px solid var(--bd);display:flex;flex-direction:column;position:sticky;top:0;height:100vh;flex-shrink:0}
+.sb-b{padding:20px 16px;border-bottom:1px solid var(--bd)}.sb-b h1{font-size:14px;color:var(--ac);letter-spacing:.04em}.sb-b p{font-size:11px;color:var(--td);margin-top:4px}
+.sb-n{padding:12px 8px;display:flex;flex-direction:column;gap:2px;overflow-y:auto;flex:1}
+.nb{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:6px;border:none;font-size:13px;background:transparent;color:var(--tm);width:100%;text-align:left;transition:all .15s;line-height:1.3}
+.nb:hover{background:var(--sh)}.nb.a{background:rgba(79,142,247,.1);color:var(--ac);font-weight:600}
+.sf{padding:12px 16px;border-top:1px solid var(--bd);font-size:10px;color:var(--td)}
+.mn{flex:1;padding:28px;overflow-y:auto;min-width:0}.ct{max-width:1100px;margin:0 auto}
+.pt{font-size:22px;font-weight:700;margin-bottom:4px}.ps{font-size:12px;color:var(--td);margin-bottom:24px}
+.g5{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:24px}
+.cd{background:var(--sf);border:1px solid var(--bd);border-radius:8px;padding:16px}
+.sl{font-size:11px;color:var(--tm);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px}
+.sv{font-size:28px;font-weight:700;line-height:1;font-family:'JetBrains Mono',monospace}
+.ss{font-size:12px;color:var(--td);margin-top:4px}
+.timeline{display:flex;gap:8px;margin-bottom:24px;overflow-x:auto;padding-bottom:8px}
+.t-col{flex:1;min-width:100px;display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;padding:8px 4px;border-radius:8px;border:2px solid transparent;transition:all .2s}
+.t-col:hover{background:var(--sh)}.t-col.sel{border-color:var(--ac);background:rgba(79,142,247,.06)}
+.t-bar{width:100%;border-radius:4px 4px 0 0;transition:height .3s}
+.t-code{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:12px}
+.t-year{font-size:10px;color:var(--td)}
+.t-occ{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600}
+.detail{background:var(--sf);border:1px solid var(--bd);border-radius:8px;padding:24px;margin-bottom:16px}
+.detail-hdr{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;flex-wrap:wrap;gap:8px}
+.detail-title{font-size:16px;font-weight:600}
+.detail-meta{display:flex;gap:8px;flex-wrap:wrap}
+.tag{font-family:'JetBrains Mono',monospace;font-size:11px;padding:3px 10px;border-radius:4px;background:var(--sh);color:var(--tm)}
+.tag-r{color:var(--rd);background:rgba(248,113,113,.1)}.tag-g{color:var(--gn);background:rgba(52,211,153,.1)}.tag-y{color:var(--yw);background:rgba(251,191,36,.1)}.tag-b{color:var(--ac);background:rgba(79,142,247,.1)}
+.section-label{font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.concern-text{font-size:13px;line-height:1.7;color:var(--tx);border-left:3px solid var(--or);padding:8px 12px;background:rgba(251,146,36,.04);border-radius:0 4px 4px 0;margin-bottom:16px}
+.response-text{font-size:13px;line-height:1.7;color:var(--tx);border-left:3px solid var(--gn);padding:8px 12px;background:rgba(52,211,153,.04);border-radius:0 4px 4px 0;margin-bottom:8px}
+.response-gap{font-size:13px;line-height:1.6;color:var(--rd);border-left:3px solid var(--rd);padding:8px 12px;background:rgba(248,113,113,.04);border-radius:0 4px 4px 0;font-style:italic}
+.nav-row{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+.nav-btn{padding:6px 12px;border-radius:6px;border:none;font-size:12px;background:var(--sh);color:var(--tm);transition:all .15s}
+.nav-btn:hover{background:var(--bl)}.nav-btn.on{background:rgba(79,142,247,.15);color:var(--ac);font-weight:600}
+.empty{text-align:center;padding:40px;color:var(--td);font-size:14px}
+.loading{text-align:center;padding:60px;color:var(--tm)}
+.resp-count-bar{height:6px;border-radius:3px;background:var(--bd);margin-top:4px;overflow:hidden}
+.resp-count-fill{height:100%;border-radius:3px;background:var(--gn);transition:width .3s}
+@media(max-width:900px){.sb{display:none}.mn{padding:16px}}
+</style>
+</head>
+<body>
+<div class="sb">
+  <div class="sb-b">
+    <a href="index.html" style="text-decoration:none;color:var(--ac);font-size:11px;display:block;margin-bottom:8px">← RIDGELINE Home</a>
+    <h1>RIDGELINE</h1>
+    <p>Longitudinal Theme Analysis</p>
+  </div>
+  <div class="sb-n" id="cat-nav"></div>
+  <div class="sf" id="ft">Loading...</div>
+</div>
+<div class="mn">
+  <div class="ct">
+    <h2 class="pt" id="title">Longitudinal Analysis</h2>
+    <div class="ps">Butte Falls Project Family · 2016–2025 · Comment & Response Evolution</div>
+    <div id="content"><div class="loading">Connecting to Supabase...</div></div>
+  </div>
+</div>
+
+<script>
+const SB_URL="https://uojjoraxzmzwuilmndlu.supabase.co/rest/v1";
+const SB_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVvampvcmF4em16d3VpbG1uZGx1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI1ODc4MTksImV4cCI6MjA4ODE2MzgxOX0.4WmtuoXjXj441KpbLxJkQTebulejiEafKu0bSvdefpM";
+const H={apikey:SB_KEY,Authorization:`Bearer ${SB_KEY}`};
+
+const PROJECTS=[
+  {code:"ELK",name:"Elk Camel",year:"2016-17",color:"#38BDF8"},
+  {code:"OB",name:"Obenchain",year:"2017-21",color:"#A78BFA"},
+  {code:"GS",name:"Gold Sardine",year:"2017-18",color:"#FB923C"},
+  {code:"EC",name:"Evans Creek",year:"2018-19",color:"#34D399"},
+  {code:"RO",name:"Round Oak",year:"2019-20",color:"#F87171"},
+  {code:"TC",name:"Trail Creek",year:"2021-23",color:"#FBBF24"},
+  {code:"SC",name:"South Clark",year:"2022-24",color:"#4F8EF7"},
+  {code:"LL",name:"Lost Lewis",year:"2024-25",color:"#E879F9"}
+];
+const EXCLUDE=new Set(["QG","LC","DBOW"]);
+
+const CATEGORIES=[
+  {id:"silv",label:"Silviculture & thinning",keywords:["silvicultural","prescription","harvest method","stand structure","old-growth","vegetation","logging intensity","forest structure","mature stand"],desc:"How BLM designs harvest prescriptions — thinning intensity, diameter limits, canopy retention, gap sizes, regeneration vs. selection. Track whether BLM's silvicultural rationale has shifted across projects."},
+  {id:"nso",label:"NSO / spotted owl",keywords:["northern spotted owl","nso","spotted owl habitat","wildlife species impact"],desc:"NSO NRF/dispersal habitat impacts, recovery action compliance, critical habitat, take avoidance, barred owl competition dynamics. Watch for the shift from habitat-quantity to barred-owl-as-primary-threat framing."},
+  {id:"fire",label:"Fire & fuels",keywords:["fire","fuels","wui","wildfire","burn"],desc:"Whether harvest increases or decreases fire risk — plantation flammability, thinning vs. regeneration outcomes, WUI safety, prescribed fire. The plantation-flammability argument has grown from 3 occurrences (ELK) to 16 (SC/LL)."},
+  {id:"aquatic",label:"Aquatic & water quality",keywords:["sediment","water quality","aquatic","coho","riparian","streamflow","watershed"],desc:"Road-related sediment, coho habitat, 303(d) compliance, riparian reserves, streamflow, WQRP implementation. Track BLM's evolving reliance on 'undetectable above background' language."},
+  {id:"nepa",label:"NEPA process",keywords:["nepa","purpose and need","disclosure","eis","process","public participation"],desc:"EA vs. EIS threshold, tiering to FEIS, purpose and need scope, comparison tables, significance determinations. Note how BLM's tiering language has become more assertive over time."},
+  {id:"cumul",label:"Cumulative effects",keywords:["cumulative effect"],desc:"Past/present/future actions, checkerboard ownership, private lands, watershed-level impacts. Persistent response gap across all 9 years — zero formal responses in 6 of 8 projects."},
+  {id:"alternatives",label:"Alternatives & range",keywords:["alternative","range of alt","project design"],desc:"Adequacy of alternatives analyzed, citizens alternatives, operational flexibility. Industry and conservation groups push from opposite directions."},
+  {id:"timber",label:"Timber economics & O&C",keywords:["timber","economic","o&c","sustained yield","asq"],desc:"O&C Act sustained yield mandate, ASQ attainment, economic viability, operational flexibility. Track the tension between maximizing volume and ecological constraints."},
+  {id:"species",label:"Non-NSO species",keywords:["sensitive species","migratory bird","fisher","biodiversity","wildlife","peregrine","botanical"],desc:"Pacific fisher, migratory birds, Bureau Sensitive Species, botanical resources, deer/elk, wolves. Response patterns vary wildly — some projects respond exhaustively, others ignore entirely."},
+  {id:"soil",label:"Soil & roads",keywords:["soil","road","transportation","infrastructure","geologic"],desc:"Soil disturbance thresholds, TPCC classification, road density, road construction/decommissioning. The 20% detrimental disturbance limit is a recurring battleground."},
+  {id:"climate",label:"Climate & carbon",keywords:["climate","carbon","greenhouse","sequestration"],desc:"Forest carbon dynamics, GHG emissions, proforestation arguments. Consistently tiered to FEIS with minimal project-level analysis — an emerging litigation vector."},
+  {id:"community",label:"Public process & community",keywords:["collaboration","public","recreation","socioeconomic","community","trail","access","cultural"],desc:"Public engagement adequacy, recreation access, socioeconomic impacts, tribal consultation. SC's trail system became the largest single theme by comment volume."}
+];
+
+let DB_themes=[], DB_projects=[], DB_responses=[], DB_theme_comments=[];
+let selCat="silv", selProject=null;
+
+async function fetchAll(t,s="*"){
+  let a=[],o=0;
+  while(true){
+    const r=await fetch(`${SB_URL}/${t}?select=${s}&limit=1000&offset=${o}`,{headers:H});
+    if(!r.ok)return a;const d=await r.json();a=a.concat(d);if(d.length<1000)break;o+=1000;
+  }
+  return a;
+}
+
+async function loadData(){
+  const [projects,themes,responses,tc]=await Promise.all([
+    fetchAll("projects","project_id,project_code,project_name,status"),
+    fetchAll("themes","theme_id,theme_name,description,code_count,occurrences,status,theme_layer,project_id"),
+    fetchAll("responses","response_id,comment_id,theme_id,response_text"),
+    fetchAll("theme_comments","theme_id,comment_id")
+  ]);
+  const exPids=new Set(projects.filter(p=>EXCLUDE.has(p.project_code)).map(p=>p.project_id));
+  DB_projects=projects.filter(p=>!exPids.has(p.project_id));
+  DB_themes=themes.filter(t=>!exPids.has(t.project_id)&&t.theme_layer==="analytical");
+  DB_responses=responses;
+  DB_theme_comments=tc;
+  document.getElementById("ft").textContent=`${DB_themes.length} themes · ${DB_responses.length} responses`;
+}
+
+function getProjectCode(pid){
+  const p=DB_projects.find(x=>x.project_id===pid);
+  return p?p.project_code:"?";
+}
+
+function matchCategory(theme,cat){
+  const n=(theme.theme_name||"").toLowerCase();
+  const d=(theme.description||"").toLowerCase();
+  return cat.keywords.some(k=>n.includes(k)||d.includes(k));
+}
+
+function getThemesForCategory(cat){
+  const matched=DB_themes.filter(t=>matchCategory(t,cat));
+  const byProject={};
+  PROJECTS.forEach(p=>{byProject[p.code]=[]});
+  matched.forEach(t=>{
+    const code=getProjectCode(t.project_id);
+    if(byProject[code])byProject[code].push(t);
+  });
+  return byProject;
+}
+
+function getResponsesForTheme(tid){
+  return DB_responses.filter(r=>r.theme_id===tid&&r.response_text&&r.response_text.length>20);
+}
+
+function getCommentCountForTheme(tid){
+  return new Set(DB_theme_comments.filter(tc=>tc.theme_id===tid).map(tc=>tc.comment_id)).size;
+}
+
+function esc(s){const d=document.createElement("div");d.textContent=s;return d.innerHTML}
+
+function render(){
+  const cat=CATEGORIES.find(c=>c.id===selCat);
+  if(!cat)return;
+  document.getElementById("title").textContent=cat.label;
+  const byProject=getThemesForCategory(cat);
+  const con=document.getElementById("content");
+  con.innerHTML="";
+
+  // Stats row
+  let totalThemes=0,totalResponses=0,totalComments=0,gapProjects=0;
+  PROJECTS.forEach(p=>{
+    const themes=byProject[p.code];
+    totalThemes+=themes.length;
+    themes.forEach(t=>{
+      totalResponses+=getResponsesForTheme(t.theme_id).length;
+      totalComments+=getCommentCountForTheme(t.theme_id);
+    });
+    if(themes.length>0){
+      const hasAnyResp=themes.some(t=>getResponsesForTheme(t.theme_id).length>0);
+      if(!hasAnyResp)gapProjects++;
+    }
+  });
+  const statsHtml=`<div class="g5">
+    <div class="cd"><div class="sl">Theme instances</div><div class="sv" style="color:var(--ac)">${totalThemes}</div><div class="ss">Across ${PROJECTS.filter(p=>byProject[p.code].length>0).length} projects</div></div>
+    <div class="cd"><div class="sl">Responses</div><div class="sv" style="color:var(--gn)">${totalResponses}</div><div class="ss">Formal BLM responses</div></div>
+    <div class="cd"><div class="sl">Linked comments</div><div class="sv" style="color:var(--or)">${totalComments}</div><div class="ss">Distinct commenters</div></div>
+    <div class="cd"><div class="sl">Response gaps</div><div class="sv" style="color:${gapProjects>0?'var(--rd)':'var(--gn)'}">${gapProjects}</div><div class="ss">Projects with zero responses</div></div>
+  </div>`;
+  con.insertAdjacentHTML("beforeend",statsHtml);
+
+  // Description
+  con.insertAdjacentHTML("beforeend",`<div style="margin-bottom:20px;font-size:14px;color:var(--tm);line-height:1.6">${esc(cat.desc)}</div>`);
+
+  // Timeline bars
+  const maxOcc=Math.max(1,...PROJECTS.map(p=>byProject[p.code].reduce((s,t)=>s+t.occurrences,0)));
+  let timeHtml=`<div class="timeline">`;
+  PROJECTS.forEach(p=>{
+    const themes=byProject[p.code];
+    const occ=themes.reduce((s,t)=>s+t.occurrences,0);
+    const resp=themes.reduce((s,t)=>s+getResponsesForTheme(t.theme_id).length,0);
+    const h=Math.max(8,Math.round((occ/maxOcc)*100));
+    const barColor=resp>0?p.color:"var(--bl)";
+    const isSel=selProject===p.code;
+    timeHtml+=`<div class="t-col${isSel?" sel":""}" onclick="selProject=${isSel?"null":`'${p.code}'`};render()">
+      <div class="t-occ" style="color:${occ>0?p.color:'var(--td)'}">${occ||"—"}</div>
+      <div class="t-bar" style="height:${h}px;background:${barColor};opacity:${occ>0?1:.3}"></div>
+      <div class="t-code" style="color:${isSel?'var(--ac)':'var(--tx)'}">${p.code}</div>
+      <div class="t-year">${p.year}</div>
+      <div style="font-size:10px;color:${resp>0?'var(--gn)':'var(--rd)'}">${resp>0?resp+" resp":"no resp"}</div>
+    </div>`;
+  });
+  timeHtml+=`</div>`;
+  con.insertAdjacentHTML("beforeend",timeHtml);
+
+  if(!selProject){
+    // Show all projects summary
+    con.insertAdjacentHTML("beforeend",`<div class="empty">Select a project above to see comment concerns and BLM responses</div>`);
+    // But also show the full cross-project summary table
+    let tableHtml=`<div style="margin-top:24px"><div class="sl">Cross-project theme mapping</div><div style="overflow-x:auto;border:1px solid var(--bd);border-radius:8px;margin-top:8px">
+      <table style="width:100%;border-collapse:collapse;font-size:12px">
+      <thead><tr><th style="text-align:left;padding:10px 12px;background:var(--sh);color:var(--tm);font-size:10px;text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid var(--bd);position:sticky;top:0">Project</th>
+      <th style="padding:10px 12px;background:var(--sh);color:var(--tm);font-size:10px;text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid var(--bd);text-align:left">Theme name</th>
+      <th style="padding:10px 8px;background:var(--sh);color:var(--tm);font-size:10px;text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid var(--bd);text-align:center">Occ</th>
+      <th style="padding:10px 8px;background:var(--sh);color:var(--tm);font-size:10px;text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid var(--bd);text-align:center">Cmts</th>
+      <th style="padding:10px 8px;background:var(--sh);color:var(--tm);font-size:10px;text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid var(--bd);text-align:center">Resp</th>
+      <th style="padding:10px 12px;background:var(--sh);color:var(--tm);font-size:10px;text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid var(--bd);text-align:left;min-width:120px">Coverage</th>
+      </tr></thead><tbody>`;
+    PROJECTS.forEach(p=>{
+      const themes=byProject[p.code];
+      if(themes.length===0)return;
+      themes.forEach((t,i)=>{
+        const resp=getResponsesForTheme(t.theme_id).length;
+        const cmts=getCommentCountForTheme(t.theme_id);
+        const pct=cmts>0?Math.min(100,Math.round(resp/cmts*100)):0;
+        const rowBg=i%2===0?"transparent":"var(--sh)";
+        tableHtml+=`<tr style="cursor:pointer;background:${rowBg}" onclick="selProject='${p.code}';render()">
+          <td style="padding:8px 12px;border-bottom:1px solid var(--bd);white-space:nowrap"><span style="color:${p.color};font-weight:600;font-family:'JetBrains Mono',monospace;font-size:11px">${p.code}</span> <span style="color:var(--td);font-size:11px">${p.year}</span></td>
+          <td style="padding:8px 12px;border-bottom:1px solid var(--bd);max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(t.theme_name)}</td>
+          <td style="padding:8px;border-bottom:1px solid var(--bd);text-align:center;font-family:'JetBrains Mono',monospace;font-weight:600;color:${t.occurrences>=15?'var(--rd)':t.occurrences>=7?'var(--yw)':'var(--gn)'}">${t.occurrences}</td>
+          <td style="padding:8px;border-bottom:1px solid var(--bd);text-align:center;font-family:'JetBrains Mono',monospace">${cmts}</td>
+          <td style="padding:8px;border-bottom:1px solid var(--bd);text-align:center;font-family:'JetBrains Mono',monospace;color:${resp>0?'var(--gn)':'var(--rd)'}">${resp}</td>
+          <td style="padding:8px 12px;border-bottom:1px solid var(--bd)"><div class="resp-count-bar"><div class="resp-count-fill" style="width:${pct}%;background:${resp>0?'var(--gn)':'var(--rd)'}"></div></div><span style="font-size:10px;color:var(--td)">${pct}%</span></td>
+        </tr>`;
+      });
+    });
+    tableHtml+=`</tbody></table></div></div>`;
+    con.insertAdjacentHTML("beforeend",tableHtml);
+    return;
+  }
+
+  // Detail view for selected project
+  const proj=PROJECTS.find(p=>p.code===selProject);
+  const themes=byProject[selProject];
+  if(themes.length===0){
+    con.insertAdjacentHTML("beforeend",`<div class="detail"><div class="empty">No themes matching "${cat.label}" found in ${proj.name} (${proj.year})</div></div>`);
+    return;
+  }
+
+  themes.sort((a,b)=>b.occurrences-a.occurrences);
+  themes.forEach(t=>{
+    const resps=getResponsesForTheme(t.theme_id);
+    const cmts=getCommentCountForTheme(t.theme_id);
+    let html=`<div class="detail">
+      <div class="detail-hdr">
+        <div>
+          <div style="font-size:11px;font-family:'JetBrains Mono',monospace;color:${proj.color};text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">${proj.name} — ${proj.year}</div>
+          <div class="detail-title">${esc(t.theme_name)}</div>
+        </div>
+        <div class="detail-meta">
+          <span class="tag tag-b">${t.occurrences} occurrences</span>
+          <span class="tag tag-b">${t.code_count} codes</span>
+          <span class="tag">${cmts} commenters</span>
+          <span class="tag ${resps.length>0?'tag-g':'tag-r'}">${resps.length} responses</span>
+        </div>
+      </div>`;
+
+    // Concern
+    if(t.description){
+      html+=`<div class="section-label" style="color:var(--or)">▸ What commenters raised</div>
+        <div class="concern-text">${esc(t.description)}</div>`;
+    }
+
+    // Responses
+    if(resps.length>0){
+      html+=`<div class="section-label" style="color:var(--gn)">▸ BLM response (${resps.length} excerpt${resps.length>1?"s":""})</div>`;
+      resps.forEach((r,i)=>{
+        const txt=r.response_text.length>800?r.response_text.substring(0,800)+"…":r.response_text;
+        html+=`<div class="response-text"><span style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--td);margin-right:6px">[${i+1}]</span>${esc(txt)}</div>`;
+      });
+    }else{
+      html+=`<div class="section-label" style="color:var(--rd)">▸ BLM response</div>
+        <div class="response-gap">No formal response on record for this theme. This concern was raised by ${cmts} commenter${cmts>1?"s":""} with ${t.occurrences} coded occurrences but was not addressed in the administrative record. This is a response gap that may become a litigation vector.</div>`;
+    }
+    html+=`</div>`;
+    con.insertAdjacentHTML("beforeend",html);
+  });
+}
+
+function buildNav(){
+  const nav=document.getElementById("cat-nav");
+  CATEGORIES.forEach(c=>{
+    const btn=document.createElement("button");
+    btn.className="nb"+(c.id===selCat?" a":"");
+    btn.textContent=c.label;
+    btn.onclick=()=>{selCat=c.id;selProject=null;buildNav();render()};
+    nav.appendChild(btn);
+  });
+}
+
+(async()=>{
+  await loadData();
+  buildNav();
+  render();
+})();
+</script>
+</body>
+</html>
