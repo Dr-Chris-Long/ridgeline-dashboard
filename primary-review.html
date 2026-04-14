@@ -137,6 +137,38 @@ tr.expandable { cursor:pointer; }
   .page { display:block !important; page-break-before:always; }
   body { background:#fff; color:#000; }
 }
+
+/* EXPORT BUTTONS */
+.btn { display:inline-flex; align-items:center; gap:6px; padding:6px 14px; border-radius:6px; font-size:12px; font-weight:500; font-family:var(--sans); cursor:pointer; border:1px solid var(--border); background:var(--bg3); color:var(--text); transition:all 0.15s; }
+.btn:hover { border-color:var(--accent); color:var(--accent); }
+.btn-accent { background:var(--accent); color:#000; border-color:var(--accent); }
+.btn-accent:hover { background:#79b8ff; }
+.btn-sm { padding:4px 10px; font-size:11px; }
+.btn-group { display:flex; gap:8px; flex-wrap:wrap; }
+
+/* HUMAN REVIEW */
+.review-bar { background:var(--bg2); border:1px solid var(--border); border-radius:8px; padding:16px; margin-top:16px; }
+.review-bar h4 { font-size:11px; font-weight:600; color:var(--text2); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:10px; }
+.review-actions { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+.rbtn { padding:6px 16px; border-radius:6px; font-size:12px; font-weight:600; cursor:pointer; border:2px solid var(--border); background:transparent; color:var(--text2); transition:all 0.15s; font-family:var(--sans); }
+.rbtn:hover { border-color:var(--text2); color:var(--text); }
+.rbtn.active-concur { border-color:var(--green); color:var(--green); background:var(--green-bg); }
+.rbtn.active-override { border-color:var(--yellow); color:var(--yellow); background:var(--yellow-bg); }
+.rbtn.active-dismiss { border-color:var(--gray); color:var(--gray); background:var(--gray-bg); }
+.rbtn.active-escalate { border-color:var(--red); color:var(--red); background:var(--red-bg); }
+.review-notes { width:100%; background:var(--bg3); color:var(--text); border:1px solid var(--border); border-radius:6px; padding:8px 12px; font-size:13px; font-family:var(--sans); resize:vertical; min-height:60px; margin-top:8px; }
+.review-notes:focus { outline:none; border-color:var(--accent); }
+.review-notes::placeholder { color:var(--text3); }
+.review-badge { display:inline-block; padding:1px 6px; border-radius:3px; font-size:10px; font-weight:600; font-family:var(--mono); }
+.rb-concur { background:var(--green-bg); color:var(--green); }
+.rb-override { background:var(--yellow-bg); color:var(--yellow); }
+.rb-dismiss { background:var(--gray-bg); color:var(--gray); }
+.rb-escalate { background:var(--red-bg); color:var(--red); }
+.rb-pending { background:var(--bg3); color:var(--text3); }
+
+/* REVIEW PROGRESS */
+.progress-bar { display:flex; height:24px; border-radius:4px; overflow:hidden; background:var(--bg3); }
+.progress-bar div { display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:600; font-family:var(--mono); min-width:20px; transition:width 0.3s; }
 </style>
 </head>
 <body>
@@ -153,6 +185,7 @@ tr.expandable { cursor:pointer; }
   <div class="tab" data-page="explorer">Findings Explorer</div>
   <div class="tab" data-page="categories">Categories</div>
   <div class="tab" data-page="cascades">Cascade Chains</div>
+  <div class="tab" data-page="review">Human Review</div>
   <div class="tab" data-page="methodology">Methodology</div>
 </div>
 
@@ -176,7 +209,9 @@ tr.expandable { cursor:pointer; }
     <h3>Severity Bar — Full Distribution</h3>
     <div class="sev-bar" id="sev-bar"></div>
     <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text2);margin-top:4px;">
-      <span>← Higher Risk</span><span>Lower Risk →</span>
+      <span>← Higher Risk</span>
+      <div class="btn-group"><button class="btn btn-sm" onclick="exportCSV('all')">⬇ Export All Findings</button><button class="btn btn-sm" onclick="exportCSV('review')">⬇ Export Reviews</button></div>
+      <span>Lower Risk →</span>
     </div>
   </div>
   <div class="card">
@@ -214,9 +249,11 @@ tr.expandable { cursor:pointer; }
     </select>
     <input type="text" id="f-search" placeholder="Search obligations, questions, arguments..." oninput="filterFindings()">
     <span class="count-badge" id="filter-count"></span>
+    <button class="btn btn-sm" onclick="exportCSV('filtered')">⬇ Export Filtered</button>
+    <button class="btn btn-sm" onclick="exportCSV('all')">⬇ Export All</button>
   </div>
   <div class="tbl-wrap" style="max-height:60vh;overflow-y:auto;">
-    <table id="explorer-table"><thead><tr><th style="width:110px">Finding</th><th style="width:60px">Sev</th><th>Category</th><th>Obligation</th><th>Compliance Question</th><th>Fix</th><th>Gap</th></tr></thead><tbody></tbody></table>
+    <table id="explorer-table"><thead><tr><th style="width:110px">Finding</th><th style="width:60px">Sev</th><th>Category</th><th>Obligation</th><th>Compliance Question</th><th>Fix</th><th>Gap</th><th>Review</th></tr></thead><tbody></tbody></table>
   </div>
   <div id="finding-detail" class="detail-panel" style="display:none;"></div>
 </div>
@@ -238,9 +275,84 @@ tr.expandable { cursor:pointer; }
 <div id="page-cascades" class="page">
   <div class="card" style="margin-bottom:20px;">
     <h3>Cascade Chain Analysis</h3>
-    <p style="font-size:13px;color:var(--text2);line-height:1.6;">Cascade chains identify how individual findings compound into systemic litigation vulnerabilities. A single finding may be survivable; a chain of interconnected findings creates foundation-level risk that can collapse an entire EA. All 9 chains are rated <span class="sev sev-R">CRITICAL</span>.</p>
+    <p style="font-size:13px;color:var(--text2);line-height:1.6;margin-bottom:12px;">Cascade chains identify how individual findings compound into systemic litigation vulnerabilities. A single finding may be survivable in isolation; a chain of interconnected findings creates foundation-level risk that can collapse an entire Environmental Assessment. All 9 chains identified in this run are rated <span class="sev sev-R">CRITICAL</span>.</p>
+    <div style="display:flex;gap:8px;margin-bottom:16px;">
+      <button class="btn btn-sm" onclick="exportCSV('cascades')">⬇ Export Cascade Summary</button>
+    </div>
   </div>
+
+  <div class="card" style="margin-bottom:20px;">
+    <h3>How Cascade Analysis Works</h3>
+    <p style="font-size:13px;color:var(--text2);line-height:1.65;margin-bottom:10px;">After the adversarial debate produces individual findings, a second-pass analysis evaluates interdependencies using <strong>12 Cascade Dependency Rules (CDRs)</strong>. Each CDR defines a pattern — a way that findings in different resource areas or statutory domains can amplify each other's litigation impact. When multiple findings match a CDR pattern, they form a <strong>cascade chain</strong>.</p>
+    <p style="font-size:13px;color:var(--text2);line-height:1.65;margin-bottom:10px;">The operational significance: a plaintiff's attorney does not litigate findings in isolation. They construct a <em>narrative of systemic failure</em> — showing the court that the agency didn't just miss one requirement, but that the entire analytical foundation is deficient. Cascade chains model this litigation strategy.</p>
+    <p style="font-size:13px;color:var(--text2);line-height:1.65;margin-bottom:16px;">For planners, cascade chains answer the question: <strong>"If I can only fix 5 things, which 5 have the highest downstream impact?"</strong> Fixing a root node in a FOUNDATION_ATTACK chain can resolve or substantially mitigate dozens of downstream findings simultaneously.</p>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+      <div style="background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:16px;">
+        <div style="font-size:11px;font-weight:600;color:var(--red);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;">Foundation Attack</div>
+        <p style="font-size:13px;color:var(--text2);line-height:1.5;">A root finding undermines a foundational analytical element — baseline survey data, scientific basis, consultation validity, or mitigation enforceability. Every downstream analysis that relies on that foundation inherits the defect. Fixing the root repairs all dependents. These are the highest-value remediation targets.</p>
+      </div>
+      <div style="background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:16px;">
+        <div style="font-size:11px;font-weight:600;color:var(--yellow);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;">Sequential Dependency</div>
+        <p style="font-size:13px;color:var(--text2);line-height:1.5;">Findings form a logical chain where each depends on the previous one. Example: BiOp validity → Incidental Take Statement → Terms and Conditions → project-level compliance. If the root node (BiOp) is invalidated, every downstream node loses its legal basis. Plaintiff wins the root; the chain collapses.</p>
+      </div>
+      <div style="background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:16px;">
+        <div style="font-size:11px;font-weight:600;color:var(--accent);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;">Cumulative Weight</div>
+        <p style="font-size:13px;color:var(--text2);line-height:1.5;">No single finding is fatal alone, but the pattern of deficiencies builds a systemic failure argument. Courts evaluating 33 NEPA deficiencies across multiple resource areas may conclude the agency "systematically failed to take a hard look" — even if each individual gap might survive independently. Reducing the <em>count</em> matters as much as reducing severity.</p>
+      </div>
+      <div style="background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:16px;">
+        <div style="font-size:11px;font-weight:600;color:var(--green);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;">Independent Flank</div>
+        <p style="font-size:13px;color:var(--text2);line-height:1.5;">RED findings span multiple independent statutory authorities (ESA, NEPA, FLPMA, CWA). Each statute provides a separate cause of action. Fixing all ESA issues does not resolve NEPA claims. The agency must defend on every front simultaneously. Plaintiff structures claims to ensure at least one survives.</p>
+      </div>
+    </div>
+
+    <div style="margin-top:16px;background:var(--red-bg);border:1px solid rgba(248,81,73,0.2);border-radius:6px;padding:12px 16px;">
+      <p style="font-size:12px;color:var(--red);margin:0;"><strong>Known Issue — CDR-007 Breadth:</strong> The Mitigation Enforceability Collapse chain (228 of 387 findings, 59%) is too broadly defined. It captures any finding that touches mitigation adequacy, which in a timber EA is nearly everything. This chain needs refinement into sub-chains before it is analytically useful for triage. Treat CDR-007 as a systemic indicator, not a remediation target.</p>
+    </div>
+  </div>
+
   <div id="cascade-list"></div>
+</div>
+
+<!-- =================== HUMAN REVIEW =================== -->
+<div id="page-review" class="page">
+  <div class="card" style="margin-bottom:20px;">
+    <h3>Human Review & Audit Trail</h3>
+    <p style="font-size:13px;color:var(--text2);line-height:1.6;margin-bottom:12px;">All findings require human review before action. Use the Findings Explorer to review each finding, assign a disposition, and record notes. This page tracks review progress and provides an exportable audit trail. Review state is stored in your browser session — <strong>export before closing</strong>.</p>
+    <div class="btn-group">
+      <button class="btn btn-accent" onclick="exportCSV('review')">⬇ Export Review Decisions</button>
+      <button class="btn" onclick="exportCSV('all')">⬇ Export Full Findings + Reviews</button>
+      <button class="btn" onclick="importReview()">⬆ Import Previous Review</button>
+    </div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
+    <div class="card">
+      <h3>Review Progress</h3>
+      <div id="review-progress-stats"></div>
+      <div class="progress-bar" id="review-progress-bar" style="margin-top:12px;"></div>
+    </div>
+    <div class="card">
+      <h3>Disposition Summary</h3>
+      <div id="review-disp-summary"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Review Queue — Unreviewed RED Findings</h3>
+    <p style="font-size:12px;color:var(--text2);margin-bottom:12px;">Start here. These are the highest-risk findings that need specialist attention. Click any row to open in the Findings Explorer.</p>
+    <div class="tbl-wrap" style="max-height:50vh;overflow-y:auto;">
+      <table id="review-queue-table"><thead><tr><th>Finding</th><th>Sev</th><th>Category</th><th>Obligation</th><th>Status</th></tr></thead><tbody></tbody></table>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Audit Log</h3>
+    <p style="font-size:12px;color:var(--text2);margin-bottom:12px;">Chronological record of all review decisions made in this session.</p>
+    <div class="tbl-wrap" style="max-height:40vh;overflow-y:auto;">
+      <table id="audit-log-table"><thead><tr><th>Timestamp</th><th>Finding</th><th>Disposition</th><th>Reviewer Notes</th></tr></thead><tbody></tbody></table>
+    </div>
+  </div>
 </div>
 
 <!-- =================== METHODOLOGY =================== -->
@@ -323,14 +435,8 @@ tr.expandable { cursor:pointer; }
   </div>
   <div class="method-section">
     <h2>5. Cascade Chain Analysis</h2>
-    <p>Individual findings are analyzed for interdependencies using 12 Cascade Dependency Rules (CDRs). When multiple findings share common root vulnerabilities, they form cascade chains — fixing the root finding resolves or substantially mitigates all downstream findings.</p>
-    <p>9 cascade chains were identified, all rated CRITICAL. The largest chain (Mitigation Enforceability Collapse, CDR-007) encompasses 228 of 387 findings (59%), indicating that chain may be too broadly defined and needs refinement. Chain types:</p>
-    <ul>
-      <li><strong>FOUNDATION_ATTACK</strong> — Root finding undermines a foundational element that all downstream findings depend on.</li>
-      <li><strong>SEQUENTIAL_DEPENDENCY</strong> — Findings form a logical chain where each depends on the previous.</li>
-      <li><strong>CUMULATIVE_WEIGHT</strong> — Individual findings accumulate into a pattern supporting a systemic failure argument.</li>
-      <li><strong>INDEPENDENT_FLANK</strong> — Findings span multiple independent statutory authorities.</li>
-    </ul>
+    <p>Individual findings are analyzed for interdependencies using 12 Cascade Dependency Rules (CDRs). Full cascade methodology documentation — including chain type definitions, CDR logic, known issues, and remediation strategy — is available on the <strong>Cascade Chains</strong> tab of this dashboard.</p>
+    <p>Summary: 9 cascade chains were identified in this run, all rated CRITICAL. Chain types include FOUNDATION_ATTACK, SEQUENTIAL_DEPENDENCY, CUMULATIVE_WEIGHT, and INDEPENDENT_FLANK. The largest chain (CDR-007, Mitigation Enforceability Collapse) encompasses 228 of 387 findings and is flagged as too broadly defined for direct remediation use.</p>
   </div>
   <div class="method-section">
     <h2>6. Limitations & Caveats</h2>
@@ -526,7 +632,10 @@ function filterFindings(){
   renderTable();
 }
 function renderTable(){
-  document.querySelector('#explorer-table tbody').innerHTML=filtered.map(f=>`<tr class="expandable" onclick="showDetail('${f.i}')">
+  document.querySelector('#explorer-table tbody').innerHTML=filtered.map(f=>{
+    const rv=reviewState[f.i];
+    const badge=rv&&rv.disposition?`<span class="review-badge rb-${rv.disposition.toLowerCase()}">${rv.disposition}</span>`:'';
+    return `<tr class="expandable" onclick="showDetail('${f.i}')">
     <td style="font-family:var(--mono);font-size:12px;white-space:nowrap;">F-${esc(f.i)}</td>
     <td><span class="sev sev-${f.s}">${SEV_LABELS[f.s]}</span></td>
     <td style="font-size:12px;">${esc(f.c.replace(/_/g,' '))}</td>
@@ -534,7 +643,9 @@ function renderTable(){
     <td style="font-size:12px;max-width:300px;">${esc(f.q)}</td>
     <td style="font-size:11px;color:var(--text2);">${esc(f.f||'—')}</td>
     <td>${f.g?'<span style="color:var(--red);">●</span>':''}</td>
-  </tr>`).join('');
+    <td>${badge}</td>
+  </tr>`;
+  }).join('');
 }
 function showDetail(id){
   const panel=document.getElementById('finding-detail');
@@ -573,6 +684,21 @@ function showDetail(id){
     <span>Disposition: ${esc(f.d)}</span>
     <span>Threat Score: ${f.x||'—'}</span>
     <span>Arbiter: ${f.b?'Yes':'No'}</span>
+  </div>`;
+
+  // Human review bar
+  const rv=reviewState[f.i]||{};
+  const rd=rv.disposition||'';
+  h+=`<div class="review-bar">
+    <h4>Human Review</h4>
+    <div class="review-actions">
+      <button class="rbtn ${rd==='CONCUR'?'active-concur':''}" onclick="setReview('${f.i}','CONCUR')">✓ Concur</button>
+      <button class="rbtn ${rd==='OVERRIDE'?'active-override':''}" onclick="setReview('${f.i}','OVERRIDE')">↕ Override Severity</button>
+      <button class="rbtn ${rd==='DISMISS'?'active-dismiss':''}" onclick="setReview('${f.i}','DISMISS')">✗ Dismiss (Not Applicable)</button>
+      <button class="rbtn ${rd==='ESCALATE'?'active-escalate':''}" onclick="setReview('${f.i}','ESCALATE')">⚑ Escalate to Solicitor</button>
+      ${rd?`<span class="review-badge ${rd==='CONCUR'?'rb-concur':rd==='OVERRIDE'?'rb-override':rd==='DISMISS'?'rb-dismiss':'rb-escalate'}">${rd}</span>`:'<span class="review-badge rb-pending">PENDING</span>'}
+    </div>
+    <textarea class="review-notes" placeholder="Reviewer notes — specialist name, rationale, AR document references..." oninput="setReviewNotes('${f.i}',this.value)">${esc(rv.notes||'')}</textarea>
   </div>`;
 
   panel.innerHTML=h;
@@ -639,6 +765,104 @@ function goExplorer(opts){
   filterFindings();
 }
 
+// ============ REVIEW STATE ============
+const reviewState={};
+const auditLog=[];
+
+function setReview(id,disposition){
+  if(!reviewState[id]) reviewState[id]={};
+  reviewState[id].disposition=disposition;
+  reviewState[id].timestamp=new Date().toISOString();
+  auditLog.push({time:new Date().toLocaleString(),id:'F-'+id,disposition,notes:reviewState[id].notes||''});
+  showDetail(id); // re-render to show active state
+  showDetail(id); // toggle back open
+  buildReview();
+}
+function setReviewNotes(id,notes){
+  if(!reviewState[id]) reviewState[id]={};
+  reviewState[id].notes=notes;
+}
+
+// ============ EXPORT ============
+function exportCSV(mode){
+  let rows=[];let filename='';
+  const hdr=(cols)=>cols.join(',')+'\n';
+  const csvVal=(v)=>'"'+(String(v||'').replace(/"/g,'""'))+'"';
+
+  if(mode==='filtered'||mode==='all'){
+    const data=mode==='filtered'?filtered:FINDINGS;
+    filename=`RIDGELINE_findings_${mode}_${new Date().toISOString().slice(0,10)}.csv`;
+    let csv=hdr(['Finding_ID','Severity','Category','Attack_Type','Obligation','Compliance_Question','Disposition','Fix_Difficulty','Urgency','Calendar_Time','Threat_Score','AR_Gap','Arbiter_Invoked','Fix_Recommendation','If_Not_Fixed','AR_Gap_Description','Residual_Risk','Review_Disposition','Review_Notes']);
+    data.forEach(f=>{
+      const rv=reviewState[f.i]||{};
+      csv+=[csvVal('F-'+f.i),csvVal(SEV_LABELS[f.s]),csvVal(f.c),csvVal(f.a),csvVal(f.o),csvVal(f.q),csvVal(f.d),csvVal(f.f),csvVal(f.u),csvVal(f.t),csvVal(f.x),csvVal(f.g),csvVal(f.b),csvVal(f.fr),csvVal(f.in),csvVal(f.ad),csvVal(f.rr),csvVal(rv.disposition),csvVal(rv.notes)].join(',')+'\n';
+    });
+    downloadCSV(csv,filename);
+  }
+  else if(mode==='review'){
+    filename=`RIDGELINE_review_decisions_${new Date().toISOString().slice(0,10)}.csv`;
+    let csv=hdr(['Finding_ID','Severity','Category','Obligation','AI_Disposition','Human_Disposition','Reviewer_Notes','Review_Timestamp']);
+    FINDINGS.forEach(f=>{
+      const rv=reviewState[f.i];
+      if(!rv||!rv.disposition) return;
+      csv+=[csvVal('F-'+f.i),csvVal(SEV_LABELS[f.s]),csvVal(f.c),csvVal(f.o),csvVal(f.d),csvVal(rv.disposition),csvVal(rv.notes),csvVal(rv.timestamp)].join(',')+'\n';
+    });
+    downloadCSV(csv,filename);
+  }
+  else if(mode==='cascades'){
+    filename=`RIDGELINE_cascades_${new Date().toISOString().slice(0,10)}.csv`;
+    let csv=hdr(['Chain_ID','Chain_Name','Type','Threat_Level','Finding_Count','Vacatur_Risk','Mechanism']);
+    CASCADES.forEach(c=>{
+      csv+=[csvVal(c.id),csvVal(c.name),csvVal(c.type),csvVal(c.threat),csvVal(c.count),csvVal(c.risk),csvVal(c.desc)].join(',')+'\n';
+    });
+    downloadCSV(csv,filename);
+  }
+  else if(mode==='audit'){
+    filename=`RIDGELINE_audit_log_${new Date().toISOString().slice(0,10)}.csv`;
+    let csv=hdr(['Timestamp','Finding_ID','Disposition','Notes']);
+    auditLog.forEach(a=>{
+      csv+=[csvVal(a.time),csvVal(a.id),csvVal(a.disposition),csvVal(a.notes)].join(',')+'\n';
+    });
+    downloadCSV(csv,filename);
+  }
+}
+function downloadCSV(csv,filename){
+  const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download=filename;a.click();
+  URL.revokeObjectURL(url);
+}
+function importReview(){
+  const input=document.createElement('input');
+  input.type='file';input.accept='.csv';
+  input.onchange=e=>{
+    const file=e.target.files[0];if(!file)return;
+    const reader=new FileReader();
+    reader.onload=ev=>{
+      const lines=ev.target.result.split('\n');
+      const hdr=lines[0];
+      let imported=0;
+      for(let i=1;i<lines.length;i++){
+        const cols=lines[i].match(/(".*?"|[^,]*)/g);
+        if(!cols||cols.length<6) continue;
+        const clean=s=>(s||'').replace(/^"|"$/g,'').replace(/""/g,'"');
+        const fid=clean(cols[0]).replace('F-','');
+        const disp=clean(cols[5]||cols[4]);
+        const notes=clean(cols[6]||cols[5]||'');
+        if(fid&&disp&&FINDINGS.find(f=>f.i===fid)){
+          reviewState[fid]={disposition:disp,notes:notes,timestamp:new Date().toISOString()};
+          imported++;
+        }
+      }
+      alert(`Imported ${imported} review decisions.`);
+      buildReview();
+    };
+    reader.readAsText(file);
+  };
+  input.click();
+}
+
 // ============ CASCADES ============
 function buildCascades(){
   document.getElementById('cascade-list').innerHTML=CASCADES.map(c=>`
@@ -660,7 +884,72 @@ function buildCascades(){
   `).join('');
 }
 
-buildSummary();buildExplorer();buildCategories();buildCascades();
+// ============ HUMAN REVIEW PAGE ============
+function buildReview(){
+  const reviewed=Object.keys(reviewState).filter(k=>reviewState[k].disposition);
+  const total=FINDINGS.length;
+  const rCount=reviewed.length;
+  const pct=total>0?Math.round(rCount/total*100):0;
+
+  // Disposition counts
+  const dCounts={CONCUR:0,OVERRIDE:0,DISMISS:0,ESCALATE:0};
+  reviewed.forEach(k=>{const d=reviewState[k].disposition;if(dCounts[d]!==undefined)dCounts[d]++;});
+
+  // Progress stats
+  const el=document.getElementById('review-progress-stats');
+  if(el) el.innerHTML=`
+    <div style="display:flex;gap:24px;margin-bottom:8px;">
+      <div><span style="font-family:var(--mono);font-size:28px;font-weight:700;color:var(--accent);">${rCount}</span><span style="font-size:12px;color:var(--text2);margin-left:6px;">of ${total} reviewed</span></div>
+      <div><span style="font-family:var(--mono);font-size:28px;font-weight:700;color:${pct===100?'var(--green)':'var(--text2)'};">${pct}%</span></div>
+    </div>
+  `;
+
+  // Progress bar
+  const bar=document.getElementById('review-progress-bar');
+  if(bar){
+    const rPct=rCount/total*100;
+    bar.innerHTML=`<div style="width:${rPct}%;background:var(--accent);color:#000;">${rCount>0?rCount:''}</div><div style="width:${100-rPct}%;background:var(--bg3);color:var(--text3);">${total-rCount>0?total-rCount:''}</div>`;
+  }
+
+  // Disposition summary
+  const ds=document.getElementById('review-disp-summary');
+  if(ds) ds.innerHTML=[
+    {label:'Concur',count:dCounts.CONCUR,cls:'rb-concur'},
+    {label:'Override',count:dCounts.OVERRIDE,cls:'rb-override'},
+    {label:'Dismiss',count:dCounts.DISMISS,cls:'rb-dismiss'},
+    {label:'Escalate',count:dCounts.ESCALATE,cls:'rb-escalate'},
+    {label:'Pending',count:total-rCount,cls:'rb-pending'},
+  ].map(d=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--border);">
+    <span class="review-badge ${d.cls}" style="font-size:12px;padding:3px 10px;">${d.label.toUpperCase()}</span>
+    <span style="font-family:var(--mono);font-size:16px;font-weight:600;">${d.count}</span>
+  </div>`).join('');
+
+  // Review queue — unreviewed RED first, then YELLOW
+  const queue=FINDINGS.filter(f=>!reviewState[f.i]||!reviewState[f.i].disposition).sort((a,b)=>(['R','Y','G','X'].indexOf(a.s))-(['R','Y','G','X'].indexOf(b.s)));
+  const qt=document.querySelector('#review-queue-table tbody');
+  if(qt) qt.innerHTML=queue.slice(0,50).map(f=>{
+    const rv=reviewState[f.i];
+    const badge=rv&&rv.disposition?`<span class="review-badge rb-${rv.disposition.toLowerCase()}">${rv.disposition}</span>`:'<span class="review-badge rb-pending">PENDING</span>';
+    return `<tr class="expandable" onclick="goExplorer({search:'${f.i}'})">
+      <td style="font-family:var(--mono);font-size:12px;">F-${esc(f.i)}</td>
+      <td><span class="sev sev-${f.s}">${SEV_LABELS[f.s]}</span></td>
+      <td style="font-size:12px;">${esc(f.c.replace(/_/g,' '))}</td>
+      <td style="font-size:12px;">${esc(f.o)}</td>
+      <td>${badge}</td>
+    </tr>`;
+  }).join('')+(queue.length>50?`<tr><td colspan="5" style="color:var(--text2);font-size:12px;">+ ${queue.length-50} more pending review</td></tr>`:'');
+
+  // Audit log
+  const al=document.querySelector('#audit-log-table tbody');
+  if(al) al.innerHTML=auditLog.slice().reverse().map(a=>`<tr>
+    <td style="font-family:var(--mono);font-size:11px;white-space:nowrap;">${esc(a.time)}</td>
+    <td style="font-family:var(--mono);font-size:12px;">${esc(a.id)}</td>
+    <td><span class="review-badge rb-${a.disposition.toLowerCase()}">${esc(a.disposition)}</span></td>
+    <td style="font-size:12px;">${esc(a.notes)}</td>
+  </tr>`).join('')||(al.innerHTML='<tr><td colspan="4" style="color:var(--text3);font-size:12px;">No review decisions recorded yet. Open findings in the Explorer and assign dispositions.</td></tr>');
+}
+
+buildSummary();buildExplorer();buildCategories();buildCascades();buildReview();
 </script>
 </body>
 </html>
