@@ -42,8 +42,8 @@ body { font-family:var(--sans); background:var(--bg); color:var(--text); min-hei
 .tab:hover { color:var(--text); }
 .tab.active { color:var(--accent); border-bottom-color:var(--accent); }
 
-.page { display:none; padding:24px; max-width:1440px; margin:0 auto; }
-.page.active { display:block; }
+.page { display:none !important; padding:24px; max-width:1440px; margin:0 auto; visibility:hidden; height:0; overflow:hidden; }
+.page.active { display:block !important; visibility:visible; height:auto; overflow:visible; }
 
 .card { background:var(--bg2); border:1px solid var(--border); border-radius:8px; padding:20px; margin-bottom:16px; }
 .card h3 { font-size:13px; font-weight:600; color:var(--text2); text-transform:uppercase; letter-spacing:1px; margin-bottom:16px; }
@@ -333,25 +333,25 @@ tr.expandable { cursor:pointer; }
 <div id="page-likelyar" class="page">
   <div class="card" style="margin-bottom:20px;">
     <h3>Findings Likely Resolved by Administrative Record</h3>
-    <p style="font-size:13px;color:var(--text2);line-height:1.6;margin-bottom:12px;">These <span id="lar-count" style="font-weight:700;color:var(--green);"></span> findings were flagged as AR gaps, but the gap descriptions indicate the relevant documents <strong>probably exist</strong> in the full Administrative Record — they just weren't provided to the analysis. Specialist reports, appendices, consultation correspondence, and implementation documents likely address these gaps.</p>
-    <p style="font-size:13px;color:var(--text2);line-height:1.6;margin-bottom:12px;"><strong>Action for planners:</strong> Pull the referenced AR documents, verify the analysis exists, and either (a) confirm the finding is resolved, or (b) escalate if the AR document doesn't actually address the gap. This is the fastest path to reducing the finding count.</p>
+    <p style="font-size:13px;color:var(--text2);line-height:1.6;margin-bottom:12px;">These <span id="lar-count" style="font-weight:700;color:var(--green);"></span> findings have AR gaps where the gap description indicates the relevant documents <strong>probably exist</strong> in the full Administrative Record but weren't provided to the analysis.</p>
+    <p style="font-size:13px;color:var(--text2);line-height:1.6;margin-bottom:12px;"><strong>Action:</strong> Pull the referenced AR document, verify the analysis exists, then mark the finding as Concur (resolved) or Escalate (gap confirmed).</p>
     <div class="btn-group">
-      <button class="btn btn-accent" onclick="exportCSV('likelyar')">⬇ Export Likely in AR Findings</button>
+      <button class="btn btn-accent" onclick="exportLAR()">⬇ Export These Findings as CSV</button>
     </div>
   </div>
 
   <div class="card" style="margin-bottom:16px;">
     <h3>By Document Type Needed</h3>
-    <p style="font-size:12px;color:var(--text2);margin-bottom:12px;">Findings grouped by the type of AR document most likely to resolve them. Click a group to filter the Explorer.</p>
     <div id="lar-groups"></div>
   </div>
 
   <div class="card">
     <h3>All Likely-in-AR Findings</h3>
-    <div class="tbl-wrap" style="max-height:55vh;overflow-y:auto;">
-      <table id="lar-table"><thead><tr><th>Finding</th><th>Sev</th><th>Category</th><th>Obligation</th><th>AR Gap — What's Missing</th><th>Review</th></tr></thead><tbody></tbody></table>
+    <div class="tbl-wrap" style="max-height:50vh;overflow-y:auto;">
+      <table id="lar-table"><thead><tr><th>Finding</th><th>Sev</th><th>Category</th><th>Obligation</th><th>What's Missing from the Record</th><th>Status</th></tr></thead><tbody></tbody></table>
     </div>
   </div>
+  <div id="lar-detail" class="detail-panel" style="display:none;"></div>
 </div>
 
 <!-- =================== HUMAN REVIEW =================== -->
@@ -1066,12 +1066,73 @@ function buildReview(){
 }
 
 // ============ LIKELY IN AR PAGE ============
+function exportLAR(){
+  const data=FINDINGS.filter(f=>f._type==='LIKELY_IN_AR');
+  const hdr=cols=>cols.join(',')+'\n';
+  const csvVal=v=>'"'+(String(v||'').replace(/"/g,'""'))+'"';
+  let csv=hdr(['Finding_ID','Severity','Category','Obligation','Compliance_Question','AR_Gap_Description','Fix_Difficulty','Fix_Recommendation','Review_Disposition','Review_Notes']);
+  data.forEach(f=>{
+    const rv=reviewState[f.i]||{};
+    csv+=[csvVal('F-'+f.i),csvVal(SEV_LABELS[f.s]),csvVal(f.c),csvVal(f.o),csvVal(f.q),csvVal(f.ad),csvVal(f.f),csvVal(f.fr),csvVal(rv.disposition),csvVal(rv.notes)].join(',')+'\n';
+  });
+  const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download=`RIDGELINE_likely_in_AR_${new Date().toISOString().slice(0,10)}.csv`;a.click();
+  URL.revokeObjectURL(url);
+}
+
+function showLARDetail(id){
+  const panel=document.getElementById('lar-detail');
+  const f=FINDINGS.find(x=>x.i===id);
+  if(!f)return;
+  if(panel.dataset.current===id&&panel.style.display!=='none'){panel.style.display='none';return;}
+  panel.dataset.current=id;
+  panel.style.display='block';
+  const rv=reviewState[f.i]||{};
+  const rd=rv.disposition||'';
+  let h=`<div class="dp-header">
+    <span class="dp-id">F-${esc(f.i)}</span>
+    <span class="sev sev-${f.s}">${SEV_LABELS[f.s]}</span>
+    <span class="dp-badge" style="background:var(--green-bg);color:var(--green);">Likely in AR</span>
+    ${f.f?`<span class="dp-badge" style="background:var(--bg3);color:var(--text2);">Fix: ${esc(f.f)}</span>`:''}
+  </div>`;
+  h+=`<div class="dp-field"><div class="dp-field-label">Obligation</div><div class="dp-field-value" style="font-weight:600;">${esc(f.o)}</div></div>`;
+  h+=`<div class="dp-field"><div class="dp-field-label">Compliance Question</div><div class="dp-field-value">${esc(f.q)}</div></div>`;
+  h+=`<div style="background:var(--accent-bg);border:1px solid rgba(88,166,255,0.2);border-radius:6px;padding:16px;margin-bottom:16px;">
+    <div class="dp-field-label" style="color:var(--accent);">What's Missing from the Record</div>
+    <div class="dp-field-value">${esc(f.ad)}</div>
+  </div>`;
+  if(f.pa) h+=`<div class="dp-field"><div class="dp-field-label" style="color:var(--red);">Plaintiff Argument</div><div class="dp-field-value">${esc(f.pa)}</div></div>`;
+  if(f.fr) h+=`<div class="dp-fix"><div class="dp-field-label">Fix Recommendation</div><div class="dp-field-value">${esc(f.fr)}</div></div>`;
+  h+=`<div class="review-bar">
+    <h4>Human Review</h4>
+    <div class="review-actions">
+      <button class="rbtn ${rd==='CONCUR'?'active-concur':''}" onclick="setLARReview('${f.i}','CONCUR')">✓ Resolved by AR</button>
+      <button class="rbtn ${rd==='ESCALATE'?'active-escalate':''}" onclick="setLARReview('${f.i}','ESCALATE')">⚑ Gap Confirmed</button>
+      <button class="rbtn ${rd==='DISMISS'?'active-dismiss':''}" onclick="setLARReview('${f.i}','DISMISS')">✗ Not Applicable</button>
+    </div>
+    <textarea class="review-notes" placeholder="AR document name, specialist, notes..." oninput="setReviewNotes('${f.i}',this.value)">${esc(rv.notes||'')}</textarea>
+  </div>`;
+  panel.innerHTML=h;
+  panel.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+function setLARReview(id,disposition){
+  if(!reviewState[id]) reviewState[id]={};
+  reviewState[id].disposition=disposition;
+  reviewState[id].timestamp=new Date().toISOString();
+  auditLog.push({time:new Date().toLocaleString(),id:'F-'+id,disposition,notes:reviewState[id].notes||''});
+  showLARDetail(id);showLARDetail(id); // toggle re-render
+  buildLikelyAR();buildReview();
+}
+
 function buildLikelyAR(){
   const larFindings=FINDINGS.filter(f=>f._type==='LIKELY_IN_AR');
   const el=document.getElementById('lar-count');
   if(el) el.textContent=larFindings.length;
 
-  // Group by document type based on AR gap description patterns
+  // Group by document type
   const groups={
     'Appendix / Protective Measures':[],
     'Specialist Reports':[],
@@ -1085,7 +1146,7 @@ function buildLikelyAR(){
     const ad=(f.ad||'').toLowerCase();
     if(ad.includes('appendix')||ad.includes('protective measure')) groups['Appendix / Protective Measures'].push(f);
     else if(ad.includes('specialist')||ad.includes('biologist')||ad.includes('hydrologist')) groups['Specialist Reports'].push(f);
-    else if(ad.includes('consultation')||ad.includes('biop')||ad.includes('biological opinion')||ad.includes('fombo')||ad.includes('nmfs')) groups['Consultation Documents (BiOp/BA)'].push(f);
+    else if(ad.includes('consultation')||ad.includes('biop')||ad.includes('biological opinion')||ad.includes('biological assessment')||ad.includes('fombo')||ad.includes('nmfs')||ad.includes('concurrence')) groups['Consultation Documents (BiOp/BA)'].push(f);
     else if(ad.includes('survey')||ad.includes('monitoring')||ad.includes('protocol')) groups['Survey / Monitoring Data'].push(f);
     else if(ad.includes('source document')||ad.includes('sd-')) groups['Source Documents Not Provided'].push(f);
     else if(ad.includes('contract')||ad.includes('implementation')||ad.includes('stipulation')) groups['Implementation / Contract Files'].push(f);
@@ -1094,30 +1155,30 @@ function buildLikelyAR(){
 
   const gDiv=document.getElementById('lar-groups');
   if(gDiv){
-    const maxG=Math.max(...Object.values(groups).map(g=>g.length));
     gDiv.innerHTML=Object.entries(groups).filter(([,v])=>v.length>0).sort((a,b)=>b[1].length-a[1].length).map(([name,items])=>{
       const reds=items.filter(f=>f.s==='R').length;
-      return `<div style="margin-bottom:10px;cursor:pointer;" onclick="goExplorer({type:'LIKELY_IN_AR',search:'${name.split('/')[0].trim().toLowerCase().split(' ')[0]}'})">
+      const reviewed=items.filter(f=>reviewState[f.i]&&reviewState[f.i].disposition).length;
+      return `<div style="margin-bottom:10px;">
         <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:3px;">
           <span>${name}</span>
-          <span style="font-family:var(--mono);color:var(--text2);">${items.length} findings${reds>0?' · <span style=color:var(--red)>'+reds+' RED</span>':''}</span>
+          <span style="font-family:var(--mono);font-size:12px;color:var(--text2);">${items.length} findings${reds>0?' · <span style=color:var(--red)>'+reds+' RED</span>':''} · ${reviewed} reviewed</span>
         </div>
         <div style="background:var(--bg3);height:22px;border-radius:4px;overflow:hidden;display:flex;">
           ${reds>0?`<div style="background:var(--red);width:${reds/items.length*100}%;"></div>`:''}
-          <div style="background:var(--green);width:${(items.length-reds)/items.length*100}%;opacity:0.6;"></div>
+          <div style="background:var(--green);width:${(items.length-reds)/items.length*100}%;opacity:0.5;"></div>
         </div>
       </div>`;
     }).join('');
   }
 
-  // Full table
+  // Table — ONLY LIKELY_IN_AR findings
   const tbody=document.querySelector('#lar-table tbody');
   if(tbody){
     larFindings.sort((a,b)=>(['R','Y','G','X'].indexOf(a.s))-(['R','Y','G','X'].indexOf(b.s)));
     tbody.innerHTML=larFindings.map(f=>{
       const rv=reviewState[f.i];
-      const badge=rv&&rv.disposition?`<span class="review-badge rb-${rv.disposition.toLowerCase()}">${rv.disposition}</span>`:'';
-      return `<tr class="expandable" onclick="goExplorer({search:'${f.i}'})">
+      const badge=rv&&rv.disposition?`<span class="review-badge rb-${rv.disposition.toLowerCase()}">${rv.disposition}</span>`:'<span class="review-badge rb-pending">PENDING</span>';
+      return `<tr class="expandable" onclick="showLARDetail('${f.i}')">
         <td style="font-family:var(--mono);font-size:12px;">F-${esc(f.i)}</td>
         <td><span class="sev sev-${f.s}">${SEV_LABELS[f.s]}</span></td>
         <td style="font-size:12px;">${esc(f.c.replace(/_/g,' '))}</td>
