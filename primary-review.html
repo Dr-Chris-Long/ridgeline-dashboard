@@ -187,6 +187,7 @@ tr.expandable { cursor:pointer; }
   <div class="tab" data-page="categories">Categories</div>
   <div class="tab" data-page="cascades">Cascade Chains</div>
   <div class="tab" data-page="likelyar">Likely in AR</div>
+  <div class="tab" data-page="comments">Comment Analysis</div>
   <div class="tab" data-page="review">Human Review</div>
   <div class="tab" data-page="methodology">Methodology</div>
 </div>
@@ -214,7 +215,7 @@ tr.expandable { cursor:pointer; }
       </div>
       <div style="font-size:12px;color:var(--accent);margin-top:12px;">Open Dashboard →</div>
     </div>
-    <div class="card" style="border-left:3px solid var(--accent);">
+    <div class="card" style="cursor:pointer;border-left:3px solid var(--accent);transition:border-color 0.2s;" onclick="var ps=document.querySelectorAll('.page');for(var i=0;i<ps.length;i++)ps[i].classList.remove('active');var ts=document.querySelectorAll('.tab');for(var i=0;i<ts.length;i++)ts[i].classList.remove('active');document.getElementById('page-comments').classList.add('active');document.querySelector('[data-page=comments]').classList.add('active');loadCommentData();" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--accent)'">
       <h3 style="color:var(--text);font-size:16px;text-transform:none;letter-spacing:0;">Comment & Thematic Analysis</h3>
       <p style="font-size:13px;color:var(--text2);line-height:1.6;margin-top:8px;">Public comment processing, thematic coding, and reference extraction across the Butte Falls timber project family. Includes longitudinal analysis of comment persistence and response drift.</p>
       <div style="display:flex;gap:16px;margin-top:12px;">
@@ -228,7 +229,7 @@ tr.expandable { cursor:pointer; }
         <span style="font-family:var(--mono);font-size:10px;padding:2px 8px;border-radius:4px;background:var(--bg3);color:var(--text2);">2013–2025</span>
         <span style="font-family:var(--mono);font-size:10px;padding:2px 8px;border-radius:4px;background:var(--bg3);color:var(--text2);">Live Supabase</span>
       </div>
-      <div style="font-size:11px;color:var(--text3);margin-top:12px;">Requires separate CTA dashboard (Supabase connection)</div>
+      <div style="font-size:12px;color:var(--accent);margin-top:12px;">Open Comment Analysis →</div>
     </div>
   </div>
   <div style="max-width:700px;margin:24px auto;text-align:center;padding-top:16px;border-top:1px solid var(--border);">
@@ -398,6 +399,15 @@ tr.expandable { cursor:pointer; }
     </div>
   </div>
   <div id="lar-detail" class="detail-panel" style="display:none;"></div>
+</div>
+
+<!-- =================== COMMENT ANALYSIS =================== -->
+<div id="page-comments" class="page">
+  <div class="card" style="margin-bottom:16px;">
+    <h3>Longitudinal Comment & Response Analysis</h3>
+    <p style="font-size:13px;color:var(--text2);line-height:1.6;" id="cta-status">Loading data from Supabase...</p>
+  </div>
+  <div id="cta-content"></div>
 </div>
 
 <!-- =================== HUMAN REVIEW =================== -->
@@ -632,6 +642,7 @@ document.getElementById('tab-bar').addEventListener('click', e => {
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   document.getElementById('page-'+tab.dataset.page).classList.add('active');
   tab.classList.add('active');
+  if(tab.dataset.page==='comments') loadCommentData();
 });
 
 function esc(s) { const d=document.createElement('div'); d.textContent=s; return d.innerHTML; }
@@ -1326,6 +1337,166 @@ function buildLikelyAR(){
       </tr>`;
     }).join('');
   }
+}
+
+// ============ COMMENT ANALYSIS (Supabase) ============
+const SB_URL='https://uojjoraxzmzwuilmndlu.supabase.co/rest/v1';
+const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVvampvcmF4em16d3VpbG1uZGx1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI1ODc4MTksImV4cCI6MjA4ODE2MzgxOX0.4WmtuoXjXj441KpbLxJkQTebulejiEafKu0bSvdefpM';
+let ctaLoaded=false;
+let ctaTraces=[],ctaGaps=[];
+
+async function sbFetch(table,select){
+  let all=[],off=0;
+  while(true){
+    const r=await fetch(SB_URL+'/'+table+'?select='+select+'&limit=1000&offset='+off,{headers:{apikey:SB_KEY,Authorization:'Bearer '+SB_KEY}});
+    if(!r.ok)break;
+    const d=await r.json();all=all.concat(d);
+    if(d.length<1000)break;off+=1000;
+  }
+  return all;
+}
+
+async function loadCommentData(){
+  if(ctaLoaded){renderComments();return;}
+  const status=document.getElementById('cta-status');
+  try{
+    status.textContent='Fetching response traces...';
+    ctaTraces=await sbFetch('pa_response_trace','trace_id,topic_id,topic_name,project,entity_name,response_text,response_length');
+    status.textContent='Fetching response gaps...';
+    ctaGaps=await sbFetch('pa_response_gaps','gap_id,topic_id,project,entity_name,codes_on_topic,has_any_response');
+    ctaLoaded=true;
+    status.textContent=ctaTraces.length+' response traces · '+ctaGaps.length+' gap records loaded.';
+    renderComments();
+  }catch(e){
+    status.textContent='Error loading: '+e.message;
+    status.style.color='var(--red)';
+  }
+}
+
+function renderComments(){
+  const con=document.getElementById('cta-content');
+  con.innerHTML='';
+  const traces=ctaTraces.filter(t=>t.project&&t.project!=='UNKNOWN');
+  const gaps=ctaGaps;
+  const projectOrder=['Double Bowen','Elk Camel','Obenchain','Gold Sardine','Evans Creek','Round Oak','Trail Creek','South Clark','Lost Lewis'];
+  const rawP=[...new Set(traces.map(t=>t.project))];
+  const projects=projectOrder.filter(p=>rawP.includes(p));
+  rawP.forEach(p=>{if(!projects.includes(p))projects.push(p)});
+
+  // Build topic map
+  const topicMap={};
+  traces.forEach(t=>{
+    if(!topicMap[t.topic_name])topicMap[t.topic_name]={projects:{},total:0};
+    const tm=topicMap[t.topic_name];
+    if(!tm.projects[t.project])tm.projects[t.project]={responses:[],len:0};
+    tm.projects[t.project].responses.push(t);
+    tm.projects[t.project].len+=t.response_length||0;
+    tm.total++;
+  });
+  const topics=Object.entries(topicMap).sort((a,b)=>Object.keys(b[1].projects).length-Object.keys(a[1].projects).length);
+
+  // Matrix
+  const card=document.createElement('div');card.className='card';card.style.marginBottom='16px';card.style.overflowX='auto';
+  card.innerHTML='<h3>Topic Persistence Across Projects</h3><p style="font-size:12px;color:var(--text2);margin-bottom:12px;">Click any topic to see response text across projects. Green = responded. Dash = not raised.</p>';
+  let thtml='<table style="font-size:12px;"><thead><tr><th style="min-width:180px;">Topic</th><th>Span</th>';
+  projects.forEach(p=>{thtml+='<th style="font-size:10px;max-width:70px;white-space:normal;text-align:center;">'+esc(p)+'</th>';});
+  thtml+='</tr></thead><tbody>';
+
+  topics.forEach(function(entry){
+    var name=entry[0],data=entry[1];
+    var pc=Object.keys(data.projects).length;
+    thtml+='<tr class="expandable" onclick="showCtaTopic(\''+esc(name.replace(/'/g,"\\'"))+'\')" style="cursor:pointer;">';
+    thtml+='<td style="font-weight:600;">'+esc(name)+'</td>';
+    thtml+='<td style="font-family:var(--mono);font-size:11px;color:var(--accent);text-align:center;">'+pc+'</td>';
+    projects.forEach(function(proj){
+      var pd=data.projects[proj];
+      if(pd){
+        thtml+='<td style="text-align:center;background:rgba(63,185,80,0.12);color:var(--green);font-family:var(--mono);font-size:11px;">'+pd.responses.length+'</td>';
+      }else{
+        thtml+='<td style="text-align:center;color:var(--text3);">—</td>';
+      }
+    });
+    thtml+='</tr>';
+  });
+  thtml+='</tbody></table>';
+  card.innerHTML+=thtml;
+  con.appendChild(card);
+
+  // Detail area
+  var detail=document.createElement('div');detail.id='cta-detail';
+  con.appendChild(detail);
+
+  // Gap summary
+  var gapCard=document.createElement('div');gapCard.className='card';gapCard.style.marginBottom='16px';
+  var unanswered=gaps.filter(function(g){return!g.has_any_response;});
+  gapCard.innerHTML='<h3>Response Gap Summary</h3><p style="font-size:12px;color:var(--text2);margin-bottom:12px;">'+unanswered.length+' of '+gaps.length+' comment-topic pairs have no substantive response.</p>';
+  var gapByProj={};
+  unanswered.forEach(function(g){if(g.project&&g.project!=='UNKNOWN')gapByProj[g.project]=(gapByProj[g.project]||0)+1;});
+  var maxG=Math.max.apply(null,Object.values(gapByProj).concat([1]));
+  Object.entries(gapByProj).sort(function(a,b){return b[1]-a[1];}).forEach(function(e){
+    gapCard.innerHTML+='<div style="margin-bottom:6px;"><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:2px;"><span>'+esc(e[0])+'</span><span style="font-family:var(--mono);color:var(--red);">'+e[1]+' unanswered</span></div><div style="background:var(--bg3);height:14px;border-radius:3px;overflow:hidden;"><div style="background:var(--red);height:100%;width:'+Math.round(e[1]/maxG*100)+'%;border-radius:3px;opacity:0.7;"></div></div></div>';
+  });
+  con.appendChild(gapCard);
+
+  // Entity tracking
+  var entCard=document.createElement('div');entCard.className='card';
+  entCard.innerHTML='<h3>Commenter Entity Activity</h3>';
+  var entMap={};
+  traces.forEach(function(t){
+    if(!t.entity_name||t.project==='UNKNOWN')return;
+    if(!entMap[t.entity_name])entMap[t.entity_name]={projects:new Set(),topics:new Set(),ct:0};
+    entMap[t.entity_name].projects.add(t.project);
+    entMap[t.entity_name].topics.add(t.topic_name);
+    entMap[t.entity_name].ct++;
+  });
+  Object.entries(entMap).sort(function(a,b){return b[1].ct-a[1].ct;}).forEach(function(e){
+    entCard.innerHTML+='<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);font-size:12px;"><span style="font-weight:500;">'+esc(e[0])+'</span><span style="color:var(--text2);font-family:var(--mono);font-size:11px;">'+e[1].projects.size+' projects · '+e[1].topics.size+' topics · '+e[1].ct+' responses</span></div>';
+  });
+  con.appendChild(entCard);
+
+  // Store for detail function
+  window._ctaTopicMap=topicMap;
+  window._ctaProjects=projects;
+}
+
+function showCtaTopic(name){
+  var detail=document.getElementById('cta-detail');
+  if(!detail)return;
+  var data=window._ctaTopicMap[name];
+  var projects=window._ctaProjects;
+  if(!data){detail.innerHTML='';return;}
+
+  var html='<div class="card" style="margin-bottom:16px;"><h3>Response Drift — '+esc(name)+'</h3>';
+  html+='<p style="font-size:12px;color:var(--text2);margin-bottom:12px;">BLM responses to "'+esc(name)+'" across '+Object.keys(data.projects).length+' projects. Look for boilerplate repetition vs. substantive changes.</p>';
+
+  var projKeys=projects.filter(function(p){return data.projects[p];});
+  projKeys.forEach(function(proj,idx){
+    var pd=data.projects[proj];
+    html+='<div style="background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:14px 16px;margin-bottom:10px;">';
+    html+='<div style="display:flex;justify-content:space-between;margin-bottom:8px;"><span style="font-size:14px;font-weight:600;color:var(--accent);">'+esc(proj)+'</span><span style="font-size:11px;color:var(--text3);font-family:var(--mono);">'+pd.responses.length+' responses · '+Math.round(pd.len/1000)+'K chars</span></div>';
+    pd.responses.forEach(function(resp){
+      var preview=resp.response_text?(resp.response_text.length>500?resp.response_text.substring(0,500)+'…':resp.response_text):'No text';
+      html+='<div style="border-left:3px solid var(--border);padding-left:12px;margin-bottom:8px;">';
+      html+='<div style="font-size:11px;color:var(--text2);margin-bottom:4px;">'+esc(resp.entity_name||'Unknown')+' · '+(resp.response_length||0)+' chars</div>';
+      html+='<div style="font-size:12px;color:var(--text);line-height:1.55;">'+esc(preview)+'</div></div>';
+    });
+    if(idx>0){
+      var prev=projKeys[idx-1];var prevPd=data.projects[prev];
+      if(prevPd&&prevPd.responses[0]&&pd.responses[0]){
+        var pw=new Set((prevPd.responses[0].response_text||'').toLowerCase().split(/\s+/));
+        var cw=new Set((pd.responses[0].response_text||'').toLowerCase().split(/\s+/));
+        var shared=0;pw.forEach(function(w){if(cw.has(w)&&w.length>3)shared++;});
+        var sim=Math.round(shared/Math.max(pw.size,cw.size)*100);
+        var col=sim>70?'var(--red)':sim>40?'var(--yellow)':'var(--green)';
+        var lbl=sim>70?'HIGH SIMILARITY — likely boilerplate':sim>40?'MODERATE overlap':'SUBSTANTIVE CHANGE detected';
+        html+='<div style="font-size:10px;color:'+col+';font-family:var(--mono);">↑ vs '+esc(prev)+': '+sim+'% word overlap — '+lbl+'</div>';
+      }
+    }
+    html+='</div>';
+  });
+  html+='</div>';
+  detail.innerHTML=html;
+  detail.scrollIntoView({behavior:'smooth',block:'nearest'});
 }
 
 buildSummary();buildExplorer();buildCategories();buildCascades();buildLikelyAR();buildReview();
