@@ -24,6 +24,7 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 .dash-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
 .dash-card.primary::before{background:linear-gradient(90deg,var(--red),var(--yellow),var(--green))}
 .dash-card.cta::before{background:linear-gradient(90deg,var(--accent),#a78bfa)}
+.dash-card.system::before{background:linear-gradient(90deg,#3fb950,var(--accent))}
 .card-label{font-family:var(--mono);font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:1.5px}
 .card-title{font-size:22px;font-weight:600;line-height:1.3}
 .card-desc{font-size:14px;color:var(--text2);line-height:1.6}
@@ -76,10 +77,25 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
     </div>
     <span class="card-arrow">Open Dashboard →</span>
   </a>
+  <a href="system.html" class="dash-card system">
+    <span class="card-label">System Architecture &amp; Governance</span>
+    <span class="card-title">RIDGELINE System Overview</span>
+    <span class="card-desc">Complete platform inventory, SUMMIT framework architecture, methodologies, human oversight controls, governance compliance, deployment options, and token usage analysis.</span>
+    <div class="card-stats">
+      <div class="card-stat"><span class="val" style="color:var(--accent);">45</span><span class="lbl">Methods</span></div>
+      <div class="card-stat"><span class="val" style="color:var(--accent);">10K+</span><span class="lbl">Pages</span></div>
+      <div class="card-stat"><span class="val" style="color:var(--accent);">9</span><span class="lbl">Tabs</span></div>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      <span class="card-tag">SUMMIT Framework</span>
+      <span class="card-tag">SO 3444 Compliant</span>
+    </div>
+    <span class="card-arrow">Open Overview →</span>
+  </a>
 </div>
 <div class="footer">
   <p>
-    RIDGELINE v1 · LEGION Orchestration Framework<br>
+    RIDGELINE v1 · SUMMIT Orchestration Framework<br>
     Pre-decisional internal review tool. Not a legal opinion. All findings require human review.<br>
     AI use authorized under DOI policy for document management, text mining, pattern detection, and precedent review.<br>
     <a href="https://github.com/Dr-Chris-Long/ridgeline-dashboard">GitHub Repository</a>

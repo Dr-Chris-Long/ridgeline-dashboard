@@ -1,0 +1,1051 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RIDGELINE - System Overview</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@300;400;500;600;700&family=Source+Code+Pro:wght@400;500&display=swap');
+:root{--navy:#1B3A5C;--accent:#2E75B6;--accent-light:#E6F1FB;--dark:#2C3E50;--gray:#6B7280;--light:#F8FAFC;--border:#E2E8F0;--green:#059669;--green-bg:#ECFDF5;--amber:#D97706;--amber-bg:#FFFBEB;--red:#DC2626;--red-bg:#FEF2F2;--purple:#7C3AED;--purple-bg:#F5F3FF;--teal:#0D9488;--teal-bg:#F0FDFA;--font:'Source Sans 3',-apple-system,sans-serif;--mono:'Source Code Pro',monospace}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font);color:var(--dark);background:#fff;line-height:1.6}
+.header{background:var(--navy);color:#fff;padding:32px 40px}
+.header h1{font-size:28px;font-weight:700;letter-spacing:2px}
+.header .sub{font-size:14px;font-weight:300;opacity:.8;margin-top:4px;letter-spacing:.5px}
+.header .full{font-size:12px;font-weight:400;opacity:.5;margin-top:8px}
+.nav{display:flex;gap:0;border-bottom:2px solid var(--border);background:var(--light);position:sticky;top:0;z-index:100;overflow-x:auto}
+.nb{padding:12px 18px;font-family:var(--font);font-size:13px;font-weight:500;color:var(--gray);background:none;border:none;border-bottom:2px solid transparent;margin-bottom:-2px;cursor:pointer;transition:all .15s;white-space:nowrap}
+.nb:hover{color:var(--dark)}.nb.a{color:var(--accent);border-bottom-color:var(--accent)}
+.ct{max-width:960px;margin:0 auto;padding:24px 20px 60px}
+.sec{display:none}.sec.a{display:block}
+h2{font-size:20px;font-weight:600;color:var(--navy);margin:24px 0 12px}
+h3{font-size:16px;font-weight:600;color:var(--accent);margin:20px 0 8px}
+p{font-size:14px;margin-bottom:12px}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin:16px 0}
+.st{background:var(--light);border:1px solid var(--border);border-radius:8px;padding:14px 16px;text-align:center}
+.sv{font-size:28px;font-weight:700;color:var(--navy);line-height:1.2}
+.sl{font-size:11px;font-weight:500;color:var(--gray);margin-top:4px;text-transform:uppercase;letter-spacing:.5px}
+.cd{border:1px solid var(--border);border-radius:8px;margin:8px 0;overflow:hidden;transition:border-color .15s}
+.cd:hover{border-color:var(--accent)}
+.ch{padding:10px 14px;cursor:pointer;display:flex;align-items:center;gap:10px;user-select:none}
+.ch:hover{background:var(--light)}
+.cv{font-size:12px;color:var(--gray);transition:transform .2s;flex-shrink:0}
+.cd.o .cv{transform:rotate(90deg)}
+.ci{font-family:var(--mono);font-size:11px;color:var(--gray);min-width:55px}
+.cn{font-size:13px;font-weight:600;flex:1}
+.cm{display:flex;gap:6px;flex-wrap:wrap}
+.cb{display:none;padding:0 14px 12px;font-size:12px;color:var(--gray);line-height:1.7;border-top:1px solid var(--border);padding-top:10px}
+.cd.o .cb{display:block}.cb b{color:var(--dark);font-weight:500}
+.tg{display:inline-block;font-size:10px;font-weight:600;padding:2px 6px;border-radius:4px;letter-spacing:.3px}
+.t-ai{background:var(--amber-bg);color:var(--amber)}
+.t-sq{background:var(--green-bg);color:var(--green)}
+.t-no{background:var(--light);color:var(--gray);border:1px solid var(--border)}
+.t-ex{background:var(--accent-light);color:var(--accent)}
+.t-st{background:var(--green-bg);color:var(--green)}
+.t-ho{background:var(--purple-bg);color:var(--purple)}
+.t-se{background:var(--teal-bg);color:var(--teal)}
+.t-pl{background:var(--red-bg);color:var(--red)}
+table{width:100%;border-collapse:collapse;font-size:13px;margin:12px 0}
+th{background:var(--navy);color:#fff;padding:8px 12px;text-align:left;font-weight:500;font-size:12px}
+td{padding:7px 12px;border-bottom:1px solid var(--border)}
+tr:hover td{background:var(--light)}
+.r{text-align:right}.m{font-family:var(--mono);font-size:12px}
+.pt{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:16px 0}
+.th2{text-align:center;padding:6px 12px;border-radius:6px;font-size:13px;font-weight:600;margin-bottom:8px}
+.th2.cta{background:var(--accent-light);color:var(--accent)}.th2.adv{background:var(--red-bg);color:var(--red)}
+.pa{text-align:center;color:var(--gray);font-size:14px;padding:2px 0}
+.zn{border:1px dashed var(--border);border-radius:10px;padding:12px;margin:10px 0}
+.zl{font-size:10px;font-weight:600;color:var(--gray);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px}
+.zg{display:grid;gap:8px}.z2{grid-template-columns:1fr 1fr}.z3{grid-template-columns:1fr 1fr 1fr}
+.op{border:2px solid var(--border);border-radius:10px;padding:16px;margin:12px 0}
+.op.rec{border-color:var(--green)}
+.oh{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.ol{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;color:#fff;flex-shrink:0}
+.ol.oa{background:var(--green)}.ol.ob{background:var(--amber)}.ol.oc{background:var(--red)}
+.on{font-size:15px;font-weight:600}
+.or{font-size:11px;color:var(--green);font-weight:600}
+.og{display:grid;grid-template-columns:120px 1fr;gap:4px 12px;font-size:12px}
+.og dt{font-weight:600;color:var(--gray)}.og dd{color:var(--dark)}
+.cs{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:16px 0}
+.cc{background:var(--light);border:1px solid var(--border);border-radius:8px;padding:16px}
+.cc h4{font-size:12px;font-weight:600;color:var(--gray);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px}
+.cr{display:flex;justify-content:space-between;font-size:13px;padding:3px 0}
+.cr.tot{font-weight:700;border-top:1px solid var(--border);margin-top:4px;padding-top:6px}
+.pf{display:grid;grid-template-columns:140px 1fr;gap:2px 0;font-size:12px;margin:8px 0;border:1px solid var(--border);border-radius:8px;overflow:hidden}
+.pk{padding:6px 10px;font-weight:600;color:var(--gray);background:var(--light);border-bottom:1px solid var(--border)}
+.pv{padding:6px 10px;border-bottom:1px solid var(--border)}
+.fl{text-align:center;color:var(--gray);font-size:12px;padding:8px 0}
+.fl svg{vertical-align:middle}
+.note{font-size:12px;color:var(--gray);padding:10px 14px;background:var(--light);border-radius:8px;border-left:3px solid var(--accent);margin:12px 0}
+.arch-flow{margin:12px 0}
+.af-boundary{border:2px dashed var(--border);border-radius:12px;padding:14px;margin:8px 0;position:relative}
+.af-boundary-sm{border:1px dashed var(--border);border-radius:8px;padding:8px;position:relative}
+.af-blabel{font-size:10px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;margin-bottom:8px}
+.af-row{display:flex;justify-content:center;gap:10px;margin:6px 0}
+.af-row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+.af-row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.af-box{border:1px solid var(--border);border-radius:6px;padding:8px 12px;text-align:center;font-size:12px;font-weight:600;background:#fff}
+.af-sub{display:block;font-size:10px;font-weight:400;color:var(--gray);margin-top:2px}
+.af-user{background:var(--light);border-color:var(--gray);max-width:240px;margin:0 auto}
+.af-compute{background:#fff;border-color:var(--accent)}
+.af-model{background:#fff}
+.af-data{background:var(--light);border-color:var(--green)}
+.af-out{background:var(--light);border-color:var(--purple)}
+.af-arrow{text-align:center;color:var(--gray);font-size:11px;padding:4px 0}
+.af-verdict{font-size:12px;line-height:1.6;padding:10px 14px;border-radius:8px;margin-top:12px}
+.af-verdict b{display:inline}
+.af-good{background:var(--green-bg);border-left:3px solid var(--green)}
+.af-warn{background:var(--amber-bg);border-left:3px solid var(--amber)}
+.af-bad{background:var(--red-bg);border-left:3px solid var(--red)}
+.footer{text-align:center;padding:20px;font-size:11px;color:var(--gray);border-top:1px solid var(--border);margin-top:40px}
+@media(max-width:640px){.pt,.cs,.z2,.z3,.af-row3,.af-row2{grid-template-columns:1fr}.stats{grid-template-columns:repeat(2,1fr)}.pf{grid-template-columns:120px 1fr}}
+</style>
+</head>
+<body>
+<div class="header">
+<h1>RIDGELINE</h1>
+<div class="sub">AI-Enabled Litigation Risk Analysis and NEPA Decision Support</div>
+<div class="full">Review, Issue Detection, Governance, and Environmental Litigation Intelligence for NEPA Evaluation</div>
+</div>
+<nav class="nav">
+<button class="nb a" onclick="tab('overview')">Overview</button>
+<button class="nb" onclick="tab('summit')">SUMMIT framework</button>
+<button class="nb" onclick="tab('methods')">Methodologies</button>
+<button class="nb" onclick="tab('human')">Human oversight</button>
+<button class="nb" onclick="tab('governance')">Governance</button>
+<button class="nb" onclick="tab('platform')">Platform architecture</button>
+<button class="nb" onclick="tab('pipeline')">Pipeline</button>
+<button class="nb" onclick="tab('tokens')">Token usage</button>
+<button class="nb" onclick="tab('deploy')">Deployment</button>
+</nav>
+<div class="ct">
+
+<!-- ===== OVERVIEW ===== -->
+<div id="overview" class="sec a">
+<h2>Platform inventory</h2>
+<div class="stats">
+<div class="st"><div class="sv">15,840</div><div class="sl">Lines of code</div></div>
+<div class="st"><div class="sv">124</div><div class="sl">Database tables</div></div>
+<div class="st"><div class="sv">45</div><div class="sl">Analytical methods</div></div>
+<div class="st"><div class="sv">24</div><div class="sl">Agent prompts</div></div>
+<div class="st"><div class="sv">10,000+</div><div class="sl">Pages processed</div></div>
+<div class="st"><div class="sv">2,967</div><div class="sl">Compliance rules</div></div>
+<div class="st"><div class="sv">695</div><div class="sl">Findings generated</div></div>
+<div class="st"><div class="sv">$23</div><div class="sl">Cost per project</div></div>
+</div>
+
+<h3>Code</h3>
+<table>
+<tr><th>Component</th><th class="r">Files</th><th class="r">Lines</th></tr>
+<tr><td>Python source (10 modules)</td><td class="r m">38</td><td class="r m">7,456</td></tr>
+<tr><td>Python tests (402+ tests)</td><td class="r m">16</td><td class="r m">4,811</td></tr>
+<tr><td>CTA dashboard (HTML/JS/CSS)</td><td class="r m">1</td><td class="r m">2,837</td></tr>
+<tr><td>Config and documentation</td><td class="r m">11</td><td class="r m">736</td></tr>
+<tr style="font-weight:600"><td>Total</td><td class="r m">66</td><td class="r m">15,840</td></tr>
+</table>
+
+<h3>Analytical methods (45)</h3>
+<table>
+<tr><th>Category</th><th class="r">Count</th><th>Examples</th></tr>
+<tr><td>QC methods</td><td class="r m">22</td><td>Hallucination mitigation, intercoder reliability, deontic validation, keyword anchoring</td></tr>
+<tr><td>Legal analysis</td><td class="r m">6</td><td>IRAC/CREAC, 4-Gate Traversal, Speech Act Theory, Attack Vector Derivation</td></tr>
+<tr><td>Pipeline procedures</td><td class="r m">6</td><td>Cascade detection, finding classification, disclosure/decision test, deliverable spec</td></tr>
+<tr><td>Debate frameworks</td><td class="r m">4</td><td>APA Arbitrary/Capricious, NEPA Hard Look, Kisor Deference, NEPA Significance</td></tr>
+<tr><td>Scoring / Intercoder / Extraction</td><td class="r m">5</td><td>Scrutiny Score, Vulnerability Scoring, Theme ICR, Rules Distillation v1.4</td></tr>
+<tr><td>Evaluation pipelines</td><td class="r m">2</td><td>R-3 Combined Compliance (Option C, High-Cost)</td></tr>
+</table>
+
+<h3>Knowledge bases</h3>
+<table>
+<tr><th>Corpus</th><th class="r">Records</th><th>Description</th></tr>
+<tr><td>Compliance rules</td><td class="r m">2,967</td><td>Active rules across 11 source authorities with page citations</td></tr>
+<tr><td>Obligation clusters</td><td class="r m">390</td><td>Rules compressed into debate units (all 6 sources clustered)</td></tr>
+<tr><td>Obligation families</td><td class="r m">39</td><td>Cross-source dedup: 157 clusters grouped into 39 families + 224 standalone = 263 debate units</td></tr>
+<tr><td>Litigation intelligence</td><td class="r m">132</td><td>15 cases, 38 holdings, 12 standards, 67 attack patterns (KS Wild corpus)</td></tr>
+<tr><td>Defense kill shots</td><td class="r m">13</td><td>5 categories: Jurisdictional, Procedural, Substantive, PI Defense, Remedy Limitation</td></tr>
+<tr><td>Record quality standards</td><td class="r m">12</td><td>From published 9th Circuit opinions, litigation frequency scored 1-5</td></tr>
+<tr><td>Cascade dependency rules</td><td class="r m">12</td><td>4 types: Sequential, Foundation Attack, Independent Flank, Cumulative Weight</td></tr>
+<tr><td>Training KB</td><td class="r m">261</td><td>59 docs, 58 content entries, 144 mindset training maps</td></tr>
+<tr><td>Agent mindsets</td><td class="r m">4</td><td>NEPA Planner, Plaintiff Litigator, Agency Defense Counsel, Judicial Arbiter</td></tr>
+<tr><td>Methodology sources</td><td class="r m">82</td><td>Academic and legal citations backing all 35 registered methodologies</td></tr>
+<tr><td>Lessons learned</td><td class="r m">54</td><td>Accumulated from production runs and testing</td></tr>
+</table>
+
+<h3>Documents processed</h3>
+<table>
+<tr><th>Corpus</th><th class="r">Docs</th><th class="r">Pages</th><th>Source</th></tr>
+<tr><td>Environmental Assessments</td><td class="r m">8</td><td class="r m">1,692</td><td>ea_documents / ea_text_store</td></tr>
+<tr><td>Reference docs (statutes, regs, guidance, case law, comments)</td><td class="r m">~40</td><td class="r m">2,741</td><td>source_text_store</td></tr>
+<tr><td>SWO RMP Final EIS (SD-002)</td><td class="r m">1</td><td class="r m">2,366</td><td>source_documents</td></tr>
+<tr><td>NSO Biological Opinion (SD-003)</td><td class="r m">1</td><td class="r m">1,083</td><td>source_documents</td></tr>
+<tr><td>Coho Salmon BiOp (SD-004)</td><td class="r m">1</td><td class="r m">395</td><td>source_documents</td></tr>
+<tr><td>SWO ROD/RMP (SD-001)</td><td class="r m">1</td><td class="r m">332</td><td>source_documents</td></tr>
+<tr><td>NW/Coastal Oregon RMP (SD-010)</td><td class="r m">1</td><td class="r m">320</td><td>source_documents</td></tr>
+<tr><td>ARBO II BiOp (SD-011)</td><td class="r m">1</td><td class="r m">217</td><td>source_documents</td></tr>
+<tr><td>Litigation intelligence (complaints, motions, appeals, protests)</td><td class="r m">24</td><td class="r m">~800 est.</td><td>source_documents (SD-04xx)</td></tr>
+<tr><td>Statutory/regulatory (NEPA, ESA, FLPMA, CFR, case law)</td><td class="r m">5</td><td class="r m">~300 est.</td><td>source_documents (SD-05xx)</td></tr>
+<tr style="font-weight:600"><td>Total</td><td class="r m">~82+</td><td class="r m">~10,246+</td><td></td></tr>
+</table>
+<p style="font-size:12px;color:var(--gray)">Additional: 59 training KB documents (partially overlapping with above), 15 litigation cases with 38 holdings.</p>
+
+<h3>Rule extraction and compression</h3>
+<p>Every compliance rule traces back to a specific page in a specific source authority document. The compression pipeline reduces 2,967 raw rules into 263 actionable debate units without losing traceability.</p>
+<table>
+<tr><th>Layer</th><th>Input</th><th>Output</th><th>Compression</th><th>Traceability</th></tr>
+<tr><td>Source authorities</td><td>6 documents, 4,713 pages</td><td>2,967 compliance rules</td><td>—</td><td>Each rule has source_doc_id, source_section, page_citation</td></tr>
+<tr><td>Obligation clustering</td><td>2,967 rules</td><td>390 obligation clusters</td><td>7.6:1</td><td>Each cluster has member_rules array linking to all constituent rules</td></tr>
+<tr><td>Family deduplication</td><td>390 clusters</td><td>39 families + 224 standalone</td><td>1.5:1</td><td>Each family has member_clusters array, authority_hierarchy</td></tr>
+<tr style="font-weight:600"><td>Total compression</td><td>2,967 rules</td><td>263 debate units</td><td>11.2:1</td><td>Full chain: finding → family → cluster → rule → source page</td></tr>
+</table>
+
+<h3>Citation chain example</h3>
+<div class="pf">
+<div class="pk">Source document</div><div class="pv">SD-001: 2016 Southwest Oregon ROD/RMP (332 pages)</div>
+<div class="pk">Rule</div><div class="pv">CR-0001-022: "BLM may not implement timber harvest that would cause incidental take of NSO territorial pairs..." (pp. 20-21, Record of Decision)</div>
+<div class="pk">Obligation cluster</div><div class="pv">OC-ESA-SWO-002: "SWO NSO Take Prohibition" (6 member rules from SD-001)</div>
+<div class="pk">Obligation family</div><div class="pv">OF-ESA-001: "NSO Take Prohibition and Barred Owl Reinitiation" (6 clusters, 46 total rules)</div>
+<div class="pk">Finding</div><div class="pv">Adversarial debate output with severity, classification, and advisor recommendation — all traceable to this page citation</div>
+</div>
+
+<div class="note"><b>Citation gap to address:</b> The <code>textual_basis</code> column in compliance_rules is 0% populated. Every rule cites its page, but the actual source sentence isn't stored. To close this gap, populate textual_basis from source_text_store during the next extraction pass. This enables instant audit defense without pulling the source PDF.</div>
+
+<h3>CTA results (9 projects)</h3>
+<table>
+<tr><th>Metric</th><th class="r">Count</th></tr>
+<tr><td>Comments processed</td><td class="r m">111</td></tr>
+<tr><td>Codes extracted</td><td class="r m">1,601</td></tr>
+<tr><td>References tracked</td><td class="r m">958</td></tr>
+<tr><td>Themes identified</td><td class="r m">111</td></tr>
+<tr><td>Unique concerns</td><td class="r m">1,109</td></tr>
+<tr><td>Structured responses</td><td class="r m">243</td></tr>
+</table>
+</div>
+
+<!-- ===== SUMMIT FRAMEWORK ===== -->
+<div id="summit" class="sec">
+<h2>SUMMIT framework</h2>
+<p>Structured Universal Multi-model Methodology for Institutional Testing. SUMMIT is the domain-agnostic engine. RIDGELINE is the first cartridge. Loading a new domain = inserting rows, not writing code.</p>
+
+<div class="note"><b>The core insight:</b> Every regulated industry has the same pattern. A corpus of rules governs what a document must contain. Someone produces the document. An adversary challenges compliance. The cost of failure is significant. SUMMIT abstracts that pattern into a loadable cartridge system.</div>
+
+<h3>What stays the same across domains (SUMMIT engine)</h3>
+<table>
+<tr><th>Component</th><th>Description</th></tr>
+<tr><td>Pipeline orchestration</td><td>Stage sequencing, batch management, error handling, retry logic</td></tr>
+<tr><td>Multi-model routing</td><td>Role-to-model assignment with fallback chains per deployment platform</td></tr>
+<tr><td>Adversarial debate architecture</td><td>Protagonist/antagonist/arbiter roles, consensus rules, R2 escalation logic</td></tr>
+<tr><td>Rule extraction engine</td><td>Distills obligations from source authority documents into structured rules</td></tr>
+<tr><td>Obligation clustering</td><td>Compresses rules into debate units, deduplicates across sources</td></tr>
+<tr><td>Severity calibration</td><td>Post-debate severity correction using defense verdict mapping</td></tr>
+<tr><td>Finding classification</td><td>FATAL_FLAW / MISSING_ANALYSIS / DOCUMENTATION_GAP / INAPPLICABLE</td></tr>
+<tr><td>QC validation</td><td>16 automated checks, hallucination detection, citation verification</td></tr>
+<tr><td>Cascade detection</td><td>4 cascade types via 12 deterministic dependency rules</td></tr>
+<tr><td>Disclosure/Decision boundary</td><td>PROC-DDT-001: permitted vs prohibited verbs, auto-rejection of decision language</td></tr>
+<tr><td>Audit trail</td><td>Full run logging for explainability and reproducibility requirements</td></tr>
+</table>
+
+<h3>What changes per cartridge (domain config)</h3>
+<table>
+<tr><th>Component</th><th>RIDGELINE (NEPA)</th><th>New cartridge (swap these)</th></tr>
+<tr><td>Source authorities</td><td>RMPs, BiOps, NEPA, ESA, FLPMA, case law</td><td>Your regulatory corpus</td></tr>
+<tr><td>Compliance rules</td><td>2,967 rules with page citations</td><td>Extracted from your authorities</td></tr>
+<tr><td>Protagonist persona</td><td>Environmental plaintiff attorney</td><td>Your challenger (auditor, examiner, opposing counsel)</td></tr>
+<tr><td>Antagonist persona</td><td>Agency defense counsel</td><td>Your defender (compliance officer, in-house counsel)</td></tr>
+<tr><td>Arbiter persona</td><td>Federal district judge</td><td>Your decision-maker (judge, regulator, review board)</td></tr>
+<tr><td>Debate frameworks</td><td>APA review, Hard Look, Kisor, Significance</td><td>Your legal/regulatory tests</td></tr>
+<tr><td>Intake questionnaire</td><td>6 NEPA-specific screening questions</td><td>Your domain screening questions</td></tr>
+<tr><td>Deliverable format</td><td>8-tab solicitor-ready Excel</td><td>Your output specification</td></tr>
+</table>
+
+<h3>Domain catalog</h3>
+<table>
+<tr><th>Domain</th><th>Industry</th><th>Document under review</th><th>Protagonist</th><th>Status</th></tr>
+<tr style="font-weight:600"><td>NEPA compliance</td><td>Federal land management</td><td>Environmental Assessment</td><td>Environmental plaintiff attorney</td><td style="color:var(--green)">ACTIVE</td></tr>
+<tr><td>Healthcare regulatory</td><td>Healthcare</td><td>Clinical protocols / policies</td><td>Plaintiff malpractice attorney</td><td style="color:var(--gray)">CONCEPT</td></tr>
+<tr><td>Financial regulatory</td><td>Financial services</td><td>Lending policies / fair lending analysis</td><td>CFPB enforcement attorney</td><td style="color:var(--gray)">CONCEPT</td></tr>
+<tr><td>Government contracting</td><td>Government contracting</td><td>Contract proposal</td><td>GAO protest attorney</td><td style="color:var(--gray)">CONCEPT</td></tr>
+<tr><td>Pharmaceutical</td><td>Pharmaceutical</td><td>NDA/BLA submission</td><td>FDA reviewer (CRL perspective)</td><td style="color:var(--gray)">CONCEPT</td></tr>
+<tr><td>Construction permitting</td><td>Construction / development</td><td>Building permit application</td><td>Code enforcement / opposition counsel</td><td style="color:var(--gray)">CONCEPT</td></tr>
+<tr style="background:var(--amber-bg)"><td>PL5 wildfire resource coordination</td><td>Federal wildland fire</td><td>NMAC resource allocation decision</td><td>Incident Commander requesting priority</td><td style="color:var(--amber)">SCENARIO</td></tr>
+</table>
+
+<h3>Scenario: PL5 wildfire resource coordination</h3>
+<p>Preparedness Level 5 is the highest stage of national wildfire response. Multiple geographic areas are experiencing large, complex incidents. National resources are exhausted. Every allocation decision is a tradeoff: sending crews to Fire A means Fire B doesn't get them. Decisions are made under extreme time pressure with fatigued personnel. Mistakes at PL5 cost lives.</p>
+
+<p>This is the same SUMMIT pattern. A corpus of rules governs how resources must be allocated. Someone makes allocation decisions. Those decisions will be reviewed by GAO, Congress, and after-action review teams. The cost of noncompliance ranges from preventable fatalities to billions in property loss.</p>
+
+<div class="note"><b>Why this matters to Karen and USGS:</b> BLM manages wildland fire. USGS provides fire science, predictive modeling, and post-fire assessment (BAER). Both agencies are in the room during PL5. This scenario shows SUMMIT solving a problem they both live with every fire season.</div>
+
+<h3>How SUMMIT maps to PL5</h3>
+<table>
+<tr><th>SUMMIT component</th><th>RIDGELINE (NEPA)</th><th>PL5 wildfire cartridge</th></tr>
+<tr><td><b>Source authorities (rule corpus)</b></td><td>RMPs, BiOps, NEPA, ESA, FLPMA, 9th Circuit case law</td><td>NWCG Red Book, National Interagency Mobilization Guide, NMAC Priority Criteria, GACC MOUs, LCES safety protocols, resource typing standards, work/rest guidelines, cost-share agreements, international mobilization guide</td></tr>
+<tr><td><b>Document under review</b></td><td>Environmental Assessment</td><td>NMAC resource allocation decision, incident prioritization order, resource orders</td></tr>
+<tr><td><b>Compliance rules</b></td><td>2,967 rules (EA must contain X)</td><td>Extracted from source authorities (allocation must satisfy X): priority criteria compliance, qualification verification, safety standard adherence, cost-share documentation, fatigue/work-rest limits, typing requirements</td></tr>
+<tr><td><b>Protagonist role</b></td><td>Environmental plaintiff attorney</td><td>Incident Commander requesting priority resources: "My fire threatens 500 structures, fire behavior is extreme, I need 3 hand crews and 2 Type 1 helicopters or we lose the south flank"</td></tr>
+<tr><td><b>Antagonist role</b></td><td>Agency defense counsel</td><td>NMAC Resource Coordinator defending current allocation: "Current distribution reflects national priorities. Incident X has 1,200 structures at risk with lower containment probability. Available crews are fully committed. Reallocation from Region 4 would violate work/rest standards for those crews."</td></tr>
+<tr><td><b>Arbiter role</b></td><td>Federal district judge</td><td>Independent evaluator applying NWCG priority criteria: values at risk, fire behavior forecast, probability of containment, resource availability, safety constraints, cost effectiveness. Evaluates whether allocation decision is defensible under after-action review and GAO audit.</td></tr>
+<tr><td><b>Intake questionnaire</b></td><td>6 questions (actions, species, geography)</td><td>Incident profile: type/complexity, structures threatened, critical infrastructure, evacuations active, current resources assigned, forecast wind/RH/temp, containment %, fatigue status of assigned crews</td></tr>
+<tr><td><b>Obligation clusters</b></td><td>390 clusters (8.5:1 compression)</td><td>Resource allocation obligation clusters: crew qualification requirements, aviation safety standards, fatigue management rules, cost-share formulas, international crew integration protocols</td></tr>
+</table>
+
+<h3>Cascade detection at PL5</h3>
+<p>This is where SUMMIT's cascade analysis becomes life-safety critical. The same 4 cascade types apply:</p>
+<table>
+<tr><th>Cascade type</th><th>RIDGELINE (NEPA litigation)</th><th>PL5 wildfire equivalent</th></tr>
+<tr><td><b>Sequential dependency</b></td><td>ESA survey failure collapses take determination</td><td>Pulling crews from Fire A delays containment, forces evacuation escalation, triggers mutual aid cascade. If Fire A escapes, it merges with Fire B creating a complex.</td></tr>
+<tr><td><b>Foundation attack</b></td><td>Baseline data error undermines all dependent analysis</td><td>Weather forecast error (wind shift) invalidates all fire behavior predictions. Every allocation decision based on that forecast is now wrong simultaneously.</td></tr>
+<tr><td><b>Independent flank</b></td><td>Multiple statutes violated independently</td><td>Simultaneous new starts across multiple GACCs while all Type 1 teams are committed. Each new start is independently unresourced. No single reallocation fixes it.</td></tr>
+<tr><td><b>Cumulative weight</b></td><td>Enough yellow findings aggregate to red</td><td>No single resource shortage is critical, but cumulative fatigue, equipment wear, supply chain delays, and crew qualification gaps compound into systemic failure. The Moses Letter threshold.</td></tr>
+</table>
+
+<h3>PL5 outputs</h3>
+<table>
+<tr><th>Deliverable</th><th>Purpose</th><th>Audience</th></tr>
+<tr><td>Resource allocation stress test</td><td>Adversarial analysis of current national allocation against NWCG priority criteria</td><td>NMAC, NICC dispatchers</td></tr>
+<tr><td>Cascade risk map</td><td>Downstream impact analysis: "If you move Crew X from Incident A to Incident B, here is what breaks"</td><td>NMAC decision-makers</td></tr>
+<tr><td>Compliance gap report</td><td>Safety standard violations, qualification gaps, work/rest exceedances across all active incidents</td><td>Agency safety officers, OSHA</td></tr>
+<tr><td>After-action defense package</td><td>Pre-built documentation showing allocation decisions were defensible against NWCG criteria at time of decision</td><td>GAO auditors, Congressional oversight, after-action review teams</td></tr>
+<tr><td>International/military trigger analysis</td><td>When cumulative resource gaps cross the threshold for international crew requests or military activation</td><td>NMAC, agency administrators</td></tr>
+</table>
+
+<div class="note"><b>The key insight:</b> SUMMIT doesn't make allocation decisions. It stress-tests allocation decisions the same way RIDGELINE stress-tests EAs. At PL5, NMAC coordinators are making hundred-million-dollar resource decisions under fatigue and time pressure. SUMMIT gives them a structured adversarial check before those decisions are final, and builds the documentation package that will survive GAO review after the season ends. The AI proposes analysis. Humans decide.</div>
+
+<h3>Model routing by deployment option</h3>
+<table>
+<tr><th>Role</th><th>Option A: Bedrock</th><th>Option B: Direct API</th><th>Option C: Azure</th></tr>
+<tr><td>Protagonist</td><td>Llama 3 405B (Meta)</td><td>GPT-5.4 (OpenAI)</td><td>GPT-5.4 (OpenAI)</td></tr>
+<tr><td>Antagonist</td><td>Claude Sonnet (Anthropic)</td><td>Claude Sonnet (Anthropic)</td><td style="color:var(--red)">GPT-4o (OpenAI)</td></tr>
+<tr><td>Arbiter</td><td>Claude Opus (Anthropic)</td><td>Claude Opus (Anthropic)</td><td style="color:var(--red)">GPT-5.4 (OpenAI)</td></tr>
+<tr><td>Scanner</td><td>Claude Opus (Anthropic)</td><td>Claude Opus (Anthropic)</td><td>GPT-5.4 (OpenAI)</td></tr>
+<tr><td>Adversarial integrity</td><td style="color:var(--green)">Preserved (cross-family)</td><td style="color:var(--green)">Maximum (cross-vendor)</td><td style="color:var(--red)">Degraded (same vendor)</td></tr>
+</table>
+
+<h3>Blueprint tables (SQL)</h3>
+<table>
+<tr><th>Table</th><th>Rows</th><th>Purpose</th></tr>
+<tr><td>summit_domain_catalog</td><td class="r m">6</td><td>Registry of all domains SUMMIT can serve</td></tr>
+<tr><td>summit_role_definitions</td><td class="r m">5</td><td>Adversarial roles with personas and model preferences per cartridge</td></tr>
+<tr><td>summit_source_authority_types</td><td class="r m">6</td><td>Document types that feed the rule engine per domain</td></tr>
+<tr><td>summit_framework_bindings</td><td class="r m">4</td><td>Legal/regulatory test frameworks with prong definitions</td></tr>
+<tr><td>summit_model_routing</td><td class="r m">10</td><td>Model assignments per role per deployment platform with fallbacks</td></tr>
+<tr><td>summit_intake_templates</td><td class="r m">0</td><td>Pre-screening questionnaires per domain (ready for population)</td></tr>
+<tr><td>summit_deliverable_specs</td><td class="r m">0</td><td>Output format specs per domain (ready for population)</td></tr>
+</table>
+
+<div class="note"><b>To build a new cartridge:</b> Insert rows into summit_domain_catalog (define the domain), summit_role_definitions (define the personas), summit_source_authority_types (define what feeds rules), summit_framework_bindings (define the legal tests), and summit_model_routing (assign models). Then extract rules from your source authorities using the existing distillation methodology. The pipeline runs unchanged.</div>
+</div>
+
+<!-- ===== METHODOLOGIES ===== -->
+<div id="methods" class="sec">
+<h2>Methodologies</h2>
+<p>45 analytical methods backed by 82 academic and legal citations. Every method is registered, versioned, and traceable. Click any section for details.</p>
+
+<h3>Core methodologies</h3>
+
+<div class="cd" onclick="tc(this)">
+<div class="ch"><span class="cv">&#9654;</span><span class="cn">Codebook Thematic Analysis (CTA)</span><span class="cm"><span class="tg t-ex">CORE</span></span></div>
+<div class="cb"><b>Source:</b> Boyatzis (1998) — Transforming Qualitative Information: Thematic Analysis and Code Development<br><b>Application:</b> Public comment processing across all NEPA projects<br><b>Pipeline:</b> Comment intake (PS-02) → code extraction → consolidation → theme development (PS-03) → validity check → response generation<br><b>Output:</b> 8-tab CTA workbook with 111 comments, 1,601 codes, 111 themes, 243 responses across 9 projects<br><b>Why this method:</b> Published, peer-reviewed qualitative research methodology. Defensible under administrative review. Reproducible by any trained analyst.</div>
+</div>
+
+<div class="cd" onclick="tc(this)">
+<div class="ch"><span class="cv">&#9654;</span><span class="cn">Multi-model adversarial debate</span><span class="cm"><span class="tg t-ex">CORE</span></span></div>
+<div class="cb"><b>Design principle:</b> Separate models from separate vendors argue opposing positions to prevent analytical softening. A single model evaluating both sides converges on the middle. Multi-vendor separation forces genuine adversarial tension.<br><b>Architecture:</b> Protagonist (challenges document) → Antagonist (defends document) → R2 escalation if no consensus → Arbiter (independent judgment). RED from protagonist NEVER reaches consensus — always escalates.<br><b>Model stack:</b> GPT-5.4 protagonist, Sonnet 4.6 antagonist, Opus 4.6 arbiter<br><b>Validated:</b> Production run identified 8 fatal flaws in LC project, 3 overlapping with existing federal complaint, 5 novel</div>
+</div>
+
+<div class="cd" onclick="tc(this)">
+<div class="ch"><span class="cv">&#9654;</span><span class="cn">Compliance rules distillation (METH-RULES-001 v1.4)</span><span class="cm"><span class="tg t-ex">CORE</span></span></div>
+<div class="cb"><b>Method:</b> Extract binding obligations from source authority documents into atomic, testable compliance rules with page citations<br><b>Agent:</b> Agent 3B (A3B-SYSTEM-SDA-v2)<br><b>Input:</b> 6 source authority documents, 4,713 pages<br><b>Output:</b> 2,967 rules, each with source_doc_id, source_section, page_citation<br><b>Traceability:</b> 99% of rules have page citations. Every rule links to the exact page it was extracted from.<br><b>Compression pipeline:</b> 2,967 rules → 390 clusters (7.6:1) → 263 debate units via 39 families (11.2:1 total)</div>
+</div>
+
+<div class="cd" onclick="tc(this)">
+<div class="ch"><span class="cv">&#9654;</span><span class="cn">Recommendation methodology (4-layer system)</span><span class="cm"><span class="tg t-ex">CORE</span></span></div>
+<div class="cb">
+<b>Layer 1 — PROC-CAT-001 Finding classification:</b> Each finding classified as RULE_VIOLATION (EA conflicts with binding rule), NOT_MENTIONED (EA silent on obligation), INADEQUATE (analysis present but insufficient), or COMPLIANT. Categories assigned from debate transcript, not inferred from severity.<br><br>
+<b>Layer 2 — AR-FIX-FRAMEWORK-v1 Structured fix:</b> Fix type (EA_REVISION, DR_SUPPLEMENT, NEW_ANALYSIS, AR_ADDITION, BIOP_REINITIATION, PROJECT_REDESIGN), responsible specialist, EA sections to revise, data needed, effort estimate, fix difficulty, blocks decision flag. Prioritized: CRITICAL > HIGH > MODERATE.<br><br>
+<b>Layer 3 — AR-OUTPUT-SCHEMA-v1 Advisor output (25 fields per finding):</b> Urgency (FIX_NOW through NO_ACTION), fixability, fix_anyway rationale (why fix even if defense could win), priority_score / fix_value / fix_cost, calendar time, if-not-fixed consequence, project file check (where in the AR to look), advisor options (multiple fix paths with tradeoffs), severability note, PI vulnerability score.<br><br>
+<b>Layer 4 — PROC-DDT-001 Disclosure/Decision Test (guardrail):</b> Every recommendation screened against two verb lists. Permitted (disclosure): add, document, quantify, identify, disclose, discuss, map, cite, classify, provide, describe, list, calculate, inventory, delineate, tabulate. Prohibited (decision): select, conclude, determine, find, reject, adopt, approve, deny, decide, choose, authorize, permit, allow, prohibit, require. Any prohibited verb triggers automatic rewrite. Recommendations tell planners what analysis to ADD to the record, never what decision to MAKE.
+</div>
+</div>
+
+<h3>Debate frameworks (4)</h3>
+<table>
+<tr><th>Framework</th><th>Type</th><th>Prongs</th><th>Source</th></tr>
+<tr><td>APA Arbitrary and Capricious Review</td><td>Judicial review</td><td>4 (relied on wrong factors, failed to consider, counter to evidence, implausible)</td><td>Motor Vehicle Mfrs v State Farm, 463 US 29 (1983)</td></tr>
+<tr><td>NEPA Hard Look Doctrine</td><td>Judicial review</td><td>3 (hard look taken, fully informed, well-considered)</td><td>Kleppe v Sierra Club, 427 US 390 (1976)</td></tr>
+<tr><td>Kisor Deference Framework</td><td>Judicial review</td><td>3 (genuinely ambiguous, reasonable, fair and considered judgment)</td><td>Kisor v Wilkie, 588 US 558 (2019)</td></tr>
+<tr><td>NEPA Significance / EIS Threshold</td><td>Regulatory standard</td><td>10 (public health, unique characteristics, controversy, uncertainty, precedent, cumulative, historic, endangered species, federal requirements, precedent-setting)</td><td>42 USC 4332(2)(C)</td></tr>
+</table>
+
+<h3>Pipeline procedures (6)</h3>
+<table>
+<tr><th>Procedure</th><th>Type</th><th>Purpose</th></tr>
+<tr><td>PROC-EXT-001 Post-Debate Extraction</td><td>Extraction</td><td>Processes raw debate transcripts into structured findings with 25 output fields per finding</td></tr>
+<tr><td>PROC-CAT-001 Finding Category Assignment</td><td>Policy</td><td>4 mutually exclusive categories (Rule Violation, Not Mentioned, Inadequate, Compliant)</td></tr>
+<tr><td>PROC-DDT-001 Disclosure/Decision Test</td><td>Policy</td><td>Screens recommendations against permitted/prohibited verb lists. Non-negotiable guardrail.</td></tr>
+<tr><td>PROC-CASCADE-001 Cascade Chain Detection</td><td>Analysis</td><td>Deterministic detection of 4 cascade types via 12 dependency rules across 5 statutes</td></tr>
+<tr><td>PROC-DEL-001 Deliverable Generation</td><td>Format spec</td><td>8-tab solicitor-ready Excel workbook with locked format, color coding, and planner decision columns</td></tr>
+<tr><td>PROC-SESSION-001 Session Protocol</td><td>Policy</td><td>Mandatory startup sequence: pull session_handoff, document_manifest, system_architecture before any work</td></tr>
+</table>
+
+<h3>Quality control methods (22)</h3>
+<div class="cd" onclick="tc(this)">
+<div class="ch"><span class="cv">&#9654;</span><span class="cn">Full QC method registry (22 methods)</span><span class="cm"><span class="tg t-sq">22 ACTIVE</span></span></div>
+<div class="cb">
+<b>Validation:</b> Schema validation (VAL-SCHEMA-001), metadata completeness (VAL-A4-001), cluster coherence (VAL-CLU-001), thematic stability (VAL-STB-001)<br><br>
+<b>Verification:</b> Cross-model verification via GPT (VER-LLM-001), comment cross-model check (VER-CMT-001), keyword anchoring (VER-KW-001)<br><br>
+<b>Normalization:</b> Category normalization (NRM-CAT-001), citation patch (NRM-CIT-001), theme label normalization (NRM-THM-001)<br><br>
+<b>Classification:</b> Agent4 cross-model classification check (CLS-A4-001), legal document classifier (CLS-LEGALDOC-001)<br><br>
+<b>Safety:</b> Hallucination mitigation stack (METH-HALLUC-001), holding inversion safety (QC-HLD-001), source support gate (QC-SRC-001), deontic validation (QC-DEO-001)<br><br>
+<b>Calibration:</b> Extraction confidence estimation (METH-CONF-001), exemplar-based calibration (METH-EXEMPLAR-001), long-context re-extraction (METH-LONGCTX-001)<br><br>
+<b>Structural:</b> Atomicity check (QC-ATM-001), category remap (QC-CAT-001), post-extraction flagging (FLG-POST-001)
+</div>
+</div>
+
+<h3>Legal analysis methods (6)</h3>
+<table>
+<tr><th>Method</th><th>Version</th><th>Status</th><th>Purpose</th></tr>
+<tr><td>IRAC/CREAC Legal Argument Structure</td><td>1.0</td><td style="color:var(--green)">Active</td><td>Structures adversarial arguments using standard legal reasoning format</td></tr>
+<tr><td>4-Gate Traversal Evaluation Framework</td><td>1.0</td><td style="color:var(--green)">Active</td><td>Evaluates EA compliance through sequential gate checks</td></tr>
+<tr><td>Speech Act Theory Compliance Signal Detection</td><td>1.0</td><td style="color:var(--green)">Active</td><td>Detects compliance signals in EA language using linguistic analysis</td></tr>
+<tr><td>R-2 Rule Operationalization Agent</td><td>1.0</td><td style="color:var(--green)">Active</td><td>Converts abstract rules into testable compliance questions</td></tr>
+<tr><td>Legal Attack Vector Derivation</td><td>0.1</td><td style="color:var(--amber)">Under revision</td><td>Derives plaintiff attack strategies from case law patterns</td></tr>
+<tr><td>EA Compliance Evaluation</td><td>0.2</td><td style="color:var(--gray)">Superseded</td><td>Original evaluation methodology, replaced by R-3 pipeline</td></tr>
+</table>
+
+<h3>Scoring methodologies (2)</h3>
+<table>
+<tr><th>Method</th><th>Version</th><th>Purpose</th></tr>
+<tr><td>Scrutiny Score Composite</td><td>1.0</td><td>Composite score from statutory weight (0-3) + litigation exposure (0-3) + attack history (0-2) + detectability (0-2) = 0-10 threat score per finding</td></tr>
+<tr><td>Vulnerability Scoring Framework</td><td>1.0</td><td>Scores PI vulnerability: likelihood of preliminary injunction based on finding severity, precedent, and remedy availability</td></tr>
+</table>
+
+<h3>Intercoder reliability (2)</h3>
+<table>
+<tr><th>Method</th><th>Version</th><th>Purpose</th></tr>
+<tr><td>Comment Theme ICR</td><td>2.0</td><td>Cross-model verification of thematic coding consistency across comment batches</td></tr>
+<tr><td>Thematic ICR</td><td>1.0</td><td>Validates theme assignment stability when re-run with different model configurations</td></tr>
+</table>
+
+<h3>Supporting knowledge structures</h3>
+<table>
+<tr><th>Structure</th><th class="r">Count</th><th>Purpose</th></tr>
+<tr><td>Defense kill shots</td><td class="r m">13</td><td>5 categories of defense strategies from 9th Circuit case law (Jurisdictional, Procedural, Substantive Merits, PI Defense, Remedy Limitation)</td></tr>
+<tr><td>Record quality standards</td><td class="r m">12</td><td>EA quality benchmarks from published 9th Circuit opinions, litigation frequency scored 1-5</td></tr>
+<tr><td>Cascade dependency rules</td><td class="r m">12</td><td>4 cascade types (Sequential Dependency, Foundation Attack, Independent Flank, Cumulative Weight) across 5 statutes</td></tr>
+<tr><td>Agent mindsets</td><td class="r m">4</td><td>NEPA Planner, Plaintiff Litigator, Agency Defense Counsel, Judicial Arbiter — each with trained knowledge base</td></tr>
+<tr><td>Mode 1 attack categories</td><td class="r m">10</td><td>From cross-firm NEPA litigation patterns (387 appellate cases): Wrong Level of Review, Hard Look, Cumulative Effects, Range of Alternatives, Tiering, Mitigation, Best Available Science, Internal Consistency, Plan Conformity, Procedural Adequacy</td></tr>
+<tr><td>Methodology sources</td><td class="r m">82</td><td>Academic and legal citations backing all registered methodologies</td></tr>
+<tr><td>Method versions tracked</td><td class="r m">19</td><td>Version history across methodology evolution</td></tr>
+<tr><td>Lessons learned</td><td class="r m">54</td><td>Accumulated from production runs, testing, and pilot feedback</td></tr>
+</table>
+</div>
+
+<!-- ===== HUMAN OVERSIGHT ===== -->
+<div id="human" class="sec">
+<h2>Human oversight</h2>
+<p>AI proposes analysis. Humans decide. This is not a design preference — it is a policy requirement enforced at the architectural level.</p>
+
+<div class="note" style="border-left-color:var(--red)"><b>Non-negotiable boundary:</b> RIDGELINE does not make significance determinations, select alternatives, or produce final agency decisions. It does not draft FONSI language, sign decision records, or generate content that enters the administrative record without human review. Every output is an analytical input for a human decision-maker.</div>
+
+<h3>Where humans are in the loop</h3>
+<table>
+<tr><th>Stage</th><th>AI does</th><th>Human does</th><th>Gate type</th></tr>
+<tr><td>PS-01 Document intake</td><td>Extracts text, indexes sections</td><td>Selects which documents to load, verifies extraction quality</td><td>Selection</td></tr>
+<tr><td>PS-02 Comment intake</td><td>Codes comments, extracts references, detects PII</td><td>Reviews codes for accuracy, confirms substantive determinations</td><td>Review</td></tr>
+<tr><td>PS-03 Thematic analysis</td><td>Assigns themes, clusters codes</td><td>Validates theme coherence, adjusts theme hierarchy</td><td>Review</td></tr>
+<tr><td>PS-04 Rule extraction</td><td>Distills obligations from source authorities</td><td>Reviews extracted rules against source text, confirms page citations</td><td>Review</td></tr>
+<tr><td>PS-05 Rule selection</td><td>Presents intake questionnaire</td><td>Answers all 6 screening questions based on project knowledge</td><td>Decision</td></tr>
+<tr><td>PS-05b Phase 1 scan</td><td>Scans all debate units for vulnerabilities</td><td>Reviews scan results, selects Phase 2 candidates</td><td>Selection</td></tr>
+<tr><td>PS-06 Adversarial debate</td><td>Runs protagonist/antagonist/arbiter debate</td><td>Reviews debate transcripts in Full Debate tab</td><td>Review</td></tr>
+<tr><td>PS-06a-c Post-processing</td><td>Recalibrates severity, classifies findings, generates recommendations</td><td>Reviews classifications and recommendations</td><td>Review</td></tr>
+<tr><td>PS-06d QC validation</td><td>Runs 16 automated checks, rejects hallucinated citations</td><td>Reviews QC results, flags exceptions</td><td>Automated + Review</td></tr>
+<tr><td style="font-weight:600">Deliverable review</td><td style="font-weight:600">Produces 8-tab workbook with findings</td><td style="font-weight:600">Makes ACCEPT / DENY / REVISE decision on every finding with rationale</td><td style="font-weight:600;color:var(--red)">Decision gate</td></tr>
+<tr><td>Response generation (CTA)</td><td>Drafts response frameworks per theme</td><td>Reviews, edits, and approves all responses before inclusion in decision record</td><td>Decision</td></tr>
+<tr><td>Administrative record</td><td>Nothing</td><td>Human controls what enters the AR. AI outputs are working papers, not record documents.</td><td>Exclusive human authority</td></tr>
+</table>
+
+<h3>The planner decision workflow</h3>
+<p>Every finding in the solicitor-ready deliverable includes three planner-controlled columns. These columns are the formal human oversight mechanism.</p>
+
+<div class="pf">
+<div class="pk">Planner decision</div><div class="pv"><b>ACCEPT</b> — finding is valid, implement the recommendation<br><b>DENY</b> — finding is not actionable (rationale required)<br><b>REVISE</b> — finding is partially valid, modify the recommendation (rationale required)</div>
+<div class="pk">Planner rationale</div><div class="pv">Required on DENY and REVISE. Must explain why the finding was rejected or modified. Creates audit trail for after-action review.</div>
+<div class="pk">Revised action</div><div class="pv">If REVISE selected, planner writes their own recommended action. This replaces the AI-generated recommendation in the working file.</div>
+</div>
+
+<h3>How the AI helps humans review</h3>
+<p>The system is designed to make human review efficient and informed, not to replace it.</p>
+
+<div class="cd" onclick="tc(this)">
+<div class="ch"><span class="cv">&#9654;</span><span class="cn">Project file check</span></div>
+<div class="cb"><b>What it does:</b> For each finding, the advisor identifies where in the administrative record the gap might already be addressed. Example: "Check the Biological Assessment occupancy section" or "Review the hydrologist specialist report for watershed-scale analysis."<br><b>Why it matters:</b> Many "missing analysis" findings exist in the project file but weren't included in the EA. The project file check tells the planner exactly where to look before accepting or denying a finding. This prevents false positives from wasting planner time.<br><b>Population:</b> 167/695 findings have project file checks populated (24%)</div>
+</div>
+
+<div class="cd" onclick="tc(this)">
+<div class="ch"><span class="cv">&#9654;</span><span class="cn">Advisor options</span></div>
+<div class="cb"><b>What it does:</b> For each finding, the advisor presents 2+ fix paths with different timelines and tradeoffs. Example: "Option A: Add 2 paragraphs of cumulative effects discussion (2 days, low risk). Option B: Commission new watershed analysis from specialist (3 weeks, eliminates vulnerability entirely)."<br><b>Why it matters:</b> Gives the planner real choices, not a single directive. The planner decides based on project timeline, budget, and risk tolerance.<br><b>Population:</b> 190/695 findings have advisor options populated (27%)</div>
+</div>
+
+<div class="cd" onclick="tc(this)">
+<div class="ch"><span class="cv">&#9654;</span><span class="cn">If-not-fixed consequence</span></div>
+<div class="cb"><b>What it does:</b> States in plain language what happens if the planner chooses not to address this finding. Example: "If acreage discrepancy is not reconciled, plaintiff can argue the incidental take analysis is based on incorrect project scope, potentially invalidating the entire BiOp consultation."<br><b>Why it matters:</b> Enables informed risk acceptance. A planner who denies a finding does so knowing the downstream consequence, not blindly.<br><b>Population:</b> 190/695 findings have if-not-fixed populated (27%)</div>
+</div>
+
+<div class="cd" onclick="tc(this)">
+<div class="ch"><span class="cv">&#9654;</span><span class="cn">Disclosure/Decision Test (PROC-DDT-001)</span></div>
+<div class="cb"><b>What it does:</b> Automated guardrail that screens every AI-generated recommendation before it reaches the planner. If a recommendation contains a decision verb (select, conclude, determine, approve, deny, require, etc.) it is automatically rewritten using only disclosure verbs (add, document, quantify, identify, disclose, etc.).<br><b>Why it matters:</b> Even if a model hallucinates decision-level language, the guardrail catches it before it reaches the planner. The planner never sees a recommendation that crosses the decision boundary.<br><b>Example:</b><br>Rejected: "Require BLM to reinitiate consultation"<br>Rewritten: "Identify whether reinitiation triggers under 50 CFR 402.16 have been met and disclose the analysis in the EA"</div>
+</div>
+
+<h3>Human review tracking (database)</h3>
+<table>
+<tr><th>Table</th><th>Field</th><th>Purpose</th><th>Status</th></tr>
+<tr><td>primary_review_findings</td><td>human_reviewed</td><td>Boolean flag: has a human reviewed this finding?</td><td>0/695 reviewed (pending formal review cycle)</td></tr>
+<tr><td>primary_review_findings</td><td>human_disposition</td><td>ACCEPT / DENY / REVISE decision</td><td>0/695 dispositioned</td></tr>
+<tr><td>primary_review_findings</td><td>human_notes</td><td>Free-text planner notes</td><td>387/695 have notes</td></tr>
+<tr><td>feedback_log</td><td>action</td><td>Tracks every human decision with prior_value, revised_value, reason_code</td><td>Table ready, pending population</td></tr>
+<tr><td>feedback_log</td><td>reviewer_id</td><td>Who made the decision</td><td>Supports multi-reviewer workflows</td></tr>
+<tr><td>feedback_log</td><td>legal_review_flag</td><td>Flags findings that received solicitor review</td><td>Boolean, ready</td></tr>
+<tr><td>feedback_log</td><td>calibration_flag</td><td>Flags findings used to calibrate future model runs</td><td>Boolean, ready</td></tr>
+</table>
+
+<h3>Policy compliance mapping</h3>
+<table>
+<tr><th>Requirement</th><th>Source</th><th>How RIDGELINE complies</th></tr>
+<tr><td>Human oversight of AI outputs</td><td>SO 3444</td><td>Planner decision gate on every finding (ACCEPT/DENY/REVISE). Nothing enters AR without human approval.</td></tr>
+<tr><td>Explainable AI outputs</td><td>DOI AI Order</td><td>Full citation chain from finding → family → cluster → rule → source page. Full debate transcript available in deliverable.</td></tr>
+<tr><td>Reproducible results</td><td>DOI AI Order</td><td>Versioned prompts in agent_prompts table. Deterministic pipeline routing. Model configurations documented. Any run can be replicated.</td></tr>
+<tr><td>AI limited to analysis</td><td>DOI AI Order</td><td>PROC-DDT-001 enforces at verb level. AI generates disclosure language only. Decision language auto-rejected.</td></tr>
+<tr><td>Documented AI use</td><td>SO 3444</td><td>Run metadata in primary_review_runs: timestamp, model pins, prompt versions, token counts. Feedback_log tracks all human decisions.</td></tr>
+<tr><td>No autonomous decision-making</td><td>DOI AI Order</td><td>PS-07 Feedback stage is a mandatory human gate. No finding reaches the decision record without explicit human disposition.</td></tr>
+</table>
+
+<h3>What AI is NOT authorized to do</h3>
+<table>
+<tr><th>Prohibited action</th><th>Why</th><th>Enforcement mechanism</th></tr>
+<tr><td>Make significance determinations</td><td>Agency decision under NEPA</td><td>PROC-DDT-001 blocks decision verbs</td></tr>
+<tr><td>Select alternatives</td><td>Agency decision under NEPA</td><td>Not in pipeline scope. No prompt generates alternative selection.</td></tr>
+<tr><td>Draft FONSI language</td><td>Legal document requiring human authorship</td><td>Not in pipeline scope. Deliverable is analytical workbook, not decision document.</td></tr>
+<tr><td>Sign decision records</td><td>Authorized officer responsibility</td><td>Output is working paper. AR entry requires human action.</td></tr>
+<tr><td>Determine ESA take</td><td>FWS/NMFS authority under Section 7</td><td>Findings identify analysis gaps. They do not conclude whether take occurs.</td></tr>
+<tr><td>Approve or deny projects</td><td>Decision-maker authority</td><td>PROC-DDT-001 + pipeline scope limitation</td></tr>
+</table>
+
+<div class="note"><b>The design philosophy:</b> Human review is not a checkbox at the end. It is embedded at every stage. The intake questionnaire requires human domain knowledge. The deliverable is structured for human decision-making with options, tradeoffs, and consequences. The feedback loop feeds human corrections back into the system. The AI makes the human's job faster and more informed — it does not make the human's job unnecessary.</div>
+</div>
+
+<!-- ===== GOVERNANCE ===== -->
+<div id="governance" class="sec">
+<h2>Governance compliance</h2>
+<p>RIDGELINE was designed inside the governance framework, not retrofitted to it. Every architectural decision maps to a specific federal AI requirement.</p>
+
+<h3>Applicable governance authorities</h3>
+<table>
+<tr><th>Authority</th><th>Date</th><th>Scope</th><th>Status</th></tr>
+<tr><td>SO 3444 — Leading Interior's Path to AI Transformation</td><td>Sept 2025</td><td>DOI-wide AI governance, permitting efficiency, human oversight requirements</td><td style="color:var(--green)">Active</td></tr>
+<tr><td>EO 13960 — Promoting Trustworthy AI in Federal Government</td><td>Dec 2020</td><td>9 principles for trustworthy AI: lawful, purposeful, accurate, safe, understandable, responsible, regularly monitored, transparent, accountable</td><td style="color:var(--green)">Active</td></tr>
+<tr><td>OMB M-25-21 — Accelerating Federal Use of AI</td><td>Apr 2025</td><td>AI strategy, governance, innovation, data traceability, workforce, infrastructure</td><td style="color:var(--green)">Active</td></tr>
+<tr><td>OMB M-25-22 — Driving Efficient Acquisition of AI</td><td>Apr 2025</td><td>Procurement pathways, vendor disclosures, FedRAMP requirements</td><td style="color:var(--green)">Active</td></tr>
+<tr><td>OMB M-26-04 — Increasing Public Trust (Unbiased AI Principles)</td><td>Dec 2025</td><td>LLM-specific guidance, bias prevention, vendor compliance disclosures</td><td style="color:var(--green)">Active</td></tr>
+<tr><td>EO 14148 — Removing Barriers to American AI Leadership</td><td>Jan 2025</td><td>Rescinded EO 14110. Pro-innovation posture, reduced regulatory barriers.</td><td style="color:var(--green)">Active</td></tr>
+<tr><td>NIST AI Risk Management Framework (AI RMF 1.0)</td><td>Jan 2023</td><td>Voluntary framework: Govern, Map, Measure, Manage. Reference standard for state laws and federal guidance.</td><td style="color:var(--green)">Active (voluntary)</td></tr>
+<tr><td>AI in Government Act of 2020</td><td>Dec 2020</td><td>Federal AI competency, training, use case inventories</td><td style="color:var(--green)">Active</td></tr>
+<tr><td>Advancing American AI Act</td><td>Dec 2022</td><td>Agency AI governance plans, risk assessment, public reporting</td><td style="color:var(--green)">Active</td></tr>
+</table>
+
+<h3>EO 13960 — Trustworthy AI principles compliance</h3>
+<p>Executive Order 13960 establishes nine principles for federal AI use. RIDGELINE maps to each:</p>
+<table>
+<tr><th>Principle</th><th>Requirement</th><th>RIDGELINE implementation</th></tr>
+<tr><td style="font-weight:600">(a) Lawful</td><td>AI must respect applicable law, including constitutional, statutory, and regulatory protections</td><td>PROC-DDT-001 enforces disclosure/decision boundary at verb level. AI operates within NEPA analytical authority only. Does not infringe on decision-maker prerogatives.</td></tr>
+<tr><td style="font-weight:600">(b) Purposeful</td><td>AI use must have defined and documented purpose</td><td>Each pipeline stage has documented purpose in system_architecture (20 rows) and pipeline_procedures (6 locked). Purpose: reduce litigation risk through pre-decisional analysis.</td></tr>
+<tr><td style="font-weight:600">(c) Accurate</td><td>AI outputs must be demonstrably accurate and reliable</td><td>22 QC methods including hallucination mitigation, intercoder reliability, keyword anchoring, cross-model verification. Production validated: 3/8 fatal flaws overlap with existing federal complaint.</td></tr>
+<tr><td style="font-weight:600">(d) Safe</td><td>AI must not pose undue risk to safety</td><td>AI handles analytical pre-screening only. No autonomous actions. All outputs are working papers for human review. PROC-DDT-001 prevents decision-level outputs.</td></tr>
+<tr><td style="font-weight:600">(e) Understandable</td><td>AI operations must be sufficiently understandable to allow human oversight</td><td>Full citation chain: finding → family → cluster → rule → source page. Full debate transcripts in deliverable. 45 registered methodologies with version tracking.</td></tr>
+<tr><td style="font-weight:600">(f) Responsible</td><td>Designated officials must be responsible for AI use</td><td>Planner decision columns (ACCEPT/DENY/REVISE) with rationale required. feedback_log tracks reviewer_id on every disposition. Human owns every output.</td></tr>
+<tr><td style="font-weight:600">(g) Regularly monitored</td><td>AI systems must be regularly tested and evaluated</td><td>PS-06d QC Validation runs 16 automated checks on every production run. 54 lessons learned feed back into methodology refinement. Methodology versions tracked (19 version records).</td></tr>
+<tr><td style="font-weight:600">(h) Transparent</td><td>Agencies must be transparent about AI use</td><td>All model configurations, prompt versions, and run metadata documented in primary_review_runs. Versioned prompts in agent_prompts table (24 prompts, 10 locked). Any run reproducible.</td></tr>
+<tr><td style="font-weight:600">(i) Accountable</td><td>Agencies must be accountable for AI outputs</td><td>Audit trail: run_id, timestamp, model pins, token counts, finding dispositions. feedback_log with legal_review_flag. Planner rationale required on DENY/REVISE decisions.</td></tr>
+</table>
+
+<h3>SO 3444 — DOI-specific requirements</h3>
+<table>
+<tr><th>SO 3444 requirement</th><th>RIDGELINE implementation</th><th>Evidence</th></tr>
+<tr><td>Human in the loop for AI-assisted decisions</td><td>Mandatory planner decision gate on every finding. Nothing enters AR without explicit human approval.</td><td>human_reviewed, human_disposition fields in primary_review_findings. Planner columns in deliverable.</td></tr>
+<tr><td>AI use in environmental review and permitting</td><td>CTA pipeline processes public comments. Adversarial pipeline stress-tests EAs. Both directly support NEPA permitting workflow.</td><td>9 projects processed (CTA), 1 full adversarial production run (LC).</td></tr>
+<tr><td>Explainability requirements</td><td>Full citation chain from every finding to source page. Full debate transcript. No black-box outputs.</td><td>99% page citation coverage. source_doc_id + source_section + page_citation on every rule.</td></tr>
+<tr><td>Reproducibility requirements</td><td>Versioned prompts pulled from agent_prompts at runtime. Deterministic pipeline routing. Model configurations documented.</td><td>24 prompts in agent_prompts table, 10 locked. DS-NOTEBOOK-v5 locked architecture.</td></tr>
+<tr><td>AI limited to authorized functions</td><td>Authorized: document management, text mining, comment clustering, pattern detection, precedent review. PROC-DDT-001 blocks unauthorized functions.</td><td>Permitted/prohibited verb lists. Pipeline scope excludes significance findings, alternative selection, final decisions.</td></tr>
+<tr><td>Streamlined environmental reviews</td><td>CTA pipeline reduces comment processing from weeks to hours. Adversarial pipeline identifies vulnerabilities before decisions, preventing post-decision litigation delays.</td><td>$23/project cost. 234 responses generated. 8 fatal flaws caught pre-decision on LC project.</td></tr>
+</table>
+
+<h3>OMB M-25-21 — Accelerating Federal AI</h3>
+<table>
+<tr><th>M-25-21 requirement</th><th>RIDGELINE implementation</th></tr>
+<tr><td>Develop AI strategy addressing infrastructure and workforce</td><td>SUMMIT framework provides domain-agnostic infrastructure. Workforce: one analyst operates the full pipeline. Training materials buildable from documented methodologies.</td></tr>
+<tr><td>Facilitate AI investment or procurement</td><td>Enterprise cost projections documented: $11,300/yr for national BLM deployment. Three deployment options pre-configured (Bedrock, Direct API, Azure). Model routing with fallback chains.</td></tr>
+<tr><td>Ensure access to quality data and data traceability</td><td>124 database tables. Full traceability from finding to source page. 82 methodology sources cited. 10,000+ pages of source documents with structured metadata.</td></tr>
+<tr><td>Promote trust of AI systems</td><td>Multi-model adversarial architecture prevents single-model bias. 22 QC methods. Human override at every stage. Disclosure/Decision Test guardrail.</td></tr>
+<tr><td>Develop generative AI policy with safeguards and oversight</td><td>9-stage pipeline with embedded human gates. PROC-DDT-001 as automated guardrail. Feedback loop for continuous improvement. Policy compliance documented per finding.</td></tr>
+</table>
+
+<h3>OMB M-26-04 — Unbiased AI Principles (LLM-specific)</h3>
+<table>
+<tr><th>Requirement</th><th>RIDGELINE implementation</th></tr>
+<tr><td>LLM outputs must not reflect political, ideological, or viewpoint bias</td><td>Multi-vendor adversarial architecture forces balanced analysis. Protagonist and antagonist argue opposing positions — neither side dominates. Arbiter applies published legal standards, not opinion.</td></tr>
+<tr><td>Agencies should require vendor disclosures on AI capabilities and limitations</td><td>Model configurations documented per role. Token limits, context windows, temperature settings stored in summit_model_routing. Fallback chains defined for each deployment option.</td></tr>
+<tr><td>Updated disclosures when integrating new AI enhancements</td><td>Methodology versions tracked (19 version records). Prompt versions locked and timestamped. system_architecture updated per session.</td></tr>
+</table>
+
+<h3>NIST AI Risk Management Framework mapping</h3>
+<table>
+<tr><th>NIST function</th><th>Description</th><th>RIDGELINE implementation</th></tr>
+<tr><td style="font-weight:600">GOVERN</td><td>Policies, processes, procedures, and practices for AI risk management</td><td>45 registered methodologies. 6 locked pipeline procedures. PROC-DDT-001 as non-negotiable guardrail. Session protocol (PROC-SESSION-001). Methodology registry with status tracking.</td></tr>
+<tr><td style="font-weight:600">MAP</td><td>Context, capability, and risk identification</td><td>Domain catalog identifying where SUMMIT applies. Intake questionnaire (6 questions) maps project-specific risk. 10 attack categories from 387 appellate cases. Threat scoring 0-10.</td></tr>
+<tr><td style="font-weight:600">MEASURE</td><td>Assessment, analysis, and monitoring of AI risks</td><td>22 QC methods. Intercoder reliability testing. Extraction confidence scoring. Hallucination detection. Cross-model verification. 16 automated validation checks per run.</td></tr>
+<tr><td style="font-weight:600">MANAGE</td><td>Risk treatment, monitoring, and response</td><td>Severity recalibration (PS-06a). Finding classification (PS-06b). Advisor recommendations with fix options (PS-06c). Cascade detection for compound risk (PS-06e). Feedback loop (PS-09) for continuous improvement.</td></tr>
+</table>
+
+<h3>Litigation risk governance (NEPA-specific)</h3>
+<table>
+<tr><th>Risk</th><th>Source</th><th>RIDGELINE mitigation</th></tr>
+<tr><td>AI-generated content enters AR without oversight</td><td>Hard look doctrine — agency must demonstrate reasoned analysis</td><td>Nothing enters AR without human approval. AI outputs are working papers, not record documents. Planner decision gate enforced.</td></tr>
+<tr><td>Opaque AI tool creates litigation vulnerability</td><td>9th Circuit — agencies must show their work</td><td>Full citation chain. Debate transcripts available. Model configurations documented. Any finding can be traced to source page and re-run.</td></tr>
+<tr><td>AI makes significance determination</td><td>NEPA requires human judgment on significance</td><td>PROC-DDT-001 blocks decision verbs. Pipeline scope explicitly excludes significance findings. No FONSI language generated.</td></tr>
+<tr><td>Inconsistent AI outputs across projects</td><td>APA — similar situations treated similarly</td><td>Versioned prompts and standardized pipeline. Same methodology applied to every project. Methodology registry ensures consistency.</td></tr>
+<tr><td>AI hallucination creates false record</td><td>Administrative record integrity</td><td>METH-HALLUC-001 hallucination mitigation stack. QC-SRC-001 source support gate. Hallucinated citations auto-rejected before advisor stage.</td></tr>
+</table>
+
+<div class="note"><b>The governance position:</b> RIDGELINE is not an AI tool that needs governance bolted on. It is a governance-compliant analytical methodology that uses AI as the execution layer. The governance framework was the starting constraint, not an afterthought. Every architectural decision — multi-model separation, disclosure/decision boundary, human gates, citation chains, version tracking — exists because a specific federal requirement demanded it.</div>
+</div>
+
+<!-- ===== PLATFORM ARCHITECTURE ===== -->
+<div id="platform" class="sec">
+<h2>Platform architecture</h2>
+<p>RIDGELINE is a cartridge inside the LEGION multi-model orchestration framework. Nine applications across four layers, with clear separation between session work (design, analysis) and pipeline execution (automated runs).</p>
+
+<div class="note"><b>LEGION</b> is the domain-agnostic orchestration framework. RIDGELINE is the first cartridge. The framework handles model routing, credential management, and pipeline staging. Additional cartridges can be built for other compliance domains without modifying the core framework.</div>
+
+<h3>How platforms connect</h3>
+
+<div class="zn">
+<div class="zl">Session layer - design, analysis, prompt engineering</div>
+<div class="cd" onclick="tc(this)">
+<div class="ch"><span class="cv">&#9654;</span><span class="cn">Claude.ai (Opus 4.6)</span><span class="cm"><span class="tg t-se">ARCHITECT</span></span></div>
+<div class="cb"><b>Role:</b> All architecture design, prompt engineering, DB schema, strategic analysis, session management<br><b>Runs:</b> PS-04 Rule Extraction (via Agent 3B prompts in session), DB management, deliverable design, system_architecture updates<br><b>Connects to:</b> Supabase (MCP direct), Google Drive (search/fetch tools), GitHub (bash)<br><b>Session protocol:</b> Pull session_handoff + document_manifest + system_architecture at start. Write summary at end.<br><b>Key distinction:</b> This is the intelligence layer that designs and maintains the system. Cannot run automated pipeline (no Drive API in sandbox).</div>
+</div>
+</div>
+
+<div class="fl">&darr; Prompts, schemas, and configs stored in Supabase &darr;</div>
+
+<div class="zn">
+<div class="zl">Execution layer - automated pipeline runs</div>
+<div class="cd" onclick="tc(this)">
+<div class="ch"><span class="cv">&#9654;</span><span class="cn">Google Colab</span><span class="cm"><span class="tg t-ex">RUNTIME</span></span></div>
+<div class="cb"><b>Role:</b> Pipeline execution. Runs Phase 1 scan, Phase 2 adversarial debates, post-processing, deliverable generation.<br><b>Architecture:</b> DS-NOTEBOOK-v5, 8-cell layout (deps/creds, config, P1 scan, P2 adversarial, extraction, cascade, deliverable, export)<br><b>Runs:</b> PS-05b Phase 1, PS-06 Adversarial Debate, PS-06a-e Post-processing, PROC-EXT/DEL deliverables<br><b>Why Colab:</b> Claude Code sandbox blocks Google Drive API. Colab has native Drive access.<br><b>Credentials:</b> Colab Secrets (supabase_service_key, openai_key, ANTHROPIC_API_KEY). Drive SA key and GitHub PAT in Supabase legion_secrets.<br><b>Pulls code from:</b> GitHub at session start<br><b>Enterprise swap:</b> Any Python runtime with outbound API access (EC2, Azure VM, Lambda)</div>
+</div>
+</div>
+
+<div class="fl">&darr; API calls to AI models &darr;</div>
+
+<div class="zn">
+<div class="zl">AI model layer - multi-vendor by design</div>
+<div class="zg z3">
+<div class="cd" onclick="tc(this)">
+<div class="ch"><span class="cv">&#9654;</span><span class="cn">OpenAI API</span><span class="cm"><span class="tg t-ai">GPT-5.4</span></span></div>
+<div class="cb"><b>Role:</b> Protagonist agent (R1 attack + R2 rebuttal)<br><b>Per run:</b> 774 calls, 8.4M input, 483K output<br><b>Why different vendor:</b> Adversarial tension. A same-vendor model softens protagonist arguments. GPT-5.4 generates aggressive, creative attacks that Claude would self-moderate.<br><b>Called from:</b> Colab via openai SDK<br><b>Enterprise swap:</b> Any non-Anthropic model on Bedrock (Llama, Mistral)</div>
+</div>
+<div class="cd" onclick="tc(this)">
+<div class="ch"><span class="cv">&#9654;</span><span class="cn">Anthropic API</span><span class="cm"><span class="tg t-ai">SONNET 4.6</span></span></div>
+<div class="cb"><b>Role:</b> Antagonist agent (R1 + R2), Finding classification (PS-06b), Advisor recommendations (PS-06c), Cascade narrative<br><b>Per run:</b> 1,548 calls, 9.8M input, 667K output<br><b>Why Sonnet:</b> Cost-effective for high-volume antagonist and post-processing. Reliable structured JSON output.<br><b>Called from:</b> Colab via anthropic SDK</div>
+</div>
+<div class="cd" onclick="tc(this)">
+<div class="ch"><span class="cv">&#9654;</span><span class="cn">Anthropic API</span><span class="cm"><span class="tg t-ai">OPUS 4.6</span></span></div>
+<div class="cb"><b>Role:</b> Phase 1 broad scan (PS-05b), Arbiter (PS-06 escalation, 6.5% rate)<br><b>Per run:</b> 412 calls, 2.4M input, 198K output<br><b>Why Opus:</b> Authoritative judgment for scanning and arbiter decisions. Higher reasoning capability for severity assessment.<br><b>Called from:</b> Colab via anthropic SDK</div>
+</div>
+</div>
+</div>
+
+<div class="fl">&darr; All results written to database &darr;</div>
+
+<div class="zn">
+<div class="zl">Data layer - persistent storage</div>
+<div class="zg z2">
+<div class="cd" onclick="tc(this)">
+<div class="ch"><span class="cv">&#9654;</span><span class="cn">Supabase PostgreSQL</span><span class="cm"><span class="tg t-st">DATABASE</span></span></div>
+<div class="cb"><b>Project:</b> uojjoraxzmzwuilmndlu<br><b>Scale:</b> 124 tables, ~11,600+ records<br><b>Central hub:</b> Everything reads from and writes to Supabase. Rules, clusters, findings, comments, prompts, methodologies, procedures, session handoffs, architecture registry, secrets.<br><b>Text stores:</b> ea_text_store (1,692 sections, 4.6M chars), source_text_store (2,741 pages, 7.4M chars)<br><b>Accessed by:</b> Colab (Python SDK), Claude.ai (Supabase MCP), Dashboard (REST API)<br><b>Enterprise swap:</b> AWS RDS or Azure PostgreSQL in GovCloud</div>
+</div>
+<div class="cd" onclick="tc(this)">
+<div class="ch"><span class="cv">&#9654;</span><span class="cn">Google Drive</span><span class="cm"><span class="tg t-st">DOCUMENTS</span></span></div>
+<div class="cb"><b>Role:</b> PDF storage for all source documents<br><b>Scale:</b> 55 documents, 4,341 pages<br><b>Service account:</b> feedback-agent@enduring-grid-489820-j6.iam.gserviceaccount.com<br><b>GCP project:</b> enduring-grid-489820-j6<br><b>Flow:</b> PDFs uploaded to Drive. Colab extracts text via PyPDF2 (PS-01). Text stored in Supabase. Claude.ai searches/fetches docs for session analysis.<br><b>Enterprise swap:</b> S3 or Azure Blob Storage</div>
+</div>
+</div>
+</div>
+
+<div class="fl">&darr; Code repository and public outputs &darr;</div>
+
+<div class="zn">
+<div class="zl">Code + delivery layer</div>
+<div class="zg z3">
+<div class="cd" onclick="tc(this)">
+<div class="ch"><span class="cv">&#9654;</span><span class="cn">GitHub</span><span class="cm"><span class="tg t-ho">CODE</span></span></div>
+<div class="cb"><b>Repo:</b> Dr-Chris-Long/ridgeline.git (private, PAT required)<br><b>Scale:</b> 54 Python files, 10 modules, 7,456 source + 4,811 test lines<br><b>Modules:</b> adversarial, compliance, db, intake, pipeline, qc, reference_db, reports, codebook, merge<br><b>Usage:</b> Colab pulls code at session start. Claude.ai clones for analysis via bash.<br><b>Enterprise swap:</b> GitLab, Azure DevOps, or DOI repository</div>
+</div>
+<div class="cd" onclick="tc(this)">
+<div class="ch"><span class="cv">&#9654;</span><span class="cn">GitHub Pages</span><span class="cm"><span class="tg t-ho">DASHBOARD</span></span></div>
+<div class="cb"><b>URL:</b> dr-chris-long.github.io/ridgeline-dashboard/<br><b>Repo:</b> Dr-Chris-Long/ridgeline-dashboard<br><b>Scale:</b> 2,837 lines, 88KB single HTML file<br><b>Features:</b> Live Supabase data via REST API, Chart.js visualizations, SheetJS Excel export<br><b>Enterprise swap:</b> Internal web server or SharePoint</div>
+</div>
+<div class="cd" onclick="tc(this)">
+<div class="ch"><span class="cv">&#9654;</span><span class="cn">Excel exports</span><span class="cm"><span class="tg t-ho">DELIVERABLE</span></span></div>
+<div class="cb"><b>CTA:</b> 8-tab workbook (Comments, References, Codes, Codebook, Themes, Responses, Validity, Summary)<br><b>Adversarial:</b> 8-tab solicitor-ready workbook (Snapshot, Rule Violations, Missing Analysis, Inadequate, Full Debate, Cascades, P1 Scan, Planner Decision)<br><b>Spec:</b> PROC-DEL-001 (locked, versioned)</div>
+</div>
+</div>
+</div>
+
+<h3>Stage-to-platform mapping</h3>
+<table>
+<tr><th>Pipeline stage</th><th>Platform</th><th>Model</th><th>Automated?</th></tr>
+<tr><td>PS-01 Source document intake</td><td>Colab + Claude.ai</td><td>SDI agent (session) + PyPDF2</td><td>Semi-auto</td></tr>
+<tr><td>PS-02 Comment intake</td><td>Claude.ai</td><td>Sonnet (session)</td><td>Session</td></tr>
+<tr><td>PS-03 Thematic analysis</td><td>Claude.ai</td><td>Sonnet (session)</td><td>Session</td></tr>
+<tr><td>PS-04 Rule extraction</td><td>Claude.ai</td><td>Agent 3B (session)</td><td>Session</td></tr>
+<tr><td>PS-05 Rule selection</td><td>Claude.ai</td><td>None (questionnaire)</td><td>Session</td></tr>
+<tr><td>PS-05b Phase 1 scan</td><td>Colab</td><td>Opus 4.6 (API)</td><td>Automated</td></tr>
+<tr><td>PS-06 Adversarial debate</td><td>Colab</td><td>GPT-5.4 + Sonnet + Opus (API)</td><td>Automated</td></tr>
+<tr><td>PS-06a Severity recalibration</td><td>Supabase</td><td>None (SQL)</td><td>Automated</td></tr>
+<tr><td>PS-06b Classification</td><td>Colab</td><td>Sonnet 4.6 (API)</td><td>Automated</td></tr>
+<tr><td>PS-06c Advisor</td><td>Colab</td><td>Sonnet 4.6 (API)</td><td>Automated</td></tr>
+<tr><td>PS-06d QC validation</td><td>Colab</td><td>Deterministic (16 checks)</td><td>Automated</td></tr>
+<tr><td>PS-06e Cascade detection</td><td>Colab</td><td>Deterministic + Sonnet narrative</td><td>Automated</td></tr>
+<tr><td>PROC-EXT-001 Extraction</td><td>Colab</td><td>Sonnet 4.6 (API)</td><td>Automated</td></tr>
+<tr><td>PROC-DEL-001 Deliverable</td><td>Colab + Claude.ai</td><td>None (format spec)</td><td>Semi-auto</td></tr>
+</table>
+</div>
+
+<!-- ===== PIPELINE ===== -->
+<div id="pipeline" class="sec">
+<h2>Pipeline architecture</h2>
+<p>Two parallel pipelines share a common document intake layer. Click any stage for details.</p>
+
+<h3>Shared infrastructure</h3>
+<div class="cd" onclick="tc(this)">
+<div class="ch"><span class="cv">&#9654;</span><span class="ci">PS-01</span><span class="cn">Source document intake</span><span class="cm"><span class="tg t-se">SESSION + PYPDF2</span></span></div>
+<div class="cb"><b>Platform:</b> Claude.ai (SDI agent for section indexing) + Colab (PyPDF2 for text extraction)<br><b>Input:</b> EA PDFs from Google Drive<br><b>Output:</b> ea_documents, ea_text_store, ea_section_index<br><b>Agent:</b> SDI-SYSTEM-v1/v2, SDI-USER-TEMPLATE-v1/v2 (self-discovering section structure)<br><b>Scale:</b> 8 docs, 1,692 pages, 188 sections indexed<br><b>Cost:</b> Minimal (session tokens only, no API pipeline calls)</div>
+</div>
+
+<div class="pt">
+<div>
+<div class="th2 cta">CTA pipeline (~$8/project)</div>
+<div class="cd" onclick="tc(this)">
+<div class="ch"><span class="cv">&#9654;</span><span class="ci">PS-02</span><span class="cn">Comment intake</span><span class="cm"><span class="tg t-se">SESSION</span></span></div>
+<div class="cb"><b>Platform:</b> Claude.ai sessions<br><b>Prompt:</b> P1v8.0 + batch merge P1.5v2.0<br><b>Schema:</b> 22-column structured output with PII detection<br><b>Scale:</b> 111 comments, 1,601 codes, 958 references<br><b>Cost:</b> ~$2 per project (session tokens)</div>
+</div>
+<div class="pa">&darr;</div>
+<div class="cd" onclick="tc(this)">
+<div class="ch"><span class="cv">&#9654;</span><span class="ci">PS-03</span><span class="cn">Thematic analysis</span><span class="cm"><span class="tg t-se">SESSION</span></span></div>
+<div class="cb"><b>Platform:</b> Claude.ai sessions<br><b>Method:</b> Boyatzis (1998) Codebook Thematic Analysis<br><b>Scale:</b> 111 themes, 1,109 unique concerns<br><b>Cost:</b> ~$3 per project</div>
+</div>
+<div class="pa">&darr;</div>
+<div class="cd" onclick="tc(this)">
+<div class="ch"><span class="cv">&#9654;</span><span class="ci">NAID</span><span class="cn">Response generation</span><span class="cm"><span class="tg t-se">SESSION</span></span></div>
+<div class="cb"><b>Platform:</b> Claude.ai sessions<br><b>Scale:</b> 243 structured responses across 9 projects<br><b>Deliverable:</b> 8-tab CTA workbook + live dashboard<br><b>Cost:</b> ~$3 per project</div>
+</div>
+</div>
+
+<div>
+<div class="th2 adv">Adversarial pipeline (~$15/project)</div>
+<div class="cd" onclick="tc(this)">
+<div class="ch"><span class="cv">&#9654;</span><span class="ci">PS-04</span><span class="cn">Rule extraction</span><span class="cm"><span class="tg t-se">SESSION</span></span></div>
+<div class="cb"><b>Platform:</b> Claude.ai sessions using Agent 3B prompts<br><b>Method:</b> METH-RULES-001 Compliance Rules Distillation v1.4<br><b>Agent:</b> A3B-SYSTEM-SDA-v2 (866 tokens), chunked + standard user templates<br><b>Scale:</b> 2,967 rules from 11 source authorities, page citations preserved<br><b>Not an API pipeline call:</b> Rules distilled during session work, stored to Supabase</div>
+</div>
+<div class="pa">&darr;</div>
+<div class="cd" onclick="tc(this)">
+<div class="ch"><span class="cv">&#9654;</span><span class="ci">PS-05</span><span class="cn">Rule selection</span><span class="cm"><span class="tg t-no">QUESTIONNAIRE</span></span></div>
+<div class="cb"><b>Platform:</b> Claude.ai sessions<br><b>6-question intake:</b> Q1: not proposed actions (~174 eliminated). Q2: operational details (~185). Q3: species absent (~124). Q4: geographic exclusions (~154). Q5: consultation scope (~1,500 at stake). Q6: litigation context.<br><b>~637 rules eliminable before BiOp questions</b></div>
+</div>
+<div class="pa">&darr;</div>
+<div class="cd" onclick="tc(this)">
+<div class="ch"><span class="cv">&#9654;</span><span class="ci">CLUSTER</span><span class="cn">Obligation clustering + families</span><span class="cm"><span class="tg t-se">SESSION</span></span></div>
+<div class="cb"><b>Platform:</b> Claude.ai sessions using RC-SYS-v1 (655 tokens)<br><b>Input:</b> 2,967 filtered rules<br><b>Output:</b> 390 obligation clusters (8.5:1 compression). 39 obligation families deduplicating 157 clusters across sources. Total: 263 debate units (39 families + 224 standalone). 11.2:1 compression from raw rules.</div>
+</div>
+<div class="pa">&darr;</div>
+<div class="cd" onclick="tc(this)">
+<div class="ch"><span class="cv">&#9654;</span><span class="ci">PS-05b</span><span class="cn">Phase 1 broad scan</span><span class="cm"><span class="tg t-ai">OPUS (API)</span><span class="tg t-pl">COLAB</span></span></div>
+<div class="cb"><b>Platform:</b> Google Colab (automated)<br><b>Model:</b> Opus 4.6 via API<br><b>Prompt:</b> P1-SYS-v1 (264 tokens)<br><b>Input:</b> 5,264 tokens per unit (system + EA excerpt + cluster data)<br><b>Output:</b> Severity, confidence, Phase 2 candidate list<br><b>LC validation:</b> 15 RED, 25 YELLOW, 0 GREEN. 4/6 ground truth.<br><b>Cost:</b> ~$12 for full scan</div>
+</div>
+<div class="pa">&darr;</div>
+<div class="cd" onclick="tc(this)">
+<div class="ch"><span class="cv">&#9654;</span><span class="ci">PS-06</span><span class="cn">Adversarial debate</span><span class="cm"><span class="tg t-ai">MULTI-MODEL</span><span class="tg t-pl">COLAB</span></span></div>
+<div class="cb"><b>Platform:</b> Google Colab (automated)<br><b>R1 Plaintiff:</b> GPT-5.4 via OpenAI API (10,272 in / 265 out)<br><b>R1 Defense:</b> Sonnet 4.6 via Anthropic API (7,823 in / 165 out)<br><b>R2 Plaintiff:</b> GPT-5.4 (11,400 in / 983 out)<br><b>R2 Defense:</b> Sonnet 4.6 (12,400 in / 858 out)<br><b>Arbiter:</b> Opus 4.6 (14,000 in / 160 out) - invoked 6.5%<br><b>Consensus rule:</b> RED from plaintiff NEVER reaches consensus<br><b>Production:</b> 387 debates, 2,734 API calls<br><b>Cost:</b> ~$3</div>
+</div>
+<div class="pa">&darr;</div>
+<div class="cd" onclick="tc(this)">
+<div class="ch"><span class="cv">&#9654;</span><span class="ci">PS-06a-e</span><span class="cn">Post-debate processing</span><span class="cm"><span class="tg t-ai">SONNET</span><span class="tg t-sq">SQL</span><span class="tg t-pl">COLAB</span></span></div>
+<div class="cb"><b>Platform:</b> Colab (automated) + Supabase (SQL)<br><b>PS-06a:</b> Severity recalibration (SQL only, zero tokens)<br><b>PS-06b:</b> Finding type classification - Sonnet per finding (2K/200)<br><b>PS-06c:</b> Advisor recommendation - Sonnet per finding (3K/500)<br><b>PS-06d:</b> QC validation - 16 deterministic checks<br><b>PS-06e:</b> Cascade chain detection - 12 CDRs (deterministic) + Sonnet narrative<br><b>Cost:</b> ~$2</div>
+</div>
+</div>
+</div>
+
+<h3>Deliverables</h3>
+<div class="pt">
+<div>
+<div class="cd" onclick="tc(this)" style="border-color:var(--accent)">
+<div class="ch"><span class="cv">&#9654;</span><span class="cn">CTA dashboard + workbook</span></div>
+<div class="cb"><b>Dashboard:</b> dr-chris-long.github.io/ridgeline-dashboard/<br><b>Workbook:</b> 8 tabs<br><b>234 responses across 9 projects</b></div>
+</div>
+</div>
+<div>
+<div class="cd" onclick="tc(this)" style="border-color:var(--red)">
+<div class="ch"><span class="cv">&#9654;</span><span class="cn">Solicitor-ready deliverable</span></div>
+<div class="cb"><b>Format:</b> PROC-DEL-001 (locked)<br><b>8 tabs with planner decision columns</b><br><b>LC result:</b> 8 fatal flaws (3 overlapping complaint, 5 novel)</div>
+</div>
+</div>
+</div>
+
+<h3>Planned stages (not yet built)</h3>
+<table>
+<tr><th>Stage</th><th>Description</th><th>Status</th></tr>
+<tr><td>PS-07 Feedback</td><td>Human confirmation gates. Disposition tracking. SO 3444 compliance.</td><td>Planned</td></tr>
+<tr><td>PS-08 Response tracking</td><td>Maps findings to EA sections and AR documents. Identifies AR gaps.</td><td>Planned</td></tr>
+<tr><td>PS-09 Recursive feedback</td><td>Review outcomes refine compliance rules. 54 lessons learned accumulated.</td><td>Planned</td></tr>
+</table>
+</div>
+
+<!-- ===== TOKEN USAGE ===== -->
+<div id="tokens" class="sec">
+<h2>Token usage and costs</h2>
+
+<h3>Per debate unit (single obligation cluster)</h3>
+<table>
+<tr><th>Stage</th><th>Model</th><th>Platform</th><th class="r">Input</th><th class="r">Output</th><th>Frequency</th></tr>
+<tr><td>Plaintiff R1</td><td>GPT-5.4</td><td>Colab</td><td class="r m">10,272</td><td class="r m">265</td><td>Every debate</td></tr>
+<tr><td>Defense R1</td><td>Sonnet 4.6</td><td>Colab</td><td class="r m">7,823</td><td class="r m">165</td><td>Every debate</td></tr>
+<tr><td>Plaintiff R2</td><td>GPT-5.4</td><td>Colab</td><td class="r m">11,400</td><td class="r m">983</td><td>Most debates</td></tr>
+<tr><td>Defense R2</td><td>Sonnet 4.6</td><td>Colab</td><td class="r m">12,400</td><td class="r m">858</td><td>Most debates</td></tr>
+<tr><td>Arbiter</td><td>Opus 4.6</td><td>Colab</td><td class="r m">14,000</td><td class="r m">160</td><td>6.5% of debates</td></tr>
+<tr><td>Classification</td><td>Sonnet 4.6</td><td>Colab</td><td class="r m">2,000</td><td class="r m">200</td><td>Every finding</td></tr>
+<tr><td>Advisor</td><td>Sonnet 4.6</td><td>Colab</td><td class="r m">3,000</td><td class="r m">500</td><td>Every finding</td></tr>
+<tr><td>Phase 1 scan</td><td>Opus 4.6</td><td>Colab</td><td class="r m">5,264</td><td class="r m">500</td><td>Every unit</td></tr>
+</table>
+<p>Max context window per call: ~14,000 tokens. Min requirement: 32K. No call approaches limits of any current model.</p>
+
+<h3>Full production run (Last Chance, 387 debate units)</h3>
+<table>
+<tr><th>Model</th><th class="r">Calls</th><th class="r">Input</th><th class="r">Output</th><th class="r">Combined</th></tr>
+<tr><td>GPT-5.4 (plaintiff)</td><td class="r m">774</td><td class="r m">8.4M</td><td class="r m">483K</td><td class="r m">8.9M</td></tr>
+<tr><td>Sonnet 4.6 (defense + post)</td><td class="r m">1,548</td><td class="r m">9.8M</td><td class="r m">667K</td><td class="r m">10.5M</td></tr>
+<tr><td>Opus 4.6 (scan + arbiter)</td><td class="r m">412</td><td class="r m">2.4M</td><td class="r m">198K</td><td class="r m">2.6M</td></tr>
+<tr style="font-weight:700"><td>All models</td><td class="r m">2,734</td><td class="r m">20.6M</td><td class="r m">1.35M</td><td class="r m">22M</td></tr>
+</table>
+
+<h3>Prompt inventory (24 prompts, 12 agents)</h3>
+<table>
+<tr><th>Prompt</th><th>Agent</th><th class="r">Tokens</th></tr>
+<tr><td>PA-SYS-v1 (Plaintiff system - dual mode)</td><td>plaintiff_agent</td><td class="r m">3,416</td></tr>
+<tr><td>AR-SYS-v1 (Arbiter/Advisor - candor rule)</td><td>arbiter_agent</td><td class="r m">2,025</td></tr>
+<tr><td>SDI-SYSTEM-v2 (Doc intake - multi-domain)</td><td>source_document_intake</td><td class="r m">1,405</td></tr>
+<tr><td>DA-SYS-v1 (Defense - EA hardening + kill shots)</td><td>defense_agent</td><td class="r m">1,055</td></tr>
+<tr><td>A3B-SYSTEM-SDA-v2 (Rule extraction - BiOp variant)</td><td>AGENT_3B</td><td class="r m">866</td></tr>
+<tr><td>DM0-SYS-v1 (Defense Mode 0 - record scanner)</td><td>defense_mode0</td><td class="r m">668</td></tr>
+<tr><td>RC-SYS-v1 (Rule clustering)</td><td>rule_clustering</td><td class="r m">655</td></tr>
+<tr><td>PA-USER-v1 (Plaintiff user template)</td><td>plaintiff_agent</td><td class="r m">540</td></tr>
+<tr><td>+ 16 additional prompts</td><td>various</td><td class="r m">6,193</td></tr>
+<tr style="font-weight:700"><td>Total</td><td>12 agents</td><td class="r m">16,823</td></tr>
+</table>
+
+<h3>Enterprise cost projections</h3>
+<div class="cs">
+<div class="cc">
+<h4>By scale</h4>
+<div class="cr"><span>Single district (10 projects/yr)</span><span>$226</span></div>
+<div class="cr"><span>Oregon BLM (12 districts)</span><span>$2,712</span></div>
+<div class="cr"><span>National BLM (500 projects)</span><span>$11,300</span></div>
+<div class="cr"><span>All DOI bureaus (2,000 projects)</span><span>$45,200</span></div>
+</div>
+<div class="cc">
+<h4>Context</h4>
+<div class="cr"><span>One GS-11 (salary + benefits)</span><span>~$95,000/yr</span></div>
+<div class="cr"><span>National deployment</span><span>$11,300/yr</span></div>
+<div class="cr"><span>% of one position</span><span>11.9%</span></div>
+<div class="cr"><span>Per project</span><span>$23</span></div>
+</div>
+</div>
+</div>
+
+<!-- ===== DEPLOYMENT ===== -->
+<div id="deploy" class="sec">
+<h2>Deployment options</h2>
+<p>Three options mapped to platforms DOI is currently evaluating. Each shows the full architecture flow from analyst to deliverable.</p>
+
+<!-- OPTION A -->
+<div class="op rec">
+<div class="oh"><div class="ol oa">A</div><div><div class="on">Amazon Bedrock (AWS GovCloud)</div><div class="or">RECOMMENDED</div></div></div>
+
+<div class="arch-flow">
+<div class="af-boundary" style="border-color:var(--green)">
+<div class="af-blabel" style="color:var(--green)">AWS GovCloud - FedRAMP High - Single ATO</div>
+
+<div class="af-row">
+<div class="af-box af-user">DOI analyst<span class="af-sub">PIV/CAC via IAM</span></div>
+</div>
+<div class="af-arrow">&darr;</div>
+
+<div class="af-row">
+<div class="af-box af-compute">EC2 or Lambda<span class="af-sub">Python runtime (replaces Colab)</span><span class="af-sub">Pulls code from CodeCommit or GitHub</span></div>
+</div>
+<div class="af-arrow">&darr; Bedrock API calls &darr;</div>
+
+<div class="af-row af-row3">
+<div class="af-box af-model" style="border-color:var(--red)">Llama 3 or Mistral<span class="af-sub">PROTAGONIST</span><span class="af-sub">Different model family</span></div>
+<div class="af-box af-model" style="border-color:var(--accent)">Claude Sonnet<span class="af-sub">ANTAGONIST + ADVISOR</span><span class="af-sub">Post-processing</span></div>
+<div class="af-box af-model" style="border-color:var(--purple)">Claude Opus<span class="af-sub">P1 SCAN + ARBITER</span><span class="af-sub">Authoritative judgment</span></div>
+</div>
+<div class="af-arrow">&darr; Results &darr;</div>
+
+<div class="af-row af-row3">
+<div class="af-box af-data">RDS PostgreSQL<span class="af-sub">124 tables (replaces Supabase)</span></div>
+<div class="af-box af-data">S3<span class="af-sub">PDFs + source docs (replaces Drive)</span></div>
+<div class="af-box af-data">CloudWatch<span class="af-sub">Audit trail (SO 3444)</span></div>
+</div>
+<div class="af-arrow">&darr;</div>
+
+<div class="af-row af-row2">
+<div class="af-box af-out">S3 static site<span class="af-sub">Dashboard (replaces GitHub Pages)</span></div>
+<div class="af-box af-out">Excel export<span class="af-sub">Solicitor-ready workbook</span></div>
+</div>
+</div>
+
+<div class="af-verdict af-good">
+<b>Adversarial integrity:</b> Preserved. Llama/Mistral protagonist vs Claude antagonist = true multi-family separation through single FedRAMP authorization.<br>
+<b>Migration effort:</b> Low. Swap API endpoints from OpenAI/Anthropic direct to Bedrock. All prompts, schemas, and pipeline logic transfer unchanged.<br>
+<b>Pre-decisional safety:</b> All data stays within GovCloud boundary. No external API calls leaving government network.<br>
+<b>DOI alignment:</b> Bedrock, Q, and Kiro already on DOI evaluation list.
+</div>
+</div>
+
+<!-- OPTION B -->
+<div class="op">
+<div class="oh"><div class="ol ob">B</div><div class="on">Direct multi-vendor API</div></div>
+
+<div class="arch-flow">
+<div class="af-row">
+<div class="af-box af-user">DOI analyst<span class="af-sub">PIV/CAC via DOI SSO</span></div>
+</div>
+<div class="af-arrow">&darr;</div>
+
+<div class="af-boundary" style="border-color:var(--accent)">
+<div class="af-blabel" style="color:var(--accent)">DOI network - compute + data</div>
+<div class="af-row">
+<div class="af-box af-compute">EC2 or Azure VM<span class="af-sub">Python runtime (replaces Colab)</span></div>
+</div>
+<div class="af-row af-row2" style="margin-top:8px">
+<div class="af-box af-data">RDS or Azure PostgreSQL<span class="af-sub">Database (replaces Supabase)</span></div>
+<div class="af-box af-data">S3 or Azure Blob<span class="af-sub">Documents (replaces Drive)</span></div>
+</div>
+</div>
+<div class="af-arrow">&darr; API calls cross FedRAMP boundaries &darr;</div>
+
+<div class="af-row af-row3">
+<div class="af-boundary-sm" style="border-color:var(--red)">
+<div class="af-blabel" style="color:var(--red);font-size:9px">ATO #1 - Azure OpenAI</div>
+<div class="af-box af-model" style="border-color:var(--red)">GPT-5.4<span class="af-sub">PROTAGONIST</span></div>
+</div>
+<div class="af-boundary-sm" style="border-color:var(--accent)">
+<div class="af-blabel" style="color:var(--accent);font-size:9px">ATO #2 - Anthropic</div>
+<div class="af-box af-model" style="border-color:var(--accent)">Sonnet + Opus<span class="af-sub">ANTAGONIST + ARBITER</span></div>
+</div>
+<div class="af-boundary-sm" style="border-color:var(--amber)">
+<div class="af-blabel" style="color:var(--amber);font-size:9px">ATO #3 - Google (optional)</div>
+<div class="af-box af-model" style="border-color:var(--amber)">Gemini<span class="af-sub">ADDITIONAL FAMILY</span></div>
+</div>
+</div>
+<div class="af-arrow">&darr;</div>
+<div class="af-row af-row2">
+<div class="af-box af-out">Internal dashboard</div>
+<div class="af-box af-out">Excel export</div>
+</div>
+
+<div class="af-verdict af-warn">
+<b>Adversarial integrity:</b> Maximum. Exact current architecture. True multi-vendor separation.<br>
+<b>Migration effort:</b> Minimal. Current codebase runs unchanged. Swap Colab for VM.<br>
+<b>Pre-decisional safety:</b> Data leaves DOI network for each API call. Each vendor needs data handling agreement.<br>
+<b>Risk:</b> Three separate ATOs required. Pre-decisional documents transit three external boundaries. Longest approval timeline.
+</div>
+</div>
+
+<!-- OPTION C -->
+<div class="op">
+<div class="oh"><div class="ol oc">C</div><div class="on">Single vendor (Microsoft Azure)</div></div>
+
+<div class="arch-flow">
+<div class="af-boundary" style="border-color:var(--amber)">
+<div class="af-blabel" style="color:var(--amber)">Azure GovCloud - FedRAMP High - Single ATO</div>
+
+<div class="af-row">
+<div class="af-box af-user">DOI analyst<span class="af-sub">Azure AD + PIV/CAC</span></div>
+</div>
+<div class="af-arrow">&darr;</div>
+
+<div class="af-row af-row2">
+<div class="af-box af-compute">Azure Functions<span class="af-sub">Python runtime (replaces Colab)</span><span class="af-sub">Full API control</span></div>
+<div class="af-box af-compute" style="border-style:dashed;opacity:.7">Copilot Studio<span class="af-sub">Low-code alternative</span><span class="af-sub" style="color:var(--red)">May not support pipeline</span></div>
+</div>
+<div class="af-arrow">&darr; Azure OpenAI API &darr;</div>
+
+<div class="af-row af-row3">
+<div class="af-box af-model" style="border-color:var(--amber)">GPT-5.4<span class="af-sub">PROTAGONIST</span><span class="af-sub" style="color:var(--red)">Same vendor as antagonist</span></div>
+<div class="af-box af-model" style="border-color:var(--amber)">GPT-4o<span class="af-sub">ANTAGONIST</span><span class="af-sub" style="color:var(--red)">Same training data</span></div>
+<div class="af-box af-model" style="border-color:var(--amber)">GPT-5.4<span class="af-sub">ARBITER</span><span class="af-sub" style="color:var(--red)">Same family</span></div>
+</div>
+
+<div class="af-arrow">&darr;</div>
+<div class="af-row af-row3">
+<div class="af-box af-data">Azure PostgreSQL<span class="af-sub">Database</span></div>
+<div class="af-box af-data">Azure Blob<span class="af-sub">Documents</span></div>
+<div class="af-box af-data">Azure Monitor<span class="af-sub">Audit trail</span></div>
+</div>
+<div class="af-arrow">&darr;</div>
+<div class="af-row af-row2">
+<div class="af-box af-out">SharePoint or Power BI<span class="af-sub">Dashboard</span></div>
+<div class="af-box af-out">Excel export<span class="af-sub">Via Azure DevOps pipeline</span></div>
+</div>
+</div>
+
+<div class="af-verdict af-bad">
+<b>Adversarial integrity:</b> Degraded. All three debate roles use OpenAI models. Same vendor, same training methodology. Adversarial separation relies on model size differences (GPT-5.4 vs GPT-4o), not architectural independence. Plaintiff arguments will be softer.<br>
+<b>Migration effort:</b> Azure Functions path: moderate (swap endpoints, remap all roles to GPT variants). Copilot Studio path: high (rebuild multi-agent orchestration in low-code environment, may require architecture simplification).<br>
+<b>Pre-decisional safety:</b> Strong. Azure GovCloud, single boundary.<br>
+<b>Risk:</b> Fastest authorization path. Weakest analytical output. If DOI only authorizes Microsoft, this is the fallback.
+</div>
+</div>
+
+<h3>Infrastructure requirements</h3>
+<table>
+<tr><th>Requirement</th><th>Specification</th></tr>
+<tr><td>API access</td><td>Programmatic API with system prompts, structured JSON, temperature control. Chat-tier insufficient.</td></tr>
+<tr><td>Context window</td><td>32K minimum. 128K preferred. No current call exceeds 14K.</td></tr>
+<tr><td>Rate limits</td><td>~2,734 calls/project. 10 concurrent analysts = ~27K calls. Enterprise agreements required.</td></tr>
+<tr><td>Database</td><td>Managed PostgreSQL in GovCloud. 124 tables current.</td></tr>
+<tr><td>Compute</td><td>Python runtime with API access. No GPU. t3.medium or equivalent.</td></tr>
+<tr><td>Auth</td><td>PIV/CAC or DOI SSO. Role-based access.</td></tr>
+<tr><td>Audit</td><td>Run logging per SO 3444: user, timestamp, project, model, tokens, disposition.</td></tr>
+</table>
+
+<h3>Policy compliance</h3>
+<table>
+<tr><th>Requirement</th><th>Status</th></tr>
+<tr><td>SO 3444</td><td>Compliant. All outputs explainable, reproducible, human-reviewed.</td></tr>
+<tr><td>DOI Secretary AI order</td><td>Compliant. Analysis only. No significance findings, alternative selection, or final decisions.</td></tr>
+<tr><td>Disclosure/Decision boundary</td><td>Enforced. PROC-DDT-001 screens all recommendations. Prohibited verbs auto-rejected.</td></tr>
+<tr><td>Administrative record</td><td>Nothing enters AR without human review and approval.</td></tr>
+</table>
+</div>
+
+</div>
+<div class="footer">RIDGELINE &mdash; Dr. Chris Long, DBA &mdash; BLM Medford District Office &mdash; April 2026</div>
+<script>
+function tab(id){document.querySelectorAll('.sec').forEach(s=>s.classList.remove('a'));document.querySelectorAll('.nb').forEach(b=>b.classList.remove('a'));document.getElementById(id).classList.add('a');event.target.classList.add('a');window.scrollTo(0,0)}
+function tc(el){el.classList.toggle('o')}
+</script>
+</body>
+</html>
