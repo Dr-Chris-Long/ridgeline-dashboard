@@ -652,7 +652,7 @@ function buildSummary() {
   const crit=FINDINGS.filter(f=>f.s==='R'&&f.u).sort((a,b)=>{
     const o={'FIX_NOW':0,'FIX_BEFORE_DECISION':1};return(o[a.u]??9)-(o[b.u]??9);
   });
-  document.querySelector('#critical-table tbody').innerHTML=crit.map(f=>`<tr>
+  document.querySelector('#critical-table tbody').innerHTML=crit.map(f=>`<tr class="expandable" onclick="showDetailFromSummary('${f.i}')" title="Click to open full finding detail in Findings Explorer">
     <td style="font-family:var(--mono);font-size:12px;">${esc(f.i)}</td>
     <td>${esc(f.c.replace(/_/g,' '))}</td>
     <td>${esc(f.o)}</td>
@@ -663,7 +663,7 @@ function buildSummary() {
 
   // AR Gaps
   const gaps=FINDINGS.filter(f=>f.g&&f.ad).sort((a,b)=>SEV_ORDER.indexOf(a.s)-SEV_ORDER.indexOf(b.s));
-  document.querySelector('#argap-table tbody').innerHTML=gaps.slice(0,40).map(f=>`<tr>
+  document.querySelector('#argap-table tbody').innerHTML=gaps.slice(0,40).map(f=>`<tr class="expandable" onclick="showDetailFromSummary('${f.i}')" title="Click to open full finding detail in Findings Explorer">
     <td><span class="sev sev-${f.s}">${SEV_LABELS[f.s]}</span></td>
     <td style="font-family:var(--mono);font-size:12px;">${esc(f.i)}</td>
     <td style="font-size:12px;">${esc(f.ad)}</td>
@@ -851,6 +851,18 @@ function goExplorer(opts){
   document.getElementById('f-type').value=opts.type||'';
   document.getElementById('f-search').value=opts.search||'';
   filterFindings();
+}
+function showDetailFromSummary(id){
+  // Cross-tab entry: jump to Explorer, clear any active filters so the finding is visible in the table,
+  // then force-show the detail panel (bypass showDetail's toggle-off-if-same-id behavior).
+  goExplorer({});
+  const panel=document.getElementById('finding-detail');
+  panel.dataset.current='';
+  panel.style.display='none';
+  showDetail(id);
+  // Scroll the corresponding row into view in the explorer table
+  const row=document.querySelector('#explorer-table tbody tr[onclick*="\''+id+'\'"]');
+  if(row){row.scrollIntoView({behavior:'smooth',block:'center'});row.style.transition='background 0.4s';const prev=row.style.background;row.style.background='rgba(88,166,255,0.15)';setTimeout(()=>{row.style.background=prev;},1500);}
 }
 function goTab(tabId){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
