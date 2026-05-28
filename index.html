@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RIDGELINE — BLM NEPA Compliance Analysis System</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#0d1117;--bg2:#161b22;--bg3:#21262d;--border:#30363d;
+  --text:#e6edf3;--text2:#8b949e;--text3:#484f58;
+  --accent:#58a6ff;--red:#f85149;--yellow:#d29922;--green:#3fb950;
+  --mono:'IBM Plex Mono',monospace;--sans:'IBM Plex Sans',-apple-system,sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column;align-items:center}
+.header{text-align:center;padding:80px 24px 40px;max-width:800px}
+.header h1{font-family:var(--mono);font-size:42px;font-weight:700;letter-spacing:2px;margin-bottom:8px;background:linear-gradient(135deg,var(--accent) 0%,#a78bfa 50%,var(--accent) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.header .subtitle{font-size:16px;color:var(--text2);font-weight:300;letter-spacing:0.5px}
+.header .org{margin-top:16px;font-size:12px;color:var(--text3);font-family:var(--mono)}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(380px,1fr));gap:20px;max-width:900px;width:100%;padding:0 24px 60px}
+.dash-card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:32px;text-decoration:none;color:var(--text);transition:all 0.25s ease;display:flex;flex-direction:column;gap:16px;position:relative;overflow:hidden}
+.dash-card:hover{border-color:var(--accent);transform:translateY(-2px);box-shadow:0 8px 32px rgba(88,166,255,0.1)}
+.dash-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
+.dash-card.primary::before{background:linear-gradient(90deg,var(--red),var(--yellow),var(--green))}
+.dash-card.cta::before{background:linear-gradient(90deg,var(--accent),#a78bfa)}
+.dash-card.system::before{background:linear-gradient(90deg,#3fb950,var(--accent))}
+.card-label{font-family:var(--mono);font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:1.5px}
+.card-title{font-size:22px;font-weight:600;line-height:1.3}
+.card-desc{font-size:14px;color:var(--text2);line-height:1.6}
+.card-stats{display:flex;gap:16px;flex-wrap:wrap;margin-top:4px}
+.card-stat{display:flex;flex-direction:column;gap:2px}
+.card-stat .val{font-family:var(--mono);font-size:20px;font-weight:600}
+.card-stat .lbl{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px}
+.card-tag{display:inline-block;font-family:var(--mono);font-size:11px;padding:3px 10px;border-radius:4px;background:var(--bg3);color:var(--text2)}
+.card-arrow{font-size:13px;color:var(--accent);font-weight:500;margin-top:auto;display:flex;align-items:center;gap:6px}
+.footer{padding:40px 24px;text-align:center;border-top:1px solid var(--border);width:100%;max-width:900px}
+.footer p{font-size:12px;color:var(--text3);line-height:1.8}
+.footer a{color:var(--accent);text-decoration:none}
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>RIDGELINE</h1>
+  <div class="subtitle">NEPA Compliance Analysis System</div>
+  <div class="org">Bureau of Land Management · Medford District Office</div>
+</div>
+<div class="cards">
+  <a href="primary-review.html" class="dash-card primary">
+    <span class="card-label">Adversarial Compliance Review</span>
+    <span class="card-title">Primary Review Dashboard</span>
+    <span class="card-desc">Multi-model adversarial analysis of EA compliance against 390 regulatory obligation clusters. Identifies litigation vulnerabilities, cascade chains, and fix recommendations.</span>
+    <div class="card-stats">
+      <div class="card-stat"><span class="val" style="color:var(--red);">63</span><span class="lbl">RED Findings</span></div>
+      <div class="card-stat"><span class="val" style="color:var(--yellow);">297</span><span class="lbl">YELLOW</span></div>
+      <div class="card-stat"><span class="val" style="color:var(--green);">27</span><span class="lbl">GREEN/GRAY</span></div>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      <span class="card-tag">Last Chance FMP</span>
+      <span class="card-tag">Run: 2822839a</span>
+      <span class="card-tag">Apr 13, 2026</span>
+    </div>
+    <span class="card-arrow">Open Dashboard →</span>
+  </a>
+  <a href="cta.html" class="dash-card cta">
+    <span class="card-label">Comment &amp; Thematic Analysis</span>
+    <span class="card-title">CTA Dashboard</span>
+    <span class="card-desc">Public comment processing, thematic coding, and reference extraction across the Butte Falls timber project family. Live Supabase data across 8 completed projects.</span>
+    <div class="card-stats">
+      <div class="card-stat"><span class="val" style="color:var(--accent);">8</span><span class="lbl">Projects</span></div>
+      <div class="card-stat"><span class="val" style="color:var(--accent);">102</span><span class="lbl">Comments</span></div>
+      <div class="card-stat"><span class="val" style="color:var(--accent);">958</span><span class="lbl">References</span></div>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      <span class="card-tag">Butte Falls Family</span>
+      <span class="card-tag">Live Supabase</span>
+    </div>
+    <span class="card-arrow">Open Dashboard →</span>
+  </a>
+  <a href="system.html" class="dash-card system">
+    <span class="card-label">System Architecture &amp; Governance</span>
+    <span class="card-title">RIDGELINE System Overview</span>
+    <span class="card-desc">Complete platform inventory, SUMMIT framework architecture, methodologies, human oversight controls, governance compliance, deployment options, and token usage analysis.</span>
+    <div class="card-stats">
+      <div class="card-stat"><span class="val" style="color:var(--accent);">45</span><span class="lbl">Methods</span></div>
+      <div class="card-stat"><span class="val" style="color:var(--accent);">10K+</span><span class="lbl">Pages</span></div>
+      <div class="card-stat"><span class="val" style="color:var(--accent);">9</span><span class="lbl">Tabs</span></div>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      <span class="card-tag">SUMMIT Framework</span>
+      <span class="card-tag">SO 3444 Compliant</span>
+    </div>
+    <span class="card-arrow">Open Overview →</span>
+  </a>
+</div>
+<div class="footer">
+  <p>
+    RIDGELINE v1 · SUMMIT Orchestration Framework<br>
+    Pre-decisional internal review tool. Not a legal opinion. All findings require human review.<br>
+    AI use authorized under DOI policy for document management, text mining, pattern detection, and precedent review.<br>
+    <a href="https://github.com/Dr-Chris-Long/ridgeline-dashboard">GitHub Repository</a>
+  </p>
+</div>
+</body>
+</html>
