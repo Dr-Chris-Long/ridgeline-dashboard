@@ -1,4 +1,4 @@
-name: Dump primary-review nav structure
+name: Remove Methodology tab from primary-review
 on:
   workflow_dispatch:
   push:
@@ -7,34 +7,38 @@ on:
 permissions:
   contents: write
 jobs:
-  dump:
+  strip:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: Restore original and dump nav markup around each tab label
+      - name: Restore original and remove only the Methodology nav tab
         run: |
           set -e
           SRC=dee9b8ca15680993beacc2dcaa494a233c85c2c1
           git show "$SRC:primary-review.html" > primary-review.html
           python3 - <<'PY'
-          import re, pathlib
-          t = pathlib.Path("primary-review.html").read_text(encoding="utf-8", errors="replace")
-          out = ["size=%d" % len(t)]
-          labels = ["Findings Explorer","Cascade Chains","Likely in AR","Human Review","Categories","Methodology","Summary"]
-          for lab in labels:
-              idxs = [m.start() for m in re.finditer(re.escape(lab), t)]
-              out.append("\n=== %s : %d occurrence(s) at %s ===" % (lab, len(idxs), idxs[:10]))
-              for i in idxs[:3]:
-                  s = max(0, i-320); e = min(len(t), i+200)
-                  out.append(t[s:e].replace(chr(10), "\\n"))
-                  out.append("----")
-          pathlib.Path("nav_dump.txt").write_text("\n".join(out), encoding="utf-8")
-          print("\n".join(out)[:4000])
+          import pathlib
+          p = pathlib.Path("primary-review.html")
+          t = p.read_text(encoding="utf-8", errors="replace")
+          needle = '<div class="tab" data-page="methodology">Methodology</div>'
+          indented = '\n  ' + needle
+          rep = ["needle_count=%d" % t.count(needle), "size_before=%d" % len(t)]
+          if t.count(indented) == 1:
+              t = t.replace(indented, "", 1); rep.append("ACTION=removed_tab_with_indent")
+          elif t.count(needle) == 1:
+              t = t.replace(needle, "", 1); rep.append("ACTION=removed_tab")
+          else:
+              rep.append("ACTION=HELD_unexpected_count")
+          p.write_text(t, encoding="utf-8")
+          rep.append("size_after=%d" % len(t))
+          pathlib.Path("methodology_strip_report.txt").write_text("\n".join(rep), encoding="utf-8")
+          print("\n".join(rep))
           PY
+          rm -f nav_dump.txt
           git config user.name "github-actions"
           git config user.email "actions@github.com"
-          git add primary-review.html nav_dump.txt
-          git commit -m "Restore original primary-review.html and dump nav structure for surgical Methodology-tab removal"
+          git add -A
+          git commit -m "Remove Methodology tab from primary-review.html (nav tab only; everything else byte-identical)"
           git push
