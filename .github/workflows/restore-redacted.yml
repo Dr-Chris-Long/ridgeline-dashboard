@@ -1,20 +1,23 @@
-name: Restore pre-takedown dashboards (redacted)
+name: Restore pre-takedown dashboards
 
 on:
   workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/restore-redacted.yml'
 
 permissions:
   contents: write
 
 jobs:
-  redact:
+  restore:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout full history
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: Recover from pre-takedown commit, redact, commit
+      - name: Recover originals, scrub leak literals (keep functional), commit
         run: |
           set -e
           SRC=dee9b8ca15680993beacc2dcaa494a233c85c2c1
@@ -23,18 +26,17 @@ jobs:
           done
           python3 - <<'PY'
           import re, pathlib
+          # Scrub genuine leak literals only. Do NOT touch the Supabase URL/project ref
+          # or the anon key -- the dashboards need them to load live data.
           LITERALS = [
-            "uojjoraxzmzwuilmndlu", "enduring-grid-489820-j6",
+            "enduring-grid-489820-j6",
             "KS Wild", "Klamath-Siskiyou Wildlands", "Klamath Siskiyou",
             "Katherine", "Karen", "GS-11",
             "SUMMIT", "domain-agnostic engine", "cartridge",
             "summit_domain_catalog", "summit_role_definitions", "summit_source_authority_types",
             "summit_framework_bindings", "summit_model_routing", "summit_intake_templates", "summit_deliverable_specs",
           ]
-          REGEXES = [
-            (re.compile(r"eyJ[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}"), "key/JWT"),
-            (re.compile(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]*gserviceaccount\.com"), "service-account-email"),
-          ]
+          SA = re.compile(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]*gserviceaccount\.com")
           rep = []
           for name in ["cta.html", "last-chance-2.html", "primary-review.html"]:
             p = pathlib.Path(name)
@@ -45,17 +47,16 @@ jobs:
               if n:
                 t = t.replace(lit, "[REDACTED]")
                 c[lit] = n
-            for rx, lab in REGEXES:
-              t, n = rx.subn("[REDACTED]", t)
-              if n:
-                c[lab] = c.get(lab, 0) + n
+            t, n = SA.subn("[REDACTED]", t)
+            if n:
+              c["service-account-email"] = n
             p.write_text(t, encoding="utf-8")
-            rep.append(name + ": " + (", ".join("%s=%d" % (k, v) for k, v in c.items()) or "NO MATCHES"))
+            rep.append(name + ": " + (", ".join("%s=%d" % (k, v) for k, v in c.items()) or "clean"))
           pathlib.Path("REDACTION_REPORT.txt").write_text("\n".join(rep) + "\n", encoding="utf-8")
           print("\n".join(rep))
           PY
           git config user.name "github-actions"
           git config user.email "actions@github.com"
           git add cta.html last-chance-2.html primary-review.html REDACTION_REPORT.txt
-          git commit -m "Recover cta/last-chance-2/primary-review (redacted); system.html omitted (methodology)"
+          git commit -m "Restore original dashboards (cta, last-chance-2, primary-review); methodology/PII scrubbed; system.html omitted"
           git push
