@@ -1,0 +1,39 @@
+name: Restore original primary-review and locate methodology tab
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/strip-methodology.yml'
+permissions:
+  contents: write
+jobs:
+  prep:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Restore original primary-review.html and dump nav/methodology context
+        run: |
+          set -e
+          SRC=dee9b8ca15680993beacc2dcaa494a233c85c2c1
+          git show "$SRC:primary-review.html" > primary-review.html
+          python3 - <<'PY'
+          import re, pathlib
+          t = pathlib.Path("primary-review.html").read_text(encoding="utf-8", errors="replace")
+          out=["file_size=%d" % len(t)]
+          ms=list(re.finditer(r'[Mm]ethodolog', t))
+          out.append("methodology_occurrences=%d" % len(ms))
+          for m in ms[:60]:
+              s=max(0,m.start()-200); e=min(len(t),m.end()+200)
+              out.append("@%d :: %s" % (m.start(), t[s:e].replace(chr(10),"\\n")))
+          for m in re.finditer(r'(VW\s*=\s*\[|const\s+nav\b|id="nav"|class="nav)', t):
+              s=max(0,m.start()-20); e=min(len(t),m.end()+700)
+              out.append("NAVDEF@%d :: %s" % (m.start(), t[s:e].replace(chr(10),"\\n")))
+          pathlib.Path("methodology_context.txt").write_text("\n\n".join(out), encoding="utf-8")
+          PY
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git add primary-review.html methodology_context.txt
+          git commit -m "Restore original primary-review.html; dump methodology/nav context for surgical tab removal"
+          git push
