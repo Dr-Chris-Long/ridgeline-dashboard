@@ -1,0 +1,3 @@
+cta.html: clean
+last-chance-2.html: KS Wild=10
+primary-review.html: clean
