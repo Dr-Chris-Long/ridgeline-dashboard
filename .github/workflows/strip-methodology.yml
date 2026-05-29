@@ -1,4 +1,4 @@
-name: Restore original primary-review and strip Methodology tab
+name: Dump primary-review nav structure
 on:
   workflow_dispatch:
   push:
@@ -7,45 +7,34 @@ on:
 permissions:
   contents: write
 jobs:
-  strip:
+  dump:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: Restore original and surgically remove the Methodology nav tab
+      - name: Restore original and dump nav markup around each tab label
         run: |
           set -e
           SRC=dee9b8ca15680993beacc2dcaa494a233c85c2c1
           git show "$SRC:primary-review.html" > primary-review.html
           python3 - <<'PY'
           import re, pathlib
-          p = pathlib.Path("primary-review.html")
-          t = p.read_text(encoding="utf-8", errors="replace")
-          rep = ["size_before=%d" % len(t)]
-          # Show every nav-label hit for verification
-          ctx = []
-          for m in re.finditer(r'l:\s*["\']Methodolog[^"\']*["\']', t):
-              s=max(0,m.start()-160); e=min(len(t),m.end()+160)
-              ctx.append("@%d :: %s" % (m.start(), t[s:e].replace(chr(10),"\\n")))
-          rep.append("nav_label_hits=%d" % len(ctx)); rep += ctx
-          # Safe surgical removal: a flat nav object literal carrying l:"Methodology"
-          pat = re.compile(r',?\s*\{[^{}]*l:\s*["\']Methodolog[^{}]*\}')
-          hits = pat.findall(t)
-          rep.append("nav_object_matches=%d" % len(hits))
-          if len(hits) == 1:
-              t = pat.sub("", t, count=1)
-              t = t.replace("[,", "[").replace(",,", ",").replace(",]", "]")
-              rep.append("ACTION=removed_methodology_nav_object")
-          else:
-              rep.append("ACTION=held (original restored, NOT modified) - need exact markup")
-          p.write_text(t, encoding="utf-8")
-          rep.append("size_after=%d" % len(t))
-          pathlib.Path("methodology_strip_report.txt").write_text("\n".join(rep), encoding="utf-8")
-          print("\n".join(rep))
+          t = pathlib.Path("primary-review.html").read_text(encoding="utf-8", errors="replace")
+          out = ["size=%d" % len(t)]
+          labels = ["Findings Explorer","Cascade Chains","Likely in AR","Human Review","Categories","Methodology","Summary"]
+          for lab in labels:
+              idxs = [m.start() for m in re.finditer(re.escape(lab), t)]
+              out.append("\n=== %s : %d occurrence(s) at %s ===" % (lab, len(idxs), idxs[:10]))
+              for i in idxs[:3]:
+                  s = max(0, i-320); e = min(len(t), i+200)
+                  out.append(t[s:e].replace(chr(10), "\\n"))
+                  out.append("----")
+          pathlib.Path("nav_dump.txt").write_text("\n".join(out), encoding="utf-8")
+          print("\n".join(out)[:4000])
           PY
           git config user.name "github-actions"
           git config user.email "actions@github.com"
-          git add primary-review.html methodology_strip_report.txt
-          git commit -m "Restore original primary-review.html; remove Methodology nav tab (surgical, everything else unchanged)"
+          git add primary-review.html nav_dump.txt
+          git commit -m "Restore original primary-review.html and dump nav structure for surgical Methodology-tab removal"
           git push
