@@ -1,0 +1,39 @@
+name: Repoint CTA dashboard to PII-masked comments view
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/repoint-cta.yml'
+permissions:
+  contents: write
+jobs:
+  repoint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Repoint comments source to masked view
+        run: |
+          set -e
+          python3 - <<'PY'
+          import pathlib
+          p = pathlib.Path("cta.html")
+          t = p.read_text(encoding="utf-8", errors="replace")
+          e1o = 'comments:"comment_id,project_id,author_name,submitter_org,comment_type,summary,substantive_confirmed,date_received,full_text"'
+          e1n = 'v_cta_comments_public:"comment_id,project_id,author_name,submitter_org,comment_type,summary,substantive_confirmed,date_received,full_text"'
+          e2o = 'e.forEach(([t],i)=>{DB[t]=r[i]});'
+          e2n = 'e.forEach(([t],i)=>{DB[t]=r[i]});DB.comments=DB.v_cta_comments_public||[];'
+          rep = ["e1_count=%d" % t.count(e1o), "e2_count=%d" % t.count(e2o)]
+          if t.count(e1o) == 1 and t.count(e2o) == 1:
+              t = t.replace(e1o, e1n, 1).replace(e2o, e2n, 1)
+              p.write_text(t, encoding="utf-8")
+              rep.append("ACTION=repointed_to_masked_view")
+          else:
+              rep.append("ACTION=HELD (cta.html unchanged - unexpected match count)")
+          pathlib.Path("cta_repoint_report.txt").write_text("\n".join(rep), encoding="utf-8")
+          print("\n".join(rep))
+          PY
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git add cta.html cta_repoint_report.txt
+          git commit -m "Repoint CTA comments source to PII-masked view v_cta_comments_public"
+          git push
