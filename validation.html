@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<!-- RIDGELINE demo — Validation & method (de-identified, public-safe). Real v5/v6 figures, static. No vendor/model names, no framework content. -->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Validation &amp; method — RIDGELINE</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav class="nav"><div class="wrap nav-inner">
+  <a class="brand" href="index.html">RIDGELINE<span class="dot">.</span></a>
+  <ul>
+    <li><a href="index.html">Overview</a></li>
+    <li><a href="findings.html">Findings</a></li>
+    <li><a href="cascades.html">Cascades</a></li>
+    <li><a href="validation.html" class="active">Validation</a></li>
+  </ul>
+</div></nav>
+
+<header class="phead">
+  <svg class="contour" viewBox="0 0 1080 200" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+    <path d="M-20,150 C200,118 380,168 580,128 C780,90 920,140 1100,100"/>
+    <path d="M-20,118 C200,86 380,138 580,96 C780,58 920,110 1100,70"/>
+    <path d="M-20,182 C200,150 380,200 580,160 C780,122 920,172 1100,132"/>
+  </svg>
+  <div class="wrap phead-inner rv">
+    <div class="eyebrow">View 03</div>
+    <h1>Validation &amp; method</h1>
+    <p class="psub">A capability is only defensible if it repeats. How the pipeline works, and how the results were reproduced under hardened controls.</p>
+  </div>
+</header>
+
+<main class="wrap">
+  <section>
+    <div class="kicker">Reproducibility</div>
+    <h2>The same architecture, twice</h2>
+    <div class="prose" style="margin-bottom:24px">
+      <p>A second-generation run rebuilt the pipeline on <strong>version-pinned code with full provenance capture</strong> and re-ran a scoped subset of the obligation library. It reproduced the same finding architecture — same severity calibration, same cascade structure — confirming the results are a property of the method, not of a single run.</p>
+    </div>
+    <div class="repro">
+      <div class="gen">
+        <div class="gtag">Generation v5 · baseline</div>
+        <h3>Full-record run</h3>
+        <div class="gsub">Complete obligation library</div>
+        <div class="gstat"><b>390</b> clusters evaluated</div>
+        <div class="gstat"><b>387</b> findings produced</div>
+        <div class="gstat"><b>63/297/27</b> RED / YELLOW / other</div>
+        <div class="gstat"><b>9</b> critical cascade chains</div>
+      </div>
+      <div class="gen">
+        <div class="gtag">Generation v6 · hardened</div>
+        <h3>Reproducibility run</h3>
+        <div class="gsub">Scoped subset · version-pinned code</div>
+        <div class="gstat"><b>40</b> findings produced</div>
+        <div class="gstat"><b>9/27/4</b> RED / YELLOW / GREEN</div>
+        <div class="gstat"><b>3</b> critical cascade chains</div>
+        <div class="gstat"><b>SHA</b> code pinned &amp; logged</div>
+      </div>
+    </div>
+    <p class="note">v6 is a scoped proof-of-concept by design; the smaller finding count reflects the narrowed subset, not weaker analysis. Both runs draw obligations and rules fresh from the governed corpus at runtime.</p>
+  </section>
+
+  <section>
+    <div class="kicker">How it works — high level</div>
+    <h2>Three independent roles, one adjudicated record</h2>
+    <div class="roles">
+      <div class="role"><div class="rn">ROLE 01</div><h4>Challenge</h4>
+        <p>An independent model argues the strongest case against the record — every weakness a sophisticated challenger would raise, with severity and confidence.</p></div>
+      <div class="role"><div class="rn">ROLE 02</div><h4>Defense</h4>
+        <p>A second model defends the document from the record itself, conceding nothing the administrative file can support and flagging genuine gaps.</p></div>
+      <div class="role"><div class="rn">ROLE 03</div><h4>Adjudication</h4>
+        <p>A third model resolves contested findings, assigns final severity, and characterizes obligations strictly from cited source text — never from memory.</p></div>
+    </div>
+    <div class="flow">draft record → challenge → defense → adjudication → severity-ranked findings + cascade map → <span style="color:var(--brass)">human review</span></div>
+  </section>
+
+  <section style="border-bottom:none">
+    <div class="kicker">Platform scale</div>
+    <h2>Built on a deep obligation base</h2>
+    <div class="scale">
+      <div class="scell"><div class="sn">3,000+</div><div class="sl">compliance rules</div></div>
+      <div class="scell"><div class="sn">300+</div><div class="sl">obligation clusters</div></div>
+      <div class="scell"><div class="sn">11,000+</div><div class="sl">pages of validation corpus</div></div>
+    </div>
+    <p class="note">Rules and obligation clusters are drawn from governing law, regulation, and agency direction; the validation corpus is the cumulative body of federal NEPA records analyzed during development.</p>
+  </section>
+</main>
+
+<footer><div class="wrap foot">
+  <p class="disc"><b>Pre-decisional internal review tool.</b> Not a legal opinion and not a determination of compliance. All findings require human review by qualified staff before any use. Figures shown are real results from de-identified prototype runs; project identity has been removed for this demonstration.</p>
+  <p>RIDGELINE · adversarial NEPA compliance analysis · capability demonstration<br>
+  AI use consistent with DOI policy for document management, text mining, and pattern detection. Human-in-the-loop on every finding.</p>
+</div></footer>
+
+</body>
+</html>

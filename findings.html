@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<!-- RIDGELINE demo — Findings (de-identified, public-safe). Real v5 figures, static. -->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Findings — RIDGELINE</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav class="nav"><div class="wrap nav-inner">
+  <a class="brand" href="index.html">RIDGELINE<span class="dot">.</span></a>
+  <ul>
+    <li><a href="index.html">Overview</a></li>
+    <li><a href="findings.html" class="active">Findings</a></li>
+    <li><a href="cascades.html">Cascades</a></li>
+    <li><a href="validation.html">Validation</a></li>
+  </ul>
+</div></nav>
+
+<header class="phead">
+  <svg class="contour" viewBox="0 0 1080 200" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+    <path d="M-20,150 C200,118 380,168 580,128 C780,90 920,140 1100,100"/>
+    <path d="M-20,118 C200,86 380,138 580,96 C780,58 920,110 1100,70"/>
+    <path d="M-20,182 C200,150 380,200 580,160 C780,122 920,172 1100,132"/>
+  </svg>
+  <div class="wrap phead-inner rv">
+    <div class="eyebrow">View 01</div>
+    <h1>Findings</h1>
+    <p class="psub">387 adjudicated findings from the full-record run, triaged by litigation exposure and mapped across the resource record.</p>
+  </div>
+</header>
+
+<main class="wrap">
+  <section>
+    <div class="kicker">Severity distribution</div>
+    <h2>Triaged by exposure, not volume</h2>
+    <div class="sevbar">
+      <span class="sev-red" style="flex-basis:16.3%">63</span>
+      <span class="sev-yel" style="flex-basis:76.7%">297</span>
+      <span class="sev-grn" style="flex-basis:3.9%">15</span>
+      <span class="sev-gry" style="flex-basis:3.1%">12</span>
+    </div>
+    <div class="sevkey">
+      <span><i style="background:var(--red)"></i>RED — high litigation exposure · 63</span>
+      <span><i style="background:var(--amber)"></i>YELLOW — record-strengthening warranted · 297</span>
+      <span><i style="background:var(--green)"></i>GREEN — defensible as written · 15</span>
+      <span><i style="background:var(--gray)"></i>GRAY — not applicable / out of scope · 12</span>
+    </div>
+    <p class="note">Severity is the adjudicated disposition after the defense round. RED ≈ 16% — calibrated toward realistic appellate-challenge rates rather than flagging everything. 25 contested findings escalated to adjudication; 190 carry a concrete fix recommendation.</p>
+  </section>
+
+  <section>
+    <div class="kicker">Coverage</div>
+    <h2>Findings span the full resource record</h2>
+    <div class="prose" style="margin-bottom:24px"><p>The run evaluated every resource area in the obligation library, not just the contested ones. Top areas by finding volume:</p></div>
+    <div class="cats">
+      <div class="cat"><div class="clab">ESA consultation</div><div class="ctrack"><div class="cfill" data-w="100"></div></div><div class="cval">60</div></div>
+      <div class="cat"><div class="clab">Northern spotted owl</div><div class="ctrack"><div class="cfill" data-w="67"></div></div><div class="cval">40</div></div>
+      <div class="cat"><div class="clab">Silviculture</div><div class="ctrack"><div class="cfill" data-w="57"></div></div><div class="cval">34</div></div>
+      <div class="cat"><div class="clab">Wildlife</div><div class="ctrack"><div class="cfill" data-w="45"></div></div><div class="cval">27</div></div>
+      <div class="cat"><div class="clab">Riparian</div><div class="ctrack"><div class="cfill" data-w="38"></div></div><div class="cval">23</div></div>
+      <div class="cat"><div class="clab">Hydrology</div><div class="ctrack"><div class="cfill" data-w="27"></div></div><div class="cval">16</div></div>
+      <div class="cat"><div class="clab">Fisheries</div><div class="ctrack"><div class="cfill" data-w="23"></div></div><div class="cval">14</div></div>
+      <div class="cat"><div class="clab">Fire &amp; fuels</div><div class="ctrack"><div class="cfill" data-w="20"></div></div><div class="cval">12</div></div>
+      <div class="cat"><div class="clab">Aquatic habitat</div><div class="ctrack"><div class="cfill" data-w="18"></div></div><div class="cval">11</div></div>
+      <div class="cat"><div class="clab">Transportation</div><div class="ctrack"><div class="cfill" data-w="17"></div></div><div class="cval">10</div></div>
+      <div class="cat"><div class="clab">Soils</div><div class="ctrack"><div class="cfill" data-w="15"></div></div><div class="cval">9</div></div>
+      <div class="cat"><div class="clab">Water quality</div><div class="ctrack"><div class="cfill" data-w="15"></div></div><div class="cval">9</div></div>
+    </div>
+    <p class="note">+ 122 additional findings across 31 further resource areas — recreation, roads &amp; access, cultural resources, grazing, minerals, air quality, monitoring, and more.</p>
+  </section>
+
+  <section style="border-bottom:none">
+    <div class="kicker">Reading a finding</div>
+    <h2>Every finding carries its own defense</h2>
+    <div class="prose">
+      <p>A finding is not a flag — it is an adjudicated record. Each one captures the challenger's argument, the agency's defense drawn from the administrative file, the adjudicated severity, and, where warranted, a concrete fix. Findings where the file genuinely answers the challenge resolve GREEN; the analysis concedes what the record supports.</p>
+      <p>That structure is what makes the output usable for <strong>strengthening the record</strong> rather than just listing risks — and what keeps it defensible as a pre-decisional internal aid.</p>
+    </div>
+  </section>
+</main>
+
+<footer><div class="wrap foot">
+  <p class="disc"><b>Pre-decisional internal review tool.</b> Not a legal opinion and not a determination of compliance. All findings require human review by qualified staff before any use. Figures shown are real results from a de-identified prototype run; project identity has been removed for this demonstration.</p>
+  <p>RIDGELINE · adversarial NEPA compliance analysis · capability demonstration<br>
+  AI use consistent with DOI policy for document management, text mining, and pattern detection. Human-in-the-loop on every finding.</p>
+</div></footer>
+
+<script>
+window.addEventListener('load',function(){requestAnimationFrame(function(){
+  document.querySelectorAll('.cat .cfill').forEach(function(el){el.style.width=(el.dataset.w||0)+'%';});
+});});
+</script>
+</body>
+</html>
