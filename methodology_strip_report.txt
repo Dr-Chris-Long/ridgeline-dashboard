@@ -1,5 +1,4 @@
+needle_count=1
 size_before=1179821
-nav_label_hits=0
-nav_object_matches=0
-ACTION=held (original restored, NOT modified) - need exact markup
-size_after=1179821
+ACTION=removed_tab_with_indent
+size_after=1179760
