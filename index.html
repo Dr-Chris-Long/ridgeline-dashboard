@@ -25,6 +25,7 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 .dash-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
 .dash-card.primary::before{background:linear-gradient(90deg,var(--red),var(--yellow),var(--green))}
 .dash-card.cta::before{background:linear-gradient(90deg,var(--accent),#a78bfa)}
+.dash-card.validation::before{background:linear-gradient(90deg,#3fb950,var(--accent))}
 .card-label{font-family:var(--mono);font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:1.5px}
 .card-title{font-size:22px;font-weight:600;line-height:1.3}
 .card-desc{font-size:14px;color:var(--text2);line-height:1.6}
@@ -46,10 +47,10 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
   <div class="org">Bureau of Land Management · Medford District Office</div>
 </div>
 <div class="cards">
-  <a href="findings.html" class="dash-card primary">
+  <a href="primary-review.html" class="dash-card primary">
     <span class="card-label">Adversarial Compliance Review</span>
     <span class="card-title">Primary Review Dashboard</span>
-    <span class="card-desc">Multi-model adversarial analysis of EA compliance against 390 regulatory obligation clusters. Identifies compliance vulnerabilities, cascade chains, and fix recommendations.</span>
+    <span class="card-desc">Multi-model adversarial analysis of EA compliance against the regulatory obligation-cluster library. Findings, cascade chains, and fix recommendations.</span>
     <div class="card-stats">
       <div class="card-stat"><span class="val" style="color:var(--red);">63</span><span class="lbl">RED Findings</span></div>
       <div class="card-stat"><span class="val" style="color:var(--yellow);">297</span><span class="lbl">YELLOW</span></div>
@@ -58,14 +59,13 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
     <div style="display:flex;gap:8px;flex-wrap:wrap;">
       <span class="card-tag">Last Chance FMP</span>
       <span class="card-tag">Run: 2822839a</span>
-      <span class="card-tag">Apr 13, 2026</span>
     </div>
     <span class="card-arrow">Open Dashboard →</span>
   </a>
   <a href="cta.html" class="dash-card cta">
     <span class="card-label">Comment &amp; Thematic Analysis</span>
-    <span class="card-title">Public Comments Dashboard</span>
-    <span class="card-desc">Public comment processing and thematic coding for the Butte Falls / Western Oregon EA. Static de-identified snapshot — no live data connection.</span>
+    <span class="card-title">CTA Dashboard</span>
+    <span class="card-desc">Public comment processing, thematic coding, and reference extraction across the Butte Falls timber project family.</span>
     <div class="card-stats">
       <div class="card-stat"><span class="val" style="color:var(--accent);">111</span><span class="lbl">Comments</span></div>
       <div class="card-stat"><span class="val" style="color:var(--accent);">103</span><span class="lbl">Themes</span></div>
@@ -73,7 +73,16 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
     </div>
     <div style="display:flex;gap:8px;flex-wrap:wrap;">
       <span class="card-tag">Butte Falls Family</span>
-      <span class="card-tag">Static snapshot</span>
+    </div>
+    <span class="card-arrow">Open Dashboard →</span>
+  </a>
+  <a href="last-chance-2.html" class="dash-card validation">
+    <span class="card-label">Cross-Run Validation</span>
+    <span class="card-title">Validation Dashboard</span>
+    <span class="card-desc">Cross-run validation view for the Last Chance analysis (v5 / v6 comparison and falsification checks).</span>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      <span class="card-tag">Last Chance</span>
+      <span class="card-tag">v5 / v6</span>
     </div>
     <span class="card-arrow">Open Dashboard →</span>
   </a>
