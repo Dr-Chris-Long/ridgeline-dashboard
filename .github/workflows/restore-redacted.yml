@@ -1,0 +1,61 @@
+name: Restore pre-takedown dashboards (redacted)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  redact:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout full history
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Recover from pre-takedown commit, redact, commit
+        run: |
+          set -e
+          SRC=dee9b8ca15680993beacc2dcaa494a233c85c2c1
+          for f in cta.html last-chance-2.html primary-review.html; do
+            git show "$SRC:$f" > "$f"
+          done
+          python3 - <<'PY'
+          import re, pathlib
+          LITERALS = [
+            "uojjoraxzmzwuilmndlu", "enduring-grid-489820-j6",
+            "KS Wild", "Klamath-Siskiyou Wildlands", "Klamath Siskiyou",
+            "Katherine", "Karen", "GS-11",
+            "SUMMIT", "domain-agnostic engine", "cartridge",
+            "summit_domain_catalog", "summit_role_definitions", "summit_source_authority_types",
+            "summit_framework_bindings", "summit_model_routing", "summit_intake_templates", "summit_deliverable_specs",
+          ]
+          REGEXES = [
+            (re.compile(r"eyJ[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}"), "key/JWT"),
+            (re.compile(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]*gserviceaccount\.com"), "service-account-email"),
+          ]
+          rep = []
+          for name in ["cta.html", "last-chance-2.html", "primary-review.html"]:
+            p = pathlib.Path(name)
+            t = p.read_text(encoding="utf-8", errors="replace")
+            c = {}
+            for lit in LITERALS:
+              n = t.count(lit)
+              if n:
+                t = t.replace(lit, "[REDACTED]")
+                c[lit] = n
+            for rx, lab in REGEXES:
+              t, n = rx.subn("[REDACTED]", t)
+              if n:
+                c[lab] = c.get(lab, 0) + n
+            p.write_text(t, encoding="utf-8")
+            rep.append(name + ": " + (", ".join("%s=%d" % (k, v) for k, v in c.items()) or "NO MATCHES"))
+          pathlib.Path("REDACTION_REPORT.txt").write_text("\n".join(rep) + "\n", encoding="utf-8")
+          print("\n".join(rep))
+          PY
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git add cta.html last-chance-2.html primary-review.html REDACTION_REPORT.txt
+          git commit -m "Recover cta/last-chance-2/primary-review (redacted); system.html omitted (methodology)"
+          git push
